@@ -1,4 +1,4 @@
-from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval
+from pybliometrics.scopus import AbstractRetrieval
 from ScopusQuery import GetDOIs
 import pandas as pd
 
