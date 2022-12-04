@@ -6,14 +6,15 @@ import pandas as pd
 MaxAuthors = 0
 #########################
 
-######### LISTS #########
+##### LISTS & DICS ######
+Row = {}
+DOIs = []
 Table = []
 Column = []
-DOIs = []
 Authors = []
+Subjects = []
 AuthorsTemp = []
 ColumnsNames =[]
-Subjects = []
 #########################
 
 #### SCOPUS SUBJECTS ####
@@ -34,29 +35,30 @@ for i in range(len(DOIs)):
         MaxAuthors = len(AbstractRetrieval(DOIs[i]).authors)
 ###########################################
 
-##### COLUMNS NAMES #####
+## TABLE INITIALIZATION ##
 ColumnsNames.append('DOI')
 for i in range(MaxAuthors):
-    ColumnsNames.append('Author ' + str(i+1))
-##########################
+    ColumnsNames.append('Author ' + str(i+1) + ' ID')
+    ColumnsNames.append('Author ' + str(i+1) + ' Name')
 
-# TABLES INITIALIZATION ##
-for i in range(len(DOIs)):
-    for j in range(MaxAuthors+1):
-        Column.append(' ')
-    Table.append(Column)
-    Column = []
-##########################
+TableDF = pd.DataFrame(columns=ColumnsNames)
+#########################
 
-#### INSERTING VALUES ####
+#### RETRIEVING DATA ####
 for i in range(len(DOIs)):
     NumAuthors = len(AbstractRetrieval(DOIs[i]).authors)
-    Table[i][0] = DOIs[i]
-    for j in range(1, NumAuthors+1):
-        Table[i][j] = str(AbstractRetrieval(DOIs[i]).authors[j-1][0])
-##########################
+    Row['DOI'] = str(DOIs[i])
+    for j in range(MaxAuthors):
+        if j < NumAuthors:
+            Row['Author ' + str(j+1) + ' ID'] = [str(AbstractRetrieval(DOIs[i]).authors[j][0])]
+            Row['Author ' + str(j+1) + ' Name'] = [AbstractRetrieval(DOIs[i]).authors[j][1]]
+        else:
+            Row['Author ' + str(j+1) + ' ID'] = [' ']
+            Row['Author ' + str(j+1) + ' Name'] = [' ']
+    
+    RowDF = pd.DataFrame(Row)
+    TableDF = pd.concat([TableDF, RowDF], axis = 0, ignore_index = True)
+    Row = {}
 
-#### EXTRACTING .XLSX ####
-FinalTable = pd.DataFrame(Table, columns=ColumnsNames)
-FinalTable.to_excel('Demo.xlsx')
-##########################
+TableDF.to_excel('Demo.xlsx')
+#########################
