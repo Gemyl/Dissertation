@@ -1,4 +1,5 @@
 from pybliometrics.scopus import AbstractRetrieval
+from sqlalchemy import create_engine
 from ScopusQuery import GetDOIs
 import pandas as pd
 
@@ -62,3 +63,11 @@ for i in range(len(DOIs)):
 
 TableDF.to_excel('Demo.xlsx')
 #########################
+
+
+engine = create_engine("mysql://{user}:{pw}@localhost/{db}"
+                       .format(user="root",
+                               pw="gemyl",
+                               db="george"))
+
+TableDF.to_sql('demo1', con=engine, if_exists='append',chunksize=1000)
