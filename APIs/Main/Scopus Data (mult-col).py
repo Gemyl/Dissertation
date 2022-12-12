@@ -9,12 +9,6 @@ MaxAuthors = 0
 
 ##### LISTS & DICS ######
 Row = {}
-DOIs = []
-Table = []
-Column = []
-Authors = []
-Subjects = []
-AuthorsTemp = []
 ColumnsNames =[]
 #########################
 
@@ -26,8 +20,10 @@ ColumnsNames =[]
 ##########################
 
 ##### GETTING DOIs ######
+Keywords = 'artificial intelligence'
 Subjects = ['SOCI']
-DOIs = GetDOIs(DOIs,Subjects)
+Years = '2022'
+DOIs = GetDOIs( Keywords, Years, Subjects)
 #########################
 
 # FINDING MAX NUMBER OF A PAPER'S AUTHORS #
@@ -60,14 +56,13 @@ for i in range(len(DOIs)):
     RowDF = pd.DataFrame(Row)
     TableDF = pd.concat([TableDF, RowDF], axis = 0, ignore_index = True)
     Row = {}
-
-TableDF.to_excel('Demo.xlsx')
 #########################
 
-
+# CONNECTION TO MySQL Server #
 engine = create_engine("mysql://{user}:{pw}@localhost/{db}"
                        .format(user="root",
                                pw="gemyl",
                                db="george"))
 
 TableDF.to_sql('demo1', con=engine, if_exists='append',chunksize=1000)
+##############################

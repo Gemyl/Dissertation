@@ -25,12 +25,12 @@ def GetDOIs(Keywords, YearsRange, Subjects):
     Scope = 'TITLE-ABS-KEY'
 
     Term1 = '( {python} )'
-    Term2 = '({' + Keywords + '})'
+    Term2 = '({' + str(Keywords) + '})'
     Terms = '( {} AND {} )'.format(Term1, Term2)
 
     ScopusAPIKey = '&apiKey=33a5ac626141313c10881a0db097b497'
 
-    Date = '&date=' + YearsRange
+    Date = '&date=' + str(YearsRange)
 
     Count = '&count=25'
 
