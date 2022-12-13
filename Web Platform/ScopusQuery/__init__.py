@@ -5,6 +5,21 @@ import pandas as pd
 import json
 
 
+def FormatKeywords(keywords):
+
+    keywords = keywords.split(', ')
+    keywordsList = '('
+    for i in range(len(keywords)):
+        if i == len(keywords)-1:
+            keywordsList = keywordsList + '{' + keywords[i] + '}'
+        else:
+            keywordsList = keywordsList + '{' + keywords[i] + '} ' + 'OR '
+    keywordsList = keywordsList + ')'
+    keywords = keywordsList
+
+    return keywords
+
+
 def ScopusSearch(url):
 
     req = get(url)
@@ -22,21 +37,21 @@ def ScopusSearch(url):
         print(req.status_code, Error['statusText'])
 
 
-def GetDOIs(Keywords, YearsRange, Subjects):
+def GetDOIs(keywords, yearsRange, subjects):
 
     DOIs = []
     Count = '&count=25'
     Term1 = '( {python} )'
-    Term2 = '({' + str(Keywords) + '})'
+    Term2 = keywords
     Terms = '( {} AND {} )'.format(Term1, Term2)
     Scope = 'TITLE-ABS-KEY'
     View = '&view=standard'
     Sort = '&sort=citedby_count'
-    Date = '&date=' + str(YearsRange)
+    Date = '&date=' + str(yearsRange)
     ScopusAPIKey = '&apiKey=33a5ac626141313c10881a0db097b497'
     ScopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
     
-    for Sub in tqdm(Subjects):
+    for Sub in tqdm(subjects):
         StartIndex = 0
         while True:
             Start = '&start={}'.format(StartIndex)
@@ -95,7 +110,5 @@ def GetMetadata(DOIs):
         rowDF = pd.DataFrame(row)
         table = pd.concat([table, rowDF], axis = 0, ignore_index = True)
         row = {}
-
-    table = table.reset_index(drop=True, inplace=True)
 
     return table
