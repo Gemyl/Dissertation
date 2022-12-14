@@ -25,10 +25,10 @@ def ScopusSearch(url):
 
     req = get(url)
     if req.status_code == 200:
-        Metadata = content['entry']
-        StartIndex = content['opensearch:startIndex']
-        TotalResults = content['opensearch:totalResults']
         content = json.loads(req.content)['search-results']
+        TotalResults = content['opensearch:totalResults']
+        StartIndex = content['opensearch:startIndex']
+        Metadata = content['entry']
 
         return int(TotalResults), int(StartIndex), Metadata
 
@@ -58,7 +58,7 @@ def GetDOIs(keywords, yearsRange, subjects):
             Subj = '&subj={}'.format(Sub)
 
             Query = 'query=' + Scope + Terms + Date + Start + \
-                Count + Sort + Subj + ScopusAPIKey + View
+                     Count + Sort + Subj + ScopusAPIKey + View
             Url = ScopusBaseUrl + Query
 
             Total, StartIndex, Metadata = ScopusSearch(Url)
@@ -76,20 +76,28 @@ def GetDOIs(keywords, yearsRange, subjects):
                 StartIndex += 25
             else:
                 break
-
+    
     return DOIs
 
 
 def GetMetadata(DOIs):
 
     row = {}
+    removeDOIs = []
     maxAuthors = 0
     columnsNames = []
 
     for i in range(len(DOIs)):
-        if (len(AbstractRetrieval(DOIs[i]).authors) > maxAuthors) & (len(AbstractRetrieval(DOIs[i]).authors) < 10):
-            maxAuthors = len(AbstractRetrieval(DOIs[i]).authors)
+        try:
+            numAuthors = len(AbstractRetrieval(DOIs[i]).authors)
+            if (numAuthors > maxAuthors) & (numAuthors < 10):
+                maxAuthors = len(AbstractRetrieval(DOIs[i]).authors)
+        except:
+            removeDOIs.append(DOIs[i])
 
+    for i in range(len(removeDOIs)):
+        DOIs.remove(removeDOIs[i])
+        
     columnsNames.append('DOI')
     for i in range(maxAuthors):
         columnsNames.append('Author ' + str(i+1) + ' ID')
