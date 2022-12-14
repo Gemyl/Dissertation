@@ -14,6 +14,7 @@ def FormatKeywords(keywords):
             keywordsList = keywordsList + '{' + keywords[i] + '}'
         else:
             keywordsList = keywordsList + '{' + keywords[i] + '} ' + 'OR '
+
     keywordsList = keywordsList + ')'
     keywords = keywordsList
 
@@ -23,12 +24,11 @@ def FormatKeywords(keywords):
 def ScopusSearch(url):
 
     req = get(url)
-    
-    if req.status_code == 200:   
-        content = json.loads(req.content)['search-results']
-        TotalResults = content['opensearch:totalResults']
-        StartIndex = content['opensearch:startIndex']
+    if req.status_code == 200:
         Metadata = content['entry']
+        StartIndex = content['opensearch:startIndex']
+        TotalResults = content['opensearch:totalResults']
+        content = json.loads(req.content)['search-results']
 
         return int(TotalResults), int(StartIndex), Metadata
 
@@ -50,14 +50,15 @@ def GetDOIs(keywords, yearsRange, subjects):
     Date = '&date=' + str(yearsRange)
     ScopusAPIKey = '&apiKey=33a5ac626141313c10881a0db097b497'
     ScopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
-    
+
     for Sub in tqdm(subjects):
         StartIndex = 0
         while True:
             Start = '&start={}'.format(StartIndex)
             Subj = '&subj={}'.format(Sub)
 
-            Query = 'query=' + Scope + Terms + Date + Start + Count + Sort + Subj + ScopusAPIKey + View
+            Query = 'query=' + Scope + Terms + Date + Start + \
+                Count + Sort + Subj + ScopusAPIKey + View
             Url = ScopusBaseUrl + Query
 
             Total, StartIndex, Metadata = ScopusSearch(Url)
@@ -68,7 +69,7 @@ def GetDOIs(keywords, yearsRange, subjects):
                     DOIs.append(str(TempDOI))
                 except:
                     continue
-            
+
             Remain = Total - StartIndex - len(Metadata)
 
             if Remain > 0:
@@ -83,12 +84,12 @@ def GetMetadata(DOIs):
 
     row = {}
     maxAuthors = 0
-    columnsNames =[]
+    columnsNames = []
 
     for i in range(len(DOIs)):
         if (len(AbstractRetrieval(DOIs[i]).authors) > maxAuthors) & (len(AbstractRetrieval(DOIs[i]).authors) < 10):
             maxAuthors = len(AbstractRetrieval(DOIs[i]).authors)
-      
+
     columnsNames.append('DOI')
     for i in range(maxAuthors):
         columnsNames.append('Author ' + str(i+1) + ' ID')
@@ -101,14 +102,16 @@ def GetMetadata(DOIs):
         row['DOI'] = str(DOIs[i])
         for j in range(maxAuthors):
             if j < numAuthors:
-                row['Author ' + str(j+1) + ' ID'] = [str(AbstractRetrieval(DOIs[i]).authors[j][0])]
-                row['Author ' + str(j+1) + ' Name'] = [AbstractRetrieval(DOIs[i]).authors[j][1]]
+                row['Author ' +
+                    str(j+1) + ' ID'] = [str(AbstractRetrieval(DOIs[i]).authors[j][0])]
+                row['Author ' +
+                    str(j+1) + ' Name'] = [AbstractRetrieval(DOIs[i]).authors[j][1]]
             else:
                 row['Author ' + str(j+1) + ' ID'] = [' ']
                 row['Author ' + str(j+1) + ' Name'] = [' ']
-    
+
         rowDF = pd.DataFrame(row)
-        table = pd.concat([table, rowDF], axis = 0, ignore_index = True)
+        table = pd.concat([table, rowDF], axis=0, ignore_index=True)
         row = {}
 
     return table
