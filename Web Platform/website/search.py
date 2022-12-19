@@ -16,6 +16,9 @@ def search():
         subjects = subjects.split(', ')
         keywords = FormatKeywords(keywords=keywords)
         
+        print(keywords)
+        print(yearsRange)
+        print(subjects)
         DOIs = GetDOIs(keywords=keywords, yearsRange=yearsRange, subjects=subjects)
         dataFrame = GetMetadata(DOIs=DOIs)
         PushDataFrame(dataFrame=dataFrame)
