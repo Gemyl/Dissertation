@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
 
-def PushDataFrame(user, password, database, dataFrame):
+def PushDataFrame(dataFrame):
 
     engine = create_engine("mysql://{user}:{pw}@localhost/{db}"
-                        .format(user=user,
-                                pw=password,
-                                db=database))
+                        .format(user='root',
+                                pw='gemyl',
+                                db='george'))
 
-    dataFrame.to_sql('demo1', con=engine, if_exists='append',chunksize=1000)
+    dataFrame.to_sql('CorrelationTable', con=engine, if_exists='append',chunksize=1000)

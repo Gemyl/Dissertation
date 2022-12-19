@@ -9,9 +9,6 @@ def search():
     
     if request.method == 'POST':
         subjects = []       
-        user = request.form.get('user')
-        password = request.form.get('password')
-        database = request.form.get('database')
         keywords = request.form.get('keywords')
         yearsRange = request.form.get('years-range')
         subjects = request.form.get('subjects')
@@ -21,6 +18,6 @@ def search():
         
         DOIs = GetDOIs(keywords=keywords, yearsRange=yearsRange, subjects=subjects)
         dataFrame = GetMetadata(DOIs=DOIs)
-        PushDataFrame(user=user, password=password, database=database, dataFrame=dataFrame)
+        PushDataFrame(dataFrame=dataFrame)
 
     return render_template('search.html')
