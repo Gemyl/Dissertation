@@ -1,40 +1,11 @@
-from pybliometrics.scopus import AbstractRetrieval
+from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval
+from TextFormating import FormatKeywords, ListToString
+from DataFramesForming import FindMaxNumAuthors
+from MySQLserver import InsertDataFrame
 from tqdm.auto import tqdm
 from requests import get
 import pandas as pd
 import json
-
-def FindMaxNumAuthors(DOIs):
-    removeDOIs = []
-    maxAuthors = 0
-    
-    for i in range(len(DOIs)):
-        try:
-            numAuthors = len(AbstractRetrieval(DOIs[i]).authors)
-            if (numAuthors > maxAuthors) & (numAuthors < 10):
-                maxAuthors = len(AbstractRetrieval(DOIs[i]).authors)
-        except:
-            removeDOIs.append(DOIs[i])
-
-    for i in range(len(removeDOIs)):
-        DOIs.remove(removeDOIs[i])
-
-    return maxAuthors, DOIs
-
-
-def FormatKeywords(keywords):
-    keywords = keywords.split(', ')
-    keywordsList = '('
-    for i in range(len(keywords)):
-        if i == len(keywords)-1:
-            keywordsList = keywordsList + '{' + keywords[i] + '}'
-        else:
-            keywordsList = keywordsList + '{' + keywords[i] + '} ' + 'OR '
-
-    keywordsList = keywordsList + ')'
-    keywords = keywordsList
-
-    return keywords
 
 
 def ScopusSearch(url):
@@ -56,7 +27,7 @@ def GetDOIs(keywords, yearsRange, subjects):
     DOIs = []
     Count = '&count=25'
     Term1 = '( {python} )'
-    Term2 = keywords
+    Term2 = FormatKeywords(keywords)
     Terms = '( {} AND {} )'.format(Term1, Term2)
     Scope = 'TITLE-ABS-KEY'
     View = '&view=standard'
@@ -94,10 +65,9 @@ def GetDOIs(keywords, yearsRange, subjects):
     return DOIs
 
 
-def GetMetadata(DOIs, keywords):
+def GetPapers(DOIs, keywords):
     row = {}
     columnsNames = []
-
     columnsNames.append('DOI')
     columnsNames.append('Year')
     columnsNames.append('Journal')
@@ -112,7 +82,7 @@ def GetMetadata(DOIs, keywords):
         columnsNames.append('Author ' + str(i+1) + ' ID')
         columnsNames.append('Author ' + str(i+1) + ' Name')
 
-    table = pd.DataFrame(columns=columnsNames)
+    columnsNames = pd.DataFrame(columns=columnsNames)
 
     for i in range(len(DOIs)):
         row['DOI'] = str(DOIs[i])
@@ -122,12 +92,8 @@ def GetMetadata(DOIs, keywords):
         row['Subjects'] = str(AbstractRetrieval(DOIs[i], view='FULL').subject_areas)
         row['Title'] = AbstractRetrieval(DOIs[i], view='FULL').title
         row['Citations Count'] = str(AbstractRetrieval(DOIs[i]).citedby_count)
-        row['Authorship Keywords'] = AbstractRetrieval(DOIs[i], view='FULL').authkeywords
-        if row['Authorship Keywords'] != None:
-            row['Authorship Keywords'] = ', '.join(row['Authorship Keywords'])
-        else:
-            row['Authorship Keywords'] = [' ']
-
+        row['Authorship Keywords'] = ListToString(AbstractRetrieval(DOIs[i], view='FULL').authkeywords)
+        
         numAuthors = len(AbstractRetrieval(DOIs[i]).authors)
         for j in range(maxAuthors):
             if j < numAuthors:
@@ -140,7 +106,30 @@ def GetMetadata(DOIs, keywords):
                 row['Author ' + str(j+1) + ' Name'] = [' ']
 
         rowDF = pd.DataFrame(row)
-        table = pd.concat([table, rowDF], axis=0, ignore_index=True)
+        table = pd.concat([columnsNames, rowDF], axis=0, ignore_index=True)
+        try:
+            InsertDataFrame(table, 'papers')
+        except:
+            continue
         row = {}
 
-    return table
+
+def GetAuthors(DOIs):
+    row = {}
+    columnsNames = []
+    columnsNames.append('Scopus_ID')
+    columnsNames.append('Indexed_Name')
+    columnsNames = pd.DataFrame(columns=columnsNames)
+
+    for i in range(len(DOIs)):
+        authors = AbstractRetrieval(DOIs[i]).authors
+        for author in authors:
+            row['Scopus_ID'] = [str(AuthorRetrieval(author[0]).identifier)]
+            row['Indexed_Name'] = [author[1]]
+            rowDF = pd.DataFrame(row)
+            tableTemp = pd.concat([columnsNames, rowDF], axis=0, ignore_index=True)
+            try:
+                InsertDataFrame(tableTemp, 'authors')
+            except:
+                continue
+            row = {}
