@@ -65,7 +65,7 @@ def GetScopusDOIs(keywords, yearsRange, subjects):
     return DOIs
 
 
-def GetScopusPapers(DOIs, keywords, yearsRange):
+def GetScopusPapers(DOIs, password, keywords, yearsRange):
     row = {}
     columnsNames = []
     columnsNames.append('DOI')
@@ -78,9 +78,9 @@ def GetScopusPapers(DOIs, keywords, yearsRange):
     columnsNames.append('Citations_Count')
 
     maxAuthors, DOIs = FindMaxNumAuthors(DOIs)
-    currentAuthors = CountAuthors('papers')
+    currentAuthors = CountAuthors('papers', password)
     if (maxAuthors > currentAuthors) & (currentAuthors > 0):
-        AddAuthors('papers', maxAuthors, int(currentAuthors))
+        AddAuthors('papers', password, maxAuthors, int(currentAuthors))
 
     for i in range(maxAuthors):
         columnsNames.append('Author_' + str(i+1) + '_ID')
@@ -112,13 +112,13 @@ def GetScopusPapers(DOIs, keywords, yearsRange):
         rowDF = pd.DataFrame(row)
         table = pd.concat([columnsNames, rowDF], axis=0, ignore_index=True)
         try:
-            InsertDataFrame(table, 'papers')
+            InsertDataFrame(table, 'papers', password)
         except:
             continue
         row = {}
 
 
-def GetScopusAuthors(DOIs):
+def GetScopusAuthors(DOIs, password):
     row = {}
     columnsNames = []
     columnsNames.append('Scopus_ID')
@@ -133,7 +133,7 @@ def GetScopusAuthors(DOIs):
             rowDF = pd.DataFrame(row)
             tableTemp = pd.concat([columnsNames, rowDF], axis=0, ignore_index=True)
             try:
-                InsertDataFrame(tableTemp, 'authors')
+                InsertDataFrame(tableTemp, 'authors', password)
             except:
                 continue
             row = {}

@@ -2,23 +2,23 @@ from sqlalchemy import create_engine
 import mysql.connector as connector
 
 
-def InsertDataFrame(dataFrame, name):
+def InsertDataFrame(dataFrame, name, password):
     engine = create_engine("mysql://{user}:{pw}@localhost/{db}"
                         .format(user='root',
-                                pw='gemyl',
+                                pw=password,
                                 db='george'))
 
     dataFrame.to_sql(name, con=engine, if_exists='append',chunksize=1000)
 
 
-def CountAuthors(tableName):
+def CountAuthors(tableName, password):
     standardColumns = 9
     database = 'george'
 
     con = connector.connect(host = 'localhost',
                                         port = '3306',
                                         user = 'root',
-                                        password = 'gemyl',
+                                        password = password,
                                         database = 'george',
                                         auth_plugin = 'mysql_native_password')
 
@@ -34,11 +34,12 @@ def CountAuthors(tableName):
 
     return count
 
-def AddAuthors(tableName, newNumAuthors, oldNumAuthors):
+
+def AddAuthors(tableName, password, newNumAuthors, oldNumAuthors):
     con = connector.connect(host = 'localhost',
                                         port = '3306',
                                         user = 'root',
-                                        password = 'gemyl',
+                                        password = password,
                                         database = 'george',
                                         auth_plugin = 'mysql_native_password')
 
