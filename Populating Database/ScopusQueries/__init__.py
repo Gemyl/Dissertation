@@ -1,7 +1,7 @@
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval
+from MySQLserver import InsertDataFrame, CountAuthors, AddAuthors
 from TextFormating import FormatKeywords, ListToString
 from DataFramesForming import FindMaxNumAuthors
-from MySQLserver import InsertDataFrame
 from tqdm.auto import tqdm
 from requests import get
 import pandas as pd
@@ -23,7 +23,7 @@ def ScopusSearch(url):
         print(req.status_code, Error['statusText'])
 
 
-def GetDOIs(keywords, yearsRange, subjects):
+def GetScopusDOIs(keywords, yearsRange, subjects):
     DOIs = []
     Count = '&count=25'
     Term1 = '( {python} )'
@@ -65,45 +65,49 @@ def GetDOIs(keywords, yearsRange, subjects):
     return DOIs
 
 
-def GetPapers(DOIs, keywords):
+def GetScopusPapers(DOIs, keywords, yearsRange):
     row = {}
     columnsNames = []
     columnsNames.append('DOI')
     columnsNames.append('Year')
     columnsNames.append('Journal')
-    columnsNames.append('Authorship Keywords')
-    columnsNames.append('User Keywords')
+    columnsNames.append('Authorship_Keywords')
+    columnsNames.append('User_Keywords')
     columnsNames.append('Subjects')
     columnsNames.append('Title')
-    columnsNames.append('Citations Count')
+    columnsNames.append('Citations_Count')
 
     maxAuthors, DOIs = FindMaxNumAuthors(DOIs)
+    currentAuthors = CountAuthors('papers')
+    if (maxAuthors > currentAuthors) & (currentAuthors > 0):
+        AddAuthors('papers', maxAuthors, int(currentAuthors))
+
     for i in range(maxAuthors):
-        columnsNames.append('Author ' + str(i+1) + ' ID')
-        columnsNames.append('Author ' + str(i+1) + ' Name')
+        columnsNames.append('Author_' + str(i+1) + '_ID')
+        columnsNames.append('Author_' + str(i+1) + '_Name')
 
     columnsNames = pd.DataFrame(columns=columnsNames)
 
     for i in range(len(DOIs)):
         row['DOI'] = str(DOIs[i])
-        row['Year'] = str(AbstractRetrieval(DOIs[i], view='FULL').date_created[0])
+        row['Year'] = yearsRange
         row['Journal'] = str(AbstractRetrieval(DOIs[i]).publisher)
-        row['User Keywords'] = keywords
+        row['User_Keywords'] = keywords
         row['Subjects'] = str(AbstractRetrieval(DOIs[i], view='FULL').subject_areas)
         row['Title'] = AbstractRetrieval(DOIs[i], view='FULL').title
-        row['Citations Count'] = str(AbstractRetrieval(DOIs[i]).citedby_count)
-        row['Authorship Keywords'] = ListToString(AbstractRetrieval(DOIs[i], view='FULL').authkeywords)
+        row['Citations_Count'] = str(AbstractRetrieval(DOIs[i]).citedby_count)
+        row['Authorship_Keywords'] = ListToString(AbstractRetrieval(DOIs[i], view='FULL').authkeywords)
         
         numAuthors = len(AbstractRetrieval(DOIs[i]).authors)
         for j in range(maxAuthors):
             if j < numAuthors:
-                row['Author ' +
-                    str(j+1) + ' ID'] = [str(AbstractRetrieval(DOIs[i]).authors[j][0])]
-                row['Author ' +
-                    str(j+1) + ' Name'] = [AbstractRetrieval(DOIs[i]).authors[j][1]]
+                row['Author_' +
+                    str(j+1) + '_ID'] = [str(AbstractRetrieval(DOIs[i]).authors[j][0])]
+                row['Author_' +
+                    str(j+1) + '_Name'] = [AbstractRetrieval(DOIs[i]).authors[j][1]]
             else:
-                row['Author ' + str(j+1) + ' ID'] = [' ']
-                row['Author ' + str(j+1) + ' Name'] = [' ']
+                row['Author_' + str(j+1) + '_ID'] = [' ']
+                row['Author_' + str(j+1) + '_Name'] = [' ']
 
         rowDF = pd.DataFrame(row)
         table = pd.concat([columnsNames, rowDF], axis=0, ignore_index=True)
@@ -114,7 +118,7 @@ def GetPapers(DOIs, keywords):
         row = {}
 
 
-def GetAuthors(DOIs):
+def GetScopusAuthors(DOIs):
     row = {}
     columnsNames = []
     columnsNames.append('Scopus_ID')

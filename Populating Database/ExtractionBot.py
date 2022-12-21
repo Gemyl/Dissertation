@@ -1,13 +1,12 @@
-from ScopusQuery import GetDOIs, GetPapers, GetAuthors
-
+from ScopusQueries import GetScopusDOIs, GetScopusPapers, GetScopusAuthors
 # Parameters given by user
 keywords = input('Keywords: ')
 yearsRange = str(input('Years Range: '))
 subjects = input('Subjects: ').split(', ')
 
 # Finding DOIs of related publications
-DOIs = GetDOIs(keywords, yearsRange, subjects)
+DOIs = GetScopusDOIs(keywords, yearsRange, subjects)
 
 # Retrieving data of papers and authors
-GetPapers(DOIs, keywords)
-GetAuthors(DOIs)
+GetScopusPapers(DOIs, keywords, yearsRange)
+GetScopusAuthors(DOIs)
