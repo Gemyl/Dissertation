@@ -1,5 +1,5 @@
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval
-from MySQLserver import InsertDataFrame, CountAuthors, AddAuthors
+from MySQLserver import InsertDataFrame, AddAuthors, FindAuthorsNum
 from TextFormating import FormatKeywords, ListToString
 from DataFramesForming import FindMaxNumAuthors
 from tqdm.auto import tqdm
@@ -77,12 +77,18 @@ def GetScopusPapers(DOIs, password, keywords, yearsRange):
     columnsNames.append('Title')
     columnsNames.append('Citations_Count')
 
-    maxAuthors, DOIs = FindMaxNumAuthors(DOIs)
-    currentAuthors = CountAuthors('papers', password)
-    if (maxAuthors > currentAuthors) & (currentAuthors > 0):
-        AddAuthors('papers', password, maxAuthors, int(currentAuthors))
+    newAuthorsNum, DOIs = FindMaxNumAuthors(DOIs)
+    maxAuthors = newAuthorsNum
+    try:
+        oldAuthorsNum = FindAuthorsNum('papers', password)
+        if (newAuthorsNum > oldAuthorsNum):
+            AddAuthors('papers', password, newAuthorsNum, int(oldAuthorsNum))
+        else:
+            maxAuthors = oldAuthorsNum
+    except:
+        pass
 
-    for i in range(maxAuthors):
+    for i in range(newAuthorsNum):
         columnsNames.append('Author_' + str(i+1) + '_ID')
         columnsNames.append('Author_' + str(i+1) + '_Name')
 
@@ -92,14 +98,14 @@ def GetScopusPapers(DOIs, password, keywords, yearsRange):
         row['DOI'] = str(DOIs[i])
         row['Year'] = yearsRange
         row['Journal'] = str(AbstractRetrieval(DOIs[i]).publisher)
+        row['Authorship_Keywords'] = ListToString(AbstractRetrieval(DOIs[i], view='FULL').authkeywords)
         row['User_Keywords'] = keywords
         row['Subjects'] = str(AbstractRetrieval(DOIs[i], view='FULL').subject_areas)
         row['Title'] = AbstractRetrieval(DOIs[i], view='FULL').title
         row['Citations_Count'] = str(AbstractRetrieval(DOIs[i]).citedby_count)
-        row['Authorship_Keywords'] = ListToString(AbstractRetrieval(DOIs[i], view='FULL').authkeywords)
         
         numAuthors = len(AbstractRetrieval(DOIs[i]).authors)
-        for j in range(maxAuthors):
+        for j in range(newAuthorsNum):
             if j < numAuthors:
                 row['Author_' +
                     str(j+1) + '_ID'] = [str(AbstractRetrieval(DOIs[i]).authors[j][0])]
@@ -114,8 +120,9 @@ def GetScopusPapers(DOIs, password, keywords, yearsRange):
         try:
             InsertDataFrame(table, 'papers', password)
         except:
-            continue
+            pass
         row = {}
+        
 
 
 def GetScopusAuthors(DOIs, password):

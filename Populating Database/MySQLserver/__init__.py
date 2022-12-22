@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 import mysql.connector as connector
+import re
 
 
 def InsertDataFrame(dataFrame, name, password):
@@ -9,30 +10,6 @@ def InsertDataFrame(dataFrame, name, password):
                                 db='george'))
 
     dataFrame.to_sql(name, con=engine, if_exists='append',chunksize=1000)
-
-
-def CountAuthors(tableName, password):
-    standardColumns = 9
-    database = 'george'
-
-    con = connector.connect(host = 'localhost',
-                                        port = '3306',
-                                        user = 'root',
-                                        password = password,
-                                        database = 'george',
-                                        auth_plugin = 'mysql_native_password')
-
-    cursor = con.cursor()
-
-    query = 'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s'
-    cursor.execute(query, (database, tableName))
-
-    count = (cursor.fetchone()[0] - standardColumns)/2
-
-    cursor.close()
-    con.close()
-
-    return count
 
 
 def AddAuthors(tableName, password, newNumAuthors, oldNumAuthors):
@@ -58,3 +35,32 @@ def AddAuthors(tableName, password, newNumAuthors, oldNumAuthors):
 
     cursor.close()
     con.close()
+
+
+def FindAuthorsNum(tableName, password):
+    con = connector.connect(host = 'localhost',
+                                        port = '3306',
+                                        user = 'root',
+                                        password = password,
+                                        database = 'george',
+                                        auth_plugin = 'mysql_native_password')
+
+    cursor = con.cursor()
+
+    query = 'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s;'
+    cursor.execute(query, ('george', tableName))
+    columnNames = [row[0] for row in cursor.fetchall()]
+
+    counter = 0
+    for col in columnNames:
+        try:
+            num = int(re.findall(r'\d+', col)[0])
+            if num > counter:
+                counter += 1
+        except:
+            continue
+
+    cursor.close()
+    con.close()
+
+    return counter
