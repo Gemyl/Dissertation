@@ -65,3 +65,27 @@ def find_authors_number(tableName, password):
 
     return counter
 
+
+def remove_nulls(tableName, password):
+
+    con = connector.connect(host = 'localhost',
+                                        port = '3306',
+                                        user = 'root',
+                                        password = password,
+                                        database = 'george',
+                                        auth_plugin = 'mysql_native_password')
+
+    cursor = con.cursor()
+
+    query = 'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s;'
+    cursor.execute(query, ('george', tableName))
+    columnNames = [row[0] for row in cursor.fetchall()]
+
+    for col in columnNames:
+        if col != 'index':
+            query = 'UPDATE ' + tableName + ' SET ' + col + ' = COALESCE(' + col + ', \' \') WHERE ' + col + ' IS NULL;'
+            cursor.execute(query)
+
+    cursor.close()
+    con.commit()
+    con.close()

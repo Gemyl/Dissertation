@@ -1,4 +1,5 @@
 from ScopusQueries import get_DOIs, get_papers_data, get_authors_data
+from MySQLpackage import remove_nulls
 import getpass
 
 # Parameters given by user
@@ -13,3 +14,5 @@ DOIs = get_DOIs(keywords, yearsRange, subjects)
 # Retrieving data of papers and authors
 get_papers_data(DOIs, password, keywords, yearsRange)
 get_authors_data(DOIs, password)
+
+remove_nulls('papers', password)

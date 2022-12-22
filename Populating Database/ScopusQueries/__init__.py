@@ -1,4 +1,4 @@
-from MySQLpackage import insert_to_MySQL, add_authors, find_authors_number
+from MySQLpackage import insert_to_MySQL, add_authors, find_authors_number, remove_nulls
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval
 from TextFormating import format_keywords, list_to_string
 from DataFramesForming import find_max_authors
