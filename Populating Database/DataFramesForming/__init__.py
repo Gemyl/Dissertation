@@ -1,6 +1,6 @@
 from pybliometrics.scopus import AbstractRetrieval
 
-def FindMaxNumAuthors(DOIs):
+def find_max_authors(DOIs):
     removeDOIs = []
     maxAuthors = 0
     for i in range(len(DOIs)):

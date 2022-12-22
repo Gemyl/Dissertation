@@ -1,7 +1,7 @@
+from MySQLpackage import insert_to_MySQL, add_authors, find_authors_number
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval
-from MySQLserver import InsertDataFrame, AddAuthors, FindAuthorsNum
-from TextFormating import FormatKeywords, ListToString
-from DataFramesForming import FindMaxNumAuthors
+from TextFormating import format_keywords, list_to_string
+from DataFramesForming import find_max_authors
 from tqdm.auto import tqdm
 from requests import get
 import pandas as pd
@@ -9,6 +9,7 @@ import json
 
 
 def ScopusSearch(url):
+
     req = get(url)
     if req.status_code == 200:
         content = json.loads(req.content)['search-results']
@@ -23,11 +24,12 @@ def ScopusSearch(url):
         print(req.status_code, Error['statusText'])
 
 
-def GetScopusDOIs(keywords, yearsRange, subjects):
+def get_DOIs(keywords, yearsRange, subjects):
+
     DOIs = []
     Count = '&count=25'
     Term1 = '( {python} )'
-    Term2 = FormatKeywords(keywords)
+    Term2 = format_keywords(keywords)
     Terms = '( {} AND {} )'.format(Term1, Term2)
     Scope = 'TITLE-ABS-KEY'
     View = '&view=standard'
@@ -65,7 +67,8 @@ def GetScopusDOIs(keywords, yearsRange, subjects):
     return DOIs
 
 
-def GetScopusPapers(DOIs, password, keywords, yearsRange):
+def get_papers_data(DOIs, password, keywords, yearsRange):
+
     row = {}
     columnsNames = []
     columnsNames.append('DOI')
@@ -77,18 +80,15 @@ def GetScopusPapers(DOIs, password, keywords, yearsRange):
     columnsNames.append('Title')
     columnsNames.append('Citations_Count')
 
-    newAuthorsNum, DOIs = FindMaxNumAuthors(DOIs)
-    maxAuthors = newAuthorsNum
+    maxAuthorsSearch, DOIs = find_max_authors(DOIs)
     try:
-        oldAuthorsNum = FindAuthorsNum('papers', password)
-        if (newAuthorsNum > oldAuthorsNum):
-            AddAuthors('papers', password, newAuthorsNum, int(oldAuthorsNum))
-        else:
-            maxAuthors = oldAuthorsNum
+        maxAuthorsTable = find_authors_number('papers', password)
+        if (maxAuthorsSearch > maxAuthorsTable):
+            add_authors('papers', password, maxAuthorsSearch, int(maxAuthorsTable))
     except:
         pass
 
-    for i in range(newAuthorsNum):
+    for i in range(maxAuthorsSearch):
         columnsNames.append('Author_' + str(i+1) + '_ID')
         columnsNames.append('Author_' + str(i+1) + '_Name')
 
@@ -98,14 +98,14 @@ def GetScopusPapers(DOIs, password, keywords, yearsRange):
         row['DOI'] = str(DOIs[i])
         row['Year'] = yearsRange
         row['Journal'] = str(AbstractRetrieval(DOIs[i]).publisher)
-        row['Authorship_Keywords'] = ListToString(AbstractRetrieval(DOIs[i], view='FULL').authkeywords)
+        row['Authorship_Keywords'] = list_to_string(AbstractRetrieval(DOIs[i], view='FULL').authkeywords)
         row['User_Keywords'] = keywords
         row['Subjects'] = str(AbstractRetrieval(DOIs[i], view='FULL').subject_areas)
         row['Title'] = AbstractRetrieval(DOIs[i], view='FULL').title
         row['Citations_Count'] = str(AbstractRetrieval(DOIs[i]).citedby_count)
         
         numAuthors = len(AbstractRetrieval(DOIs[i]).authors)
-        for j in range(newAuthorsNum):
+        for j in range(maxAuthorsSearch):
             if j < numAuthors:
                 row['Author_' +
                     str(j+1) + '_ID'] = [str(AbstractRetrieval(DOIs[i]).authors[j][0])]
@@ -117,15 +117,18 @@ def GetScopusPapers(DOIs, password, keywords, yearsRange):
 
         rowDF = pd.DataFrame(row)
         table = pd.concat([columnsNames, rowDF], axis=0, ignore_index=True)
+
         try:
-            InsertDataFrame(table, 'papers', password)
+            insert_to_MySQL(table, 'papers', password)
         except:
             pass
+
         row = {}
         
 
 
-def GetScopusAuthors(DOIs, password):
+def get_authors_data(DOIs, password):
+
     row = {}
     columnsNames = []
     columnsNames.append('Scopus_ID')
@@ -140,7 +143,7 @@ def GetScopusAuthors(DOIs, password):
             rowDF = pd.DataFrame(row)
             tableTemp = pd.concat([columnsNames, rowDF], axis=0, ignore_index=True)
             try:
-                InsertDataFrame(tableTemp, 'authors', password)
+                insert_to_MySQL(tableTemp, 'authors', password)
             except:
                 continue
             row = {}

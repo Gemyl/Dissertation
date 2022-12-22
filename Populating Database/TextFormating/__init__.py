@@ -1,4 +1,4 @@
-def FormatKeywords(keywords):
+def format_keywords(keywords):
     keywords = keywords.split(', ')
     keywordsList = '('
     for i in range(len(keywords)):
@@ -12,7 +12,7 @@ def FormatKeywords(keywords):
 
     return keywords
 
-def ListToString(keywords):
+def list_to_string(keywords):
     if keywords != None:
                 keywords = ', '.join(keywords)
     else:

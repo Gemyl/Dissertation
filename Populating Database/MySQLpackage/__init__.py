@@ -3,7 +3,7 @@ import mysql.connector as connector
 import re
 
 
-def InsertDataFrame(dataFrame, name, password):
+def insert_to_MySQL(dataFrame, name, password):
     engine = create_engine("mysql://{user}:{pw}@localhost/{db}"
                         .format(user='root',
                                 pw=password,
@@ -12,7 +12,7 @@ def InsertDataFrame(dataFrame, name, password):
     dataFrame.to_sql(name, con=engine, if_exists='append',chunksize=1000)
 
 
-def AddAuthors(tableName, password, newNumAuthors, oldNumAuthors):
+def add_authors(tableName, password, newNumAuthors, oldNumAuthors):
     con = connector.connect(host = 'localhost',
                                         port = '3306',
                                         user = 'root',
@@ -37,7 +37,7 @@ def AddAuthors(tableName, password, newNumAuthors, oldNumAuthors):
     con.close()
 
 
-def FindAuthorsNum(tableName, password):
+def find_authors_number(tableName, password):
     con = connector.connect(host = 'localhost',
                                         port = '3306',
                                         user = 'root',
@@ -64,3 +64,4 @@ def FindAuthorsNum(tableName, password):
     con.close()
 
     return counter
+
