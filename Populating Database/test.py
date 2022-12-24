@@ -1,3 +1,11 @@
-from pybliometrics.scopus import AuthorRetrieval
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-print(list(t[0] for t in AuthorRetrieval('9-s2.0-57217424609').subject_areas))
+vectorize = TfidfVectorizer()
+
+strings = ['University of Athens', 'university of columbia']
+
+stringsVec = vectorize.fit_transform(strings)
+similarity = cosine_similarity(stringsVec)
+
+print(similarity)

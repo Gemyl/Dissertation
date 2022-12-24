@@ -1,11 +1,11 @@
-from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval
+from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
 from TextFormating import format_keywords, list_to_string
 from tqdm.auto import tqdm
 from requests import get
 import json
 
 
-def get_DOIs_Scopus(keywords, yearsRange, subjects):
+def get_DOIs(keywords, yearsRange, subjects):
 
     DOIs = []
     count = '&count=25'
@@ -59,7 +59,7 @@ def get_DOIs_Scopus(keywords, yearsRange, subjects):
     return DOIs
 
 
-def get_papers_data_Scopus(DOIs, keywords, yearsRange):
+def papers_data(DOIs, keywords, yearsRange):
 
     DOI = []
     year = []
@@ -114,7 +114,7 @@ def get_papers_data_Scopus(DOIs, keywords, yearsRange):
     return DOI, year, journal, authorshipKeywords, userKeywords, subjects, title, citationsCount 
 
 
-def get_authors_data_Scopus(DOIs):
+def authors_data(DOIs):
 
     eid = []
     orcid = []
@@ -188,4 +188,73 @@ def get_authors_data_Scopus(DOIs):
                     coauthorsCount.append(' ')
 
     return identifier, eid, orcid, indexedName, hIndex, subjectedAreas, \
-           itemCitations, authorsCitations, documentsCount, coauthorsCount           
+        itemCitations, authorsCitations, documentsCount, coauthorsCount 
+
+
+def orgs_data(DOIs):
+
+    eid = []
+    name = []
+    city = []
+    type = []
+    state = []
+    country = []
+    address = []
+    postalCode = []
+    identifier = []
+
+    for i in range(len(DOIs)):
+
+        for org in AbstractRetrieval(DOIs[i]).affiliation:
+
+            orgInfo = AffiliationRetrieval(org[0])
+
+            if (identifier.count(orgInfo.affiliation_name) == 0) & name.count(orgInfo.affiliation_name) == 0 \
+                & (any(orgName in name for orgName in orgInfo.name_variants)):
+
+                    try:
+                        identifier.append(orgInfo.identifier)
+                    except:
+                        identifier.append(' ')
+
+                    try:
+                        eid.append(orgInfo.eid)
+                    except:
+                        eid.append(' ')
+
+                    try:
+                        name.append(orgInfo.affiliation_name)
+                    except:
+                        name.append(' ')
+
+                    try:
+                        type.append(orgInfo.org_type)
+                    except:
+                        type.append(' ')
+
+                    try:
+                        address.append(orgInfo.address)
+                    except:
+                        address.append(' ')
+                    
+                    try:
+                        postalCode.append(orgInfo.postal_code)
+                    except:
+                        postalCode.append(' ')
+
+                    try:
+                        city.append(orgInfo.city)
+                    except:
+                        city.append(' ')
+
+                    try:
+                        state.append(orgInfo.state)
+                    except:
+                        state.append(' ')
+
+                    try:
+                        country.append(orgInfo.country)
+                    except:
+                        country.append(' ')
+
+    return identifier, eid, name, type, address, postalCode, city, state, country
