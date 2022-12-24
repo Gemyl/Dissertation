@@ -2,7 +2,6 @@ from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval
 from TextFormating import format_keywords, list_to_string
 from tqdm.auto import tqdm
 from requests import get
-import requests
 import json
 
 
@@ -113,29 +112,20 @@ def get_papers_data_Scopus(DOIs, keywords, yearsRange):
             authorshipKeywords.append(' ')
 
     return DOI, year, journal, authorshipKeywords, userKeywords, subjects, title, citationsCount 
-        
-
-
-def get_author_degrees_Scopus(ScopusID):
-
-    baseURL = "https://api.elsevier.com/content/author"
-    apiKey = '33a5ac626141313c10881a0db097b497'
-    headers = {'Accept':'application/json', 'X-ELS-APIKey':apiKey}
-    url = f"{baseURL}/author_id/{ScopusID}"
-
-    res = requests.get(url, headers=headers)
-    if res.status_code == 200:
-        data = res.json()
-        return data
-    else:
-        print(f"Error retrieving data for Scopus ID {ScopusID}: {res.status_code}")
-        return None
 
 
 def get_authors_data_Scopus(DOIs):
 
-    authorID = []
+    eid = []
+    orcid = []
+    hIndex = []
+    identifier = []  
     indexedName = []
+    itemCitations = []
+    coauthorsCount = []
+    documentsCount = []
+    subjectedAreas = []
+    authorsCitations = []  
 
     for i in range(len(DOIs)):
 
@@ -143,15 +133,59 @@ def get_authors_data_Scopus(DOIs):
 
         for author in authors:
 
-            try:
-                authorID.append(AuthorRetrieval(author[0]).identifier)
-            except:
-                authorID.append(' ')
+            authorInfo = AuthorRetrieval(author[0])
 
-            try:
-                indexedName.append(author[1])
-            except:
-                authorID. append(' ')
+            if identifier.count(authorInfo.identifier) == 0:                   
 
-    return authorID, indexedName
-            
+                try:
+                    identifier.append(authorInfo.identifier)
+                except:
+                    identifier.append(' ')
+
+                try:
+                    eid.append(authorInfo.eid)
+                except:
+                    eid.append(' ')
+
+                try:
+                    orcid.append(authorInfo.orcid)
+                except:
+                    orcid.append(' ')
+
+                try:
+                    indexedName.append(authorInfo.indexed_name)
+                except:
+                    indexedName.append(' ')
+
+                try:
+                    subjectedAreas.append(list(sub[0] for sub in authorInfo.subject_areas))
+                except:
+                    subjectedAreas.append('')  
+
+                try:
+                    hIndex.append(authorInfo.h_index)
+                except:
+                    hIndex.append(' ')
+
+                try:
+                    itemCitations.append(authorInfo.citation_count)
+                except:
+                    itemCitations.append(' ')
+
+                try:
+                    authorsCitations.append(authorInfo.cited_by_count)
+                except:
+                    authorsCitations.append(' ')
+
+                try:
+                    documentsCount.append(authorInfo.document_count)
+                except:
+                    documentsCount.append(' ')
+
+                try:
+                    coauthorsCount.append(authorInfo.coauthor_count)
+                except:
+                    coauthorsCount.append(' ')
+
+    return identifier, eid, orcid, indexedName, hIndex, subjectedAreas, \
+           itemCitations, authorsCitations, documentsCount, coauthorsCount           

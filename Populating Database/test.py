@@ -1,7 +1,3 @@
-from ScopusQueries import get_author_degrees_Scopus
-import json
+from pybliometrics.scopus import AuthorRetrieval
 
-authorInfor = get_author_degrees_Scopus('57217424609')
-
-for key in authorInfor['author-retrieval-response'][0]['author-profile'].keys():
-    print(key)
+print(list(t[0] for t in AuthorRetrieval('9-s2.0-57217424609').subject_areas))
