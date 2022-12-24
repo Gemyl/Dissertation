@@ -21,7 +21,7 @@ authorID, eid, orcid, name, hIndex, subjectAreas, itemCitations, authorsCitation
 orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, \
      orgCountry =  orgs_data(DOIs)
 
-# printing results
+# organizing data in dataframes
 papers = pd.DataFrame({'DOI':DOIs, 'Year':year, 'Journal':journal, 'Authorship\'s Keywords':authorshipKeywords, \
     'User\'s Keywords':userKeywords, 'Subject':subjects, 'Title':title, 'Citations Count': citationsCount})
 
@@ -32,11 +32,13 @@ authors = pd.DataFrame({'ID':authorID, 'EID':eid, 'ORCID':orcid, 'Indexed Name':
 organizations = pd.DataFrame({'ID':orgID, 'EID':orgEID, 'Name':orgName, 'Type':orgType, 'Address':orgAddress, \
     'Postal Code':orgPostalCode, 'City':orgCity, 'State':orgState, 'Country':orgCountry})
 
+# setting option for dataframes printing
 with pd.option_context('display.max_rows', None,
                        'display.max_columns', None,
                        'display.precision', 3,
                        ):
 
+# printing dataframes
     print(papers)
     print(authors)
     print(organizations)
