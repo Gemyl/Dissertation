@@ -2,7 +2,6 @@ from MySQLpackage import connect_to_MySQL, insert_publications, insert_authors, 
      insert_publications_and_authors, insert_publications_and_organizations, commit_and_close
 from DataRetrieving import get_DOIs, papers_data, authors_data, orgs_data, \
      papers_and_authors, papers_and_orgs
-import pandas as pd
 from getpass import getpass
 
 # parameters given by user
@@ -40,8 +39,8 @@ insert_authors(cursor, authorID, eid, orcid, name, hIndex, subjectAreas, itemCit
      authorsCitations, documentsCount)
 insert_organizations(cursor, orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode,
      orgCity, orgState, orgCountry)
-# insert_publications_and_authors(DOIPapersAuthors, IDAuthorsPapers)
-# insert_publications_and_organizations(DOIPapersOrgs, IDOrgsPapers)
+insert_publications_and_authors(cursor, DOIPapersAuthors, IDAuthorsPapers)
+insert_publications_and_organizations(cursor, DOIPapersOrgs, IDOrgsPapers)
 
 # committing changes and closing connection
 commit_and_close(connection, cursor)

@@ -321,8 +321,8 @@ def papers_and_authors(DOIs):
 
         for author in authors:
 
-            papersDOI.append(DOIs[i])
-            authorsID.append(author[0])
+            papersDOI.append(str(DOIs[i]))
+            authorsID.append(str(author[0]))
     
     return papersDOI, authorsID
 
@@ -339,7 +339,7 @@ def papers_and_orgs(DOIs):
 
         for org in orgs:
 
-            papersDOI.append(DOIs[i])
-            orgsID.append(org[0])
+            papersDOI.append(str(DOIs[i]))
+            orgsID.append(str(org[0]))
     
     return papersDOI, orgsID
