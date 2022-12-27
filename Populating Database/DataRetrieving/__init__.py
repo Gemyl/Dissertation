@@ -117,7 +117,7 @@ def papers_data(DOIs, keywords):
 
         # paper's number of citations
         try:
-            citationsCount.append(str(paperInfo.citedby_count))
+            citationsCount.append(paperInfo.citedby_count)
         except:
             citationsCount.append(' ')
 
@@ -146,7 +146,6 @@ def authors_data(DOIs):
     identifier = []  
     indexedName = []
     itemCitations = []
-    coauthorsCount = []
     documentsCount = []
     subjectedAreas = []
     authorsCitations = []  
@@ -168,66 +167,60 @@ def authors_data(DOIs):
 
                 # author's Scopus ID
                 try:
-                    identifier.append(authorInfo.identifier)
+                    identifier.append(str(authorInfo.identifier))
                 except:
                     identifier.append(' ')
 
                 # author's EID
                 try:
-                    eid.append(authorInfo.eid)
+                    eid.append(str(authorInfo.eid))
                 except:
                     eid.append(' ')
 
                 # author's ORCID (if has one)
                 try:
-                    orcid.append(authorInfo.orcid)
+                    orcid.append(str(authorInfo.orcid))
                 except:
                     orcid.append(' ')
 
                 # author's name as is indexed in Scopus
                 try:
-                    indexedName.append(authorInfo.indexed_name)
+                    indexedName.append(str(authorInfo.indexed_name))
                 except:
                     indexedName.append(' ')
 
                 # author's referenced subjected areas
                 try:
-                    subjectedAreas.append(list(sub[0] for sub in authorInfo.subject_areas))
+                    subjectedAreas.append(', '.join(str(sub[0]) for sub in authorInfo.subject_areas))
                 except:
                     subjectedAreas.append('')  
 
                 # author's h-index
                 try:
-                    hIndex.append(authorInfo.h_index)
+                    hIndex.append(str(authorInfo.h_index))
                 except:
                     hIndex.append(' ')
 
                 # author's number of citations in items (e.g. papers)
                 try:
-                    itemCitations.append(authorInfo.citation_count)
+                    itemCitations.append(str(authorInfo.citation_count))
                 except:
                     itemCitations.append(' ')
 
                 # author's number of citations made by other authors
                 try:
-                    authorsCitations.append(authorInfo.cited_by_count)
+                    authorsCitations.append(str(authorInfo.cited_by_count))
                 except:
                     authorsCitations.append(' ')
 
                 # number of documents authored
                 try:
-                    documentsCount.append(authorInfo.document_count)
+                    documentsCount.append(str(authorInfo.document_count))
                 except:
                     documentsCount.append(' ')
 
-                # number of co-authors
-                try:
-                    coauthorsCount.append(authorInfo.coauthor_count)
-                except:
-                    coauthorsCount.append(' ')
-
     return identifier, eid, orcid, indexedName, hIndex, subjectedAreas, \
-        itemCitations, authorsCitations, documentsCount, coauthorsCount 
+        itemCitations, authorsCitations, documentsCount 
 
 
 # this function retrieves orgnizations data from Scopus
@@ -256,61 +249,97 @@ def orgs_data(DOIs):
             # checking if an organization has been already accesed
             # this means that neither its Scopus ID or its name (and name variants)
             # are not included in the corresponding lists
-            if (identifier.count(orgInfo.affiliation_name) == 0) & name.count(orgInfo.affiliation_name) == 0 \
+            if (identifier.count(orgInfo.identifier) == 0) & (name.count(orgInfo.affiliation_name)) == 0 \
                 & (any(orgName in name for orgName in orgInfo.name_variants)):
 
                     # organizations's Scopus ID
                     try:
-                        identifier.append(orgInfo.identifier)
+                        identifier.append(str(orgInfo.identifier))
                     except:
                         identifier.append(' ')
 
                     # organization's EID
                     try:
-                        eid.append(orgInfo.eid)
+                        eid.append(str(orgInfo.eid))
                     except:
                         eid.append(' ')
 
                     # organization's name
                     try:
-                        name.append(orgInfo.affiliation_name)
+                        name.append(str(orgInfo.affiliation_name))
                     except:
                         name.append(' ')
 
                     # organization's type (e.g. university, college)
                     try:
-                        type.append(orgInfo.org_type)
+                        type.append(str(orgInfo.org_type))
                     except:
                         type.append(' ')
 
                     # organization's address
                     try:
-                        address.append(orgInfo.address)
+                        address.append(str(orgInfo.address))
                     except:
                         address.append(' ')
                     
                     # organization's postal code
                     try:
-                        postalCode.append(orgInfo.postal_code)
+                        postalCode.append(str(orgInfo.postal_code))
                     except:
                         postalCode.append(' ')
 
                     # organization's city
                     try:
-                        city.append(orgInfo.city)
+                        city.append(str(orgInfo.city))
                     except:
                         city.append(' ')
 
                     # organization's state or region
                     try:
-                        state.append(orgInfo.state)
+                        state.append(str(orgInfo.state))
                     except:
                         state.append(' ')
 
                     # organization's country
                     try:
-                        country.append(orgInfo.country)
+                        country.append(str(orgInfo.country))
                     except:
                         country.append(' ')
 
     return identifier, eid, name, type, address, postalCode, city, state, country
+
+
+def papers_and_authors(DOIs):
+
+    papersDOI = []
+    authorsID = []
+
+    for i in range(len(DOIs)):
+
+        paperInfo = AbstractRetrieval(DOIs[i])
+        authors = paperInfo.authors
+
+        for author in authors:
+
+            papersDOI.append(DOIs[i])
+            authorsID.append(author[0])
+    
+    return papersDOI, authorsID
+
+
+def papers_and_orgs(DOIs):
+
+    papersDOI = []
+    orgsID = []
+
+    for i in range(len(DOIs)):
+
+        paperInfo = AbstractRetrieval(DOIs[i])
+        orgs = paperInfo.affiliation
+
+        for org in orgs:
+
+            papersDOI.append(DOIs[i])
+            orgsID.append(org[0])
+    
+    return papersDOI, orgsID

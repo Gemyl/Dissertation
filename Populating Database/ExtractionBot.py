@@ -1,44 +1,47 @@
-from DataRetrieving import get_DOIs, papers_data, authors_data, orgs_data
+from MySQLpackage import connect_to_MySQL, insert_publications, insert_authors, insert_organizations, \
+     insert_publications_and_authors, insert_publications_and_organizations, commit_and_close
+from DataRetrieving import get_DOIs, papers_data, authors_data, orgs_data, \
+     papers_and_authors, papers_and_orgs
 import pandas as pd
+from getpass import getpass
 
 # parameters given by user
-keywords = input('Keywords: ')
+keywords = str(input('Keywords: '))
 yearsRange = str(input('Years Range: '))
 subjects = input('Subjects: ').split(', ')
+password = getpass('Password: ')
 
 # finding DOIs of related publications
 DOIs = get_DOIs(keywords, yearsRange, subjects)
 
-# retrieving data of papers
-DOIs, year, journal, authorshipKeywords, userKeywords, subjects, title, citationsCount \
-     = papers_data(DOIs, keywords, yearsRange)
+# retrieving data of papers, authors and organizations
+DOI, year, journal, authorshipKeywords, userKeywords, subjects, title, citationsCount \
+     = papers_data(DOIs, keywords)
 
-# retrieving data of authors
 authorID, eid, orcid, name, hIndex, subjectAreas, itemCitations, authorsCitations, \
-    documentsCount, coauthorsCount = authors_data(DOIs)
+    documentsCount = authors_data(DOIs)
 
-# retrieving data of organizations
 orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, \
      orgCountry =  orgs_data(DOIs)
 
-# organizing data in dataframes
-papers = pd.DataFrame({'DOI':DOIs, 'Year':year, 'Journal':journal, 'Authorship\'s Keywords':authorshipKeywords, \
-    'User\'s Keywords':userKeywords, 'Subject':subjects, 'Title':title, 'Citations Count': citationsCount})
+# retrieving identifiers to form collaboration table between authors and organizations
+DOIPapersAuthors, IDAuthorsPapers = papers_and_authors(DOIs)
+DOIPapersOrgs, IDOrgsPapers = papers_and_orgs(DOIs)
 
-authors = pd.DataFrame({'ID':authorID, 'EID':eid, 'ORCID':orcid, 'Indexed Name':name, 'h-Index':hIndex, \
-    'Subjected Areas':subjectAreas, 'Item Citrations': itemCitations, 'Authors Citations':authorsCitations, \
-    'Documents Count':documentsCount, 'Co-authors Count':coauthorsCount})
 
-organizations = pd.DataFrame({'ID':orgID, 'EID':orgEID, 'Name':orgName, 'Type':orgType, 'Address':orgAddress, \
-    'Postal Code':orgPostalCode, 'City':orgCity, 'State':orgState, 'Country':orgCountry})
+# inserting data to MySQL database
+# openning connection
+connection, cursor = connect_to_MySQL(password)
 
-# setting option for dataframes printing
-with pd.option_context('display.max_rows', None,
-                       'display.max_columns', None,
-                       'display.precision', 3,
-                       ):
+# data insertion
+insert_publications(cursor, DOI, year, journal, authorshipKeywords, userKeywords, 
+     subjects, title, citationsCount)
+insert_authors(cursor, authorID, eid, orcid, name, hIndex, subjectAreas, itemCitations, 
+     authorsCitations, documentsCount)
+insert_organizations(cursor, orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode,
+     orgCity, orgState, orgCountry)
+# insert_publications_and_authors(DOIPapersAuthors, IDAuthorsPapers)
+# insert_publications_and_organizations(DOIPapersOrgs, IDOrgsPapers)
 
-# printing dataframes
-    print(papers)
-    print(authors)
-    print(organizations)
+# committing changes and closing connection
+commit_and_close(connection, cursor)

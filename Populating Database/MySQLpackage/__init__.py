@@ -1,18 +1,8 @@
-from sqlalchemy import create_engine
 import mysql.connector as connector
-import re
 
 
-def insert_to_MySQL(dataFrame, name, password):
-    engine = create_engine("mysql://{user}:{pw}@localhost/{db}"
-                        .format(user='root',
-                                pw=password,
-                                db='george'))
+def connect_to_MySQL(password):
 
-    dataFrame.to_sql(name, con=engine, if_exists='append',chunksize=1000)
-
-
-def add_authors(tableName, password, newNumAuthors, oldNumAuthors):
     con = connector.connect(host = 'localhost',
                                         port = '3306',
                                         user = 'root',
@@ -22,70 +12,66 @@ def add_authors(tableName, password, newNumAuthors, oldNumAuthors):
 
     cursor = con.cursor()
 
-    query = 'ALTER TABLE ' + tableName + ' '
-    for i in range(oldNumAuthors, newNumAuthors):
-        if i != newNumAuthors-1:
-            query = query + 'ADD COLUMN Author_' + str(i+1) + '_ID VARCHAR(15), '
-            query = query + 'ADD COLUMN Author_' + str(i+1) + '_Name VARCHAR(50), '
-        else:
-            query = query + 'ADD COLUMN Author_' + str(i+1) + '_ID VARCHAR(15), '
-            query = query + 'ADD COLUMN Author_' + str(i+1) + '_Name VARCHAR(50);'
+    return con, cursor
+
+
+def insert_publications(cursor, doi, year, journal, authorsKeywords,
+    userKeywords, subjects, title, citationsCount):
+
+    for i in range(len(doi)):
+
+        query = 'INSERT INTO publications VALUES (\'' + doi[i] + '\', \'' + year[i] + '\', \'' + journal[i] + '\', \'' + \
+            str(authorsKeywords[i]) + '\', \'' + userKeywords[i] + '\', \'' + subjects[i] + '\', \'' + title[i] + '\', \'' + \
+            str(citationsCount[i]) + '\');'
+
+        cursor.execute(query)
+
+
+def insert_authors(cursor, id, eid, orcid, name, hIndex, subjectedAreas, 
+    itemCitations, authorsCitations, documentsCount):
+
+    for i in range(len(id)):
+
+        query = 'INSERT INTO authors VALUES (\'' + id[i] + '\', \'' + eid[i] + '\', \'' + orcid[i] + '\', \'' + name[i] + \
+            '\', ' + hIndex[i] + ', \'' + subjectedAreas[i] + '\', ' + itemCitations[i] + ', ' + \
+            authorsCitations[i] + ', ' + documentsCount[i] + ');'
     
-    cursor.execute(query)
-
-    cursor.close()
-    con.close()
+        cursor.execute(query)
 
 
-def find_authors_number(tableName, password):
-    con = connector.connect(host = 'localhost',
-                                        port = '3306',
-                                        user = 'root',
-                                        password = password,
-                                        database = 'george',
-                                        auth_plugin = 'mysql_native_password')
+def insert_organizations(cursor, id, eid, name, type, address, postalCode, city, state, country):
 
-    cursor = con.cursor()
+    for i in range(len(id)):
 
-    query = 'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s;'
-    cursor.execute(query, ('george', tableName))
-    columnNames = [row[0] for row in cursor.fetchall()]
+        query = 'INSERT INTO organizations VALUES (\'' + id[i] + '\', \'' + eid[i] + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
+            address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + country[i] + '\');'
 
-    counter = 0
-    for col in columnNames:
+        cursor.execute(query)
+
+def insert_publications_and_authors(cursor, doi, authorID):
+
+    for i in range(len(doi)):
+        query = 'INSERT INTO publications VALUES (' + doi[i] + ', ' + authorID[i] + ');'
+    
         try:
-            num = int(re.findall(r'\d+', col)[0])
-            if num > counter:
-                counter += 1
+            cursor.execute(query)
         except:
             continue
 
-    cursor.close()
-    con.close()
 
-    return counter
+def insert_publications_and_organizations(cursor, doi, orgID):
 
-
-def remove_nulls(tableName, password):
-
-    con = connector.connect(host = 'localhost',
-                                        port = '3306',
-                                        user = 'root',
-                                        password = password,
-                                        database = 'george',
-                                        auth_plugin = 'mysql_native_password')
-
-    cursor = con.cursor()
-
-    query = 'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s;'
-    cursor.execute(query, ('george', tableName))
-    columnNames = [row[0] for row in cursor.fetchall()]
-
-    for col in columnNames:
-        if col != 'index':
-            query = 'UPDATE ' + tableName + ' SET ' + col + ' = COALESCE(' + col + ', \' \') WHERE ' + col + ' IS NULL;'
+    for i in range(len(doi)):
+        query = 'INSERT INTO publications VALUES (' + doi[i] + ', ' + orgID[i] + ');'
+    
+        try:
             cursor.execute(query)
+        except:
+            continue
 
+
+def commit_and_close(connection, cursor):
+
+    connection.commit()
     cursor.close()
-    con.commit()
-    con.close()
+    connection.close()
