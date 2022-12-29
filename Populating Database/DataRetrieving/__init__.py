@@ -309,6 +309,7 @@ def orgs_data(DOIs):
     return identifier, eid, name, type, address, postalCode, city, state, country
 
 
+# this functions matches publications and authors through their identifiers
 def papers_and_authors(DOIs):
 
     papersDOI = []
@@ -316,17 +317,24 @@ def papers_and_authors(DOIs):
 
     for i in range(len(DOIs)):
 
-        paperInfo = AbstractRetrieval(DOIs[i])
-        authors = paperInfo.authors
+        # checking if a publication has been already accessed
+        if papersDOI.count(DOIs[i]) == 0:
 
-        for author in authors:
+            # getting publication's info
+            paperInfo = AbstractRetrieval(DOIs[i])
+            # getting pubication's authors data
+            authors = paperInfo.authors
 
-            papersDOI.append(str(DOIs[i]))
-            authorsID.append(str(author[0]))
+            for author in authors:
+                # a publication's DOI is appended so much times as the numbers of its authors
+                papersDOI.append(str(DOIs[i]))
+                # the first element in an author's list of information (author[0]) is Scopus author identifier
+                authorsID.append(str(author[0]))
     
     return papersDOI, authorsID
 
 
+# this functions matches publications and organizations through their identifiers
 def papers_and_orgs(DOIs):
 
     papersDOI = []
@@ -334,12 +342,60 @@ def papers_and_orgs(DOIs):
 
     for i in range(len(DOIs)):
 
-        paperInfo = AbstractRetrieval(DOIs[i])
-        orgs = paperInfo.affiliation
+        # checking if a publication has been already accessed
+        if papersDOI.count(DOIs[i]) == 0:
 
-        for org in orgs:
+            # getting publication's info
+            paperInfo = AbstractRetrieval(DOIs[i])
+            # getting publication's organizations data
+            orgs = paperInfo.affiliation
 
-            papersDOI.append(str(DOIs[i]))
-            orgsID.append(str(org[0]))
-    
+            for org in orgs:
+                # a publication's DOI is appended so much times as the number of
+                # organizations affiliated to its authors
+                papersDOI.append(str(DOIs[i]))
+                # the first element in an organization's list of information (org[0]) is
+                # Scopus organization identifier
+                orgsID.append(str(org[0]))
+        
     return papersDOI, orgsID
+
+
+# this function matches authors and organizations through their identifiers
+def authors_and_organizations(DOIs):
+
+    DOI = []
+    authorsID = []
+    organizationsID = []
+
+    for i in range(len(DOIs)):
+
+        # checking if a publication has been already accesed
+        if DOI.count(DOIs) == 0:
+
+            DOI.append(DOIs[i])
+            # getting publication's authors
+            authors = AbstractRetrieval(DOIs[i]).authors
+
+            for author in authors:
+
+                # checking if an author has been already accessed
+                if authorsID.count(author[0]) == 0:
+
+                    # in the case where at least one affiliated organizations exists,
+                    if author[4] != None:
+                        # converting author's affiliated organizations string to list
+                        orgs = author[4].split(';')
+                        for org in orgs:
+                            # an author's ID (author[0]) is appended as much times
+                            # as the number of the affiliated organizations
+                            authorsID.append(str(author[0]))
+                            # appending organizations Scopus identifier
+                            organizationsID.append(str(AffiliationRetrieval(org).identifier))
+                    else:
+                        # if no affiliated organizations exists, the values 'None' is appended
+                        # in the corresponding list
+                        authorsID.append(str(author[0]))
+                        organizationsID.append('None')
+
+    return authorsID, organizationsID

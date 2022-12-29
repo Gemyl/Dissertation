@@ -1,7 +1,7 @@
 from MySQLpackage import connect_to_MySQL, insert_publications, insert_authors, insert_organizations, \
-     insert_publications_and_authors, insert_publications_and_organizations, commit_and_close
+     insert_publications_and_authors, insert_publications_and_organizations, commit_and_close, insert_authors_and_publications
 from DataRetrieving import get_DOIs, papers_data, authors_data, orgs_data, \
-     papers_and_authors, papers_and_orgs
+     papers_and_authors, papers_and_orgs, authors_and_organizations
 from getpass import getpass
 
 # parameters given by user
@@ -24,8 +24,9 @@ orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, \
      orgCountry =  orgs_data(DOIs)
 
 # retrieving identifiers to form collaboration table between authors and organizations
-DOIPapersAuthors, IDAuthorsPapers = papers_and_authors(DOIs)
-DOIPapersOrgs, IDOrgsPapers = papers_and_orgs(DOIs)
+papersDOIRelAuthors, authorsIDRelPapers = papers_and_authors(DOIs)
+papersDOIRelOrgs, orgsIDRelPapers = papers_and_orgs(DOIs)
+authorsIDRelOrgs, orgsIDRelAuthors = authors_and_organizations(DOIs)
 
 
 # inserting data to MySQL database
@@ -39,8 +40,9 @@ insert_authors(cursor, authorID, eid, orcid, name, hIndex, subjectAreas, itemCit
      authorsCitations, documentsCount)
 insert_organizations(cursor, orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode,
      orgCity, orgState, orgCountry)
-insert_publications_and_authors(cursor, DOIPapersAuthors, IDAuthorsPapers)
-insert_publications_and_organizations(cursor, DOIPapersOrgs, IDOrgsPapers)
+insert_publications_and_authors(cursor, papersDOIRelAuthors, authorsIDRelPapers)
+insert_publications_and_organizations(cursor, papersDOIRelOrgs, orgsIDRelPapers)
+insert_authors_and_publications(cursor, authorsIDRelOrgs, orgsIDRelAuthors)
 
 # committing changes and closing connection
 commit_and_close(connection, cursor)

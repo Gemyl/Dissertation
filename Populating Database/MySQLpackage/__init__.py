@@ -65,7 +65,7 @@ def insert_organizations(cursor, id, eid, name, type, address, postalCode, city,
 def insert_publications_and_authors(cursor, doi, authorID):
 
     for i in range(len(doi)):
-        query = 'INSERT INTO publications_authors (DOI, Author_ID) VALUES (\'' + doi[i] + '\', \'' + authorID[i] + '\');'
+        query = 'INSERT INTO publications_authors VALUES (\'' + doi[i] + '\', \'' + authorID[i] + '\');'
     
         try:
             cursor.execute(query)
@@ -77,13 +77,23 @@ def insert_publications_and_authors(cursor, doi, authorID):
 def insert_publications_and_organizations(cursor, doi, orgID):
 
     for i in range(len(doi)):
-        query = 'INSERT INTO publications_organizations (DOI, Organization_ID) VALUES (\'' + doi[i] + '\', \'' + orgID[i] + '\');'
+        query = 'INSERT INTO publications_organizations VALUES (\'' + doi[i] + '\', \'' + orgID[i] + '\');'
 
         try:
             cursor.execute(query)
         except:
             continue
 
+
+def insert_authors_and_publications(cursor, authorID, orgID):
+
+    for i in range(len(authorID)):
+        query = 'INSERT INTO authors_organizations VALUES (\'' + authorID[i] + '\', \'' + orgID[i] + '\');'
+
+        try:
+            cursor.execute(query)
+        except:
+            continue
 
 # commitment of changes and termination of connection
 def commit_and_close(connection, cursor):
