@@ -26,7 +26,7 @@ orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, \
 # retrieving identifiers to form collaboration table between authors and organizations
 papersDOIRelAuthors, authorsIDRelPapers = papers_and_authors(DOIs)
 papersDOIRelOrgs, orgsIDRelPapers = papers_and_orgs(DOIs)
-authorsIDRelOrgs, orgsIDRelAuthors = authors_and_organizations(DOIs)
+authorsIDRelOrgs, orgsIDRelAuthors, currentOrgs = authors_and_organizations(DOIs)
 
 
 # inserting data to MySQL database
@@ -42,7 +42,7 @@ insert_organizations(cursor, orgID, orgEID, orgName, orgType, orgAddress, orgPos
      orgCity, orgState, orgCountry)
 insert_publications_and_authors(cursor, papersDOIRelAuthors, authorsIDRelPapers)
 insert_publications_and_organizations(cursor, papersDOIRelOrgs, orgsIDRelPapers)
-insert_authors_and_publications(cursor, authorsIDRelOrgs, orgsIDRelAuthors)
+insert_authors_and_publications(cursor, authorsIDRelOrgs, orgsIDRelAuthors, currentOrgs)
 
 # committing changes and closing connection
 commit_and_close(connection, cursor)

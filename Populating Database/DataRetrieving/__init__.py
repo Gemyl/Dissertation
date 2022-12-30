@@ -322,12 +322,15 @@ def papers_and_authors(DOIs):
 
             # getting publication's info
             paperInfo = AbstractRetrieval(DOIs[i])
+
             # getting pubication's authors data
             authors = paperInfo.authors
 
             for author in authors:
+
                 # a publication's DOI is appended so much times as the numbers of its authors
                 papersDOI.append(str(DOIs[i]))
+
                 # the first element in an author's list of information (author[0]) is Scopus author identifier
                 authorsID.append(str(author[0]))
     
@@ -347,13 +350,16 @@ def papers_and_orgs(DOIs):
 
             # getting publication's info
             paperInfo = AbstractRetrieval(DOIs[i])
+
             # getting publication's organizations data
             orgs = paperInfo.affiliation
 
             for org in orgs:
+
                 # a publication's DOI is appended so much times as the number of
                 # organizations affiliated to its authors
                 papersDOI.append(str(DOIs[i]))
+
                 # the first element in an organization's list of information (org[0]) is
                 # Scopus organization identifier
                 orgsID.append(str(org[0]))
@@ -366,8 +372,10 @@ def authors_and_organizations(DOIs):
 
     DOI = []
     authorsID = []
-    organizationsID = []
-
+    currentOrgs = []
+    isCurrentOrg = []
+    publishingOrgs = []
+    
     for i in range(len(DOIs)):
 
         # checking if a publication has been already accesed
@@ -384,18 +392,40 @@ def authors_and_organizations(DOIs):
 
                     # in the case where at least one affiliated organizations exists,
                     if author[4] != None:
+
                         # converting author's affiliated organizations string to list
                         orgs = author[4].split(';')
+
+                        # getting all the organizations thar are currently affiliated
+                        # with each author
+                        for org in AuthorRetrieval(author[0]).affiliation_current:
+                            currentOrgs.append(org[0])
+
                         for org in orgs:
+
                             # an author's ID (author[0]) is appended as much times
                             # as the number of the affiliated organizations
                             authorsID.append(str(author[0]))
-                            # appending organizations Scopus identifier
-                            organizationsID.append(str(AffiliationRetrieval(org).identifier))
-                    else:
-                        # if no affiliated organizations exists, the values 'None' is appended
-                        # in the corresponding list
-                        authorsID.append(str(author[0]))
-                        organizationsID.append('None')
 
-    return authorsID, organizationsID
+                            # appending organizations Scopus identifier
+                            publishingOrgs.append(str(AffiliationRetrieval(org).identifier))
+
+                            # checking if the organization is currently affiliated
+                            # with each author
+
+                            if AffiliationRetrieval(org).identifier in currentOrgs:
+                                isCurrentOrg.append('Yes')
+                            else:
+                                isCurrentOrg.append('No')
+
+                            currentOrgs = []
+
+                    else:
+
+                        # if no affiliated organizations exists, the values '-' is appended
+                        # in both o
+                        authorsID.append(str(author[0]))
+                        publishingOrgs.append('-')
+                        isCurrentOrg.append('-')
+
+    return authorsID, publishingOrgs, isCurrentOrg

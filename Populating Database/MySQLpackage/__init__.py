@@ -65,6 +65,7 @@ def insert_organizations(cursor, id, eid, name, type, address, postalCode, city,
 def insert_publications_and_authors(cursor, doi, authorID):
 
     for i in range(len(doi)):
+
         query = 'INSERT INTO publications_authors VALUES (\'' + doi[i] + '\', \'' + authorID[i] + '\');'
     
         try:
@@ -77,6 +78,7 @@ def insert_publications_and_authors(cursor, doi, authorID):
 def insert_publications_and_organizations(cursor, doi, orgID):
 
     for i in range(len(doi)):
+
         query = 'INSERT INTO publications_organizations VALUES (\'' + doi[i] + '\', \'' + orgID[i] + '\');'
 
         try:
@@ -85,10 +87,12 @@ def insert_publications_and_organizations(cursor, doi, orgID):
             continue
 
 
-def insert_authors_and_publications(cursor, authorID, orgID):
+def insert_authors_and_publications(cursor, authorID, orgID, curOrgID):
 
     for i in range(len(authorID)):
-        query = 'INSERT INTO authors_organizations VALUES (\'' + authorID[i] + '\', \'' + orgID[i] + '\');'
+        
+        query = 'INSERT INTO authors_organizations VALUES (\'' + authorID[i] + '\', \'' + orgID[i] + '\', \'' \
+            + curOrgID[i] + '\');'
 
         try:
             cursor.execute(query)
