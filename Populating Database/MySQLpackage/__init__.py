@@ -52,7 +52,7 @@ def insert_organizations(cursor, id, eid, name, type, address, postalCode, city,
 
     for i in range(len(id)):
 
-        query = 'INSERT INTO organizations VALUES (\'' + id[i] + '\', \'' + eid[i] + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
+        query = 'INSERT INTO organizations VALUES (\'' + str(id[i]) + '\', \'' + eid[i] + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
             address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + country[i] + '\');'
 
         try:
@@ -79,7 +79,7 @@ def insert_publications_and_organizations(cursor, doi, orgID):
 
     for i in range(len(doi)):
 
-        query = 'INSERT INTO publications_organizations VALUES (\'' + doi[i] + '\', \'' + orgID[i] + '\');'
+        query = 'INSERT INTO publications_organizations VALUES (\'' + doi[i] + '\', \'' + str(orgID[i]) + '\');'
 
         try:
             cursor.execute(query)
@@ -91,7 +91,7 @@ def insert_authors_and_publications(cursor, authorID, orgID, curOrgID):
 
     for i in range(len(authorID)):
         
-        query = 'INSERT INTO authors_organizations VALUES (\'' + authorID[i] + '\', \'' + orgID[i] + '\', \'' \
+        query = 'INSERT INTO authors_organizations VALUES (\'' + authorID[i] + '\', \'' + str(orgID[i]) + '\', \'' \
             + curOrgID[i] + '\');'
 
         try:

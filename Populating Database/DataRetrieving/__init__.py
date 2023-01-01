@@ -238,73 +238,74 @@ def orgs_data(DOIs):
     identifier = []
 
     # in this loop every DOI is accessed
-    for i in range(len(DOIs)):
+    for DOI in DOIs:
+        tempOrgs = AbstractRetrieval(DOI).affiliation
+        for org in tempOrgs:
+            if org not in identifier:
+                identifier.append(org[0])
+        
+        authors = AbstractRetrieval(DOI).authors
+        for author in authors:
+            authorID = author[0]
+            for org in AuthorRetrieval(authorID).affiliation_current:
+                if (org[0] not in identifier) & (org[1] in identifier):
+                    identifier.append(org[0])
+            for org in AuthorRetrieval(authorID).affiliation_history:
+                if (org[0] not in identifier) & (org[1] in identifier):
+                    identifier.append(org[0])
 
-        # getting all organizations that are affiliated in each paper
-        for org in AbstractRetrieval(DOIs[i]).affiliation:
+    # getting all organizations that are affiliated in each paper
+    for orgID in identifier:
 
-            # getting all available information for each organization
-            orgInfo = AffiliationRetrieval(org[0])
+        orgInfo = AffiliationRetrieval(orgID)
 
-            # checking if an organization has been already accesed
-            # this means that neither its Scopus ID or its name (and name variants)
-            # are not included in the corresponding lists
-            if (identifier.count(orgInfo.identifier) == 0) & (name.count(orgInfo.affiliation_name)) == 0 \
-                & (any(orgName in name for orgName in orgInfo.name_variants)):
+        # organization's EID
+        try:
+            eid.append(str(orgInfo.eid))
+        except:
+            eid.append(' ')
 
-                    # organizations's Scopus ID
-                    try:
-                        identifier.append(str(orgInfo.identifier))
-                    except:
-                        identifier.append(' ')
+        # organization's name
+        try:
+            name.append(str(orgInfo.affiliation_name))
+        except:
+            name.append(' ')
 
-                    # organization's EID
-                    try:
-                        eid.append(str(orgInfo.eid))
-                    except:
-                        eid.append(' ')
+        # organization's type (e.g. university, college)
+        try:
+            type.append(str(orgInfo.org_type))
+        except:
+            type.append(' ')
 
-                    # organization's name
-                    try:
-                        name.append(str(orgInfo.affiliation_name))
-                    except:
-                        name.append(' ')
+        # organization's address
+        try:
+            address.append(str(orgInfo.address))
+        except:
+            address.append(' ')
+        
+        # organization's postal code
+        try:
+            postalCode.append(str(orgInfo.postal_code))
+        except:
+            postalCode.append(' ')
 
-                    # organization's type (e.g. university, college)
-                    try:
-                        type.append(str(orgInfo.org_type))
-                    except:
-                        type.append(' ')
+        # organization's city
+        try:
+            city.append(str(orgInfo.city))
+        except:
+            city.append(' ')
 
-                    # organization's address
-                    try:
-                        address.append(str(orgInfo.address))
-                    except:
-                        address.append(' ')
-                    
-                    # organization's postal code
-                    try:
-                        postalCode.append(str(orgInfo.postal_code))
-                    except:
-                        postalCode.append(' ')
+        # organization's state or region
+        try:
+            state.append(str(orgInfo.state))
+        except:
+            state.append(' ')
 
-                    # organization's city
-                    try:
-                        city.append(str(orgInfo.city))
-                    except:
-                        city.append(' ')
-
-                    # organization's state or region
-                    try:
-                        state.append(str(orgInfo.state))
-                    except:
-                        state.append(' ')
-
-                    # organization's country
-                    try:
-                        country.append(str(orgInfo.country))
-                    except:
-                        country.append(' ')
+        # organization's country
+        try:
+            country.append(str(orgInfo.country))
+        except:
+            country.append(' ')
 
     return identifier, eid, name, type, address, postalCode, city, state, country
 
@@ -344,10 +345,8 @@ def papers_and_orgs(DOIs):
     orgsID = []
 
     for i in range(len(DOIs)):
-
         # checking if a publication has been already accessed
         if papersDOI.count(DOIs[i]) == 0:
-
             # getting publication's info
             paperInfo = AbstractRetrieval(DOIs[i])
 
@@ -355,7 +354,6 @@ def papers_and_orgs(DOIs):
             orgs = paperInfo.affiliation
 
             for org in orgs:
-
                 # a publication's DOI is appended so much times as the number of
                 # organizations affiliated to its authors
                 papersDOI.append(str(DOIs[i]))
@@ -367,65 +365,52 @@ def papers_and_orgs(DOIs):
     return papersDOI, orgsID
 
 
-# this function matches authors and organizations through their identifiers
+# this function matches authors and organizations
 def authors_and_organizations(DOIs):
 
-    DOI = []
+    orgsID = []
+    paperOrgs = []
     authorsID = []
-    currentOrgs = []
     isCurrentOrg = []
-    publishingOrgs = []
+    totalOrgs = []
+    formerOrgs = []
     
-    for i in range(len(DOIs)):
+    for DOI in DOIs:
+        # getting the organizations related to each publication
+        paperOrgs = [org[0] for org in AbstractRetrieval(DOI).affiliation]
 
-        # checking if a publication has been already accesed
-        if DOI.count(DOIs) == 0:
+        # getting the organizations with which each paper's author is affiliated to (currently or in the past)
+        for author in AbstractRetrieval(DOI).authors:
+            # current organizations
+            currentOrgs = [org for org in AuthorRetrieval(author[0]).affiliation_current]
+            # total organizations 
+            totalOrgs = [org for org in AuthorRetrieval(author[0]).affiliation_history]
+            # removing current from total organizations list to get the former orgnizations
+            formerOrgs = [org for org in totalOrgs if org not in currentOrgs]
+             
+            for org in currentOrgs:
+                # checking if any organization (org[0]) or its parent (org[1], if exists) from author's current affiliation,
+                # is included in publication's related organizations
+                if (org[0] in paperOrgs) | (org[1] in paperOrgs):
+                    # 'Yes' is appended in isCurrentOrg list to state that the specific organization is
+                    # currently affiliated to the author
+                    isCurrentOrg.append('Yes')
+                    # both the ID of author and organizations are inserted in the corresponding lists
+                    orgsID.append(str(org[0]))
+                    authorsID.append(str(author[0]))
 
-            DOI.append(DOIs[i])
-            # getting publication's authors
-            authors = AbstractRetrieval(DOIs[i]).authors
-
-            for author in authors:
-
-                # checking if an author has been already accessed
-                if authorsID.count(author[0]) == 0:
-
-                    # in the case where at least one affiliated organizations exists,
-                    if author[4] != None:
-
-                        # converting author's affiliated organizations string to list
-                        orgs = author[4].split(';')
-
-                        # getting all the organizations thar are currently affiliated
-                        # with each author
-                        for org in AuthorRetrieval(author[0]).affiliation_current:
-                            currentOrgs.append(org[0])
-
-                        for org in orgs:
-
-                            # an author's ID (author[0]) is appended as much times
-                            # as the number of the affiliated organizations
-                            authorsID.append(str(author[0]))
-
-                            # appending organizations Scopus identifier
-                            publishingOrgs.append(str(AffiliationRetrieval(org).identifier))
-
-                            # checking if the organization is currently affiliated
-                            # with each author
-
-                            if AffiliationRetrieval(org).identifier in currentOrgs:
-                                isCurrentOrg.append('Yes')
-                            else:
-                                isCurrentOrg.append('No')
-
-                            currentOrgs = []
-
-                    else:
-
-                        # if no affiliated organizations exists, the values '-' is appended
-                        # in both o
-                        authorsID.append(str(author[0]))
-                        publishingOrgs.append('-')
-                        isCurrentOrg.append('-')
-
-    return authorsID, publishingOrgs, isCurrentOrg
+            # checking if any organization (or its parent) from author's former affiliation, 
+            # is included in publication's related organizations
+            for org in formerOrgs:
+                if (org[0] in paperOrgs) | (org[1] in paperOrgs):
+                    # the organizations in this list belong to former affiliations,
+                    # so 'No' is appended in isCurrentOrg list
+                    isCurrentOrg.append('No')
+                    # insertion of both author's and organization's ID
+                    orgsID.append(str(org[0]))                    
+                    authorsID.append(str(author[0]))      
+        
+        # reseting the list which contains each paper's related organizations
+        paperOrgs = []
+    
+    return authorsID, orgsID, isCurrentOrg
