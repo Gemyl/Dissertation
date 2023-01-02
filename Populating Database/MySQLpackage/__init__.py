@@ -48,12 +48,13 @@ def insert_authors(cursor, id, eid, orcid, name, hIndex, subjectedAreas,
 
 
 # inserting organizations data
-def insert_organizations(cursor, id, eid, name, type, address, postalCode, city, state, country):
+def insert_organizations(cursor, id, parent, eid, name, type, address, postalCode, city, state, country):
 
     for i in range(len(id)):
 
-        query = 'INSERT INTO organizations VALUES (\'' + str(id[i]) + '\', \'' + eid[i] + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
-            address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + country[i] + '\');'
+        query = 'INSERT INTO organizations VALUES (\'' + str(id[i]) + '\', \'' + parent[i] + '\', \'' + eid[i] + '\', \'' + \
+            name[i] + '\', \'' + type[i] + '\', \'' + address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + \
+            state[i] + '\', \'' + country[i] + '\');'
 
         try:
             cursor.execute(query)

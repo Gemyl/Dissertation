@@ -1,4 +1,4 @@
-from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
+from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval, AuthorSearch
 from TextFormating import format_keywords, list_to_string
 from tqdm.auto import tqdm
 from requests import get
@@ -232,6 +232,7 @@ def orgs_data(DOIs):
     city = []
     type = []
     state = []
+    parent = []
     country = []
     address = []
     postalCode = []
@@ -243,6 +244,7 @@ def orgs_data(DOIs):
         for org in tempOrgs:
             if org not in identifier:
                 identifier.append(org[0])
+                parent.append('None')
         
         authors = AbstractRetrieval(DOI).authors
         for author in authors:
@@ -250,9 +252,11 @@ def orgs_data(DOIs):
             for org in AuthorRetrieval(authorID).affiliation_current:
                 if (org[0] not in identifier) & (org[1] in identifier):
                     identifier.append(org[0])
+                    parent.append(str(org[1]))
             for org in AuthorRetrieval(authorID).affiliation_history:
                 if (org[0] not in identifier) & (org[1] in identifier):
                     identifier.append(org[0])
+                    parent.append(str(org[1]))
 
     # getting all organizations that are affiliated in each paper
     for orgID in identifier:
@@ -307,7 +311,7 @@ def orgs_data(DOIs):
         except:
             country.append(' ')
 
-    return identifier, eid, name, type, address, postalCode, city, state, country
+    return identifier, parent, eid, name, type, address, postalCode, city, state, country
 
 
 # this functions matches publications and authors through their identifiers
@@ -376,41 +380,42 @@ def authors_and_organizations(DOIs):
     formerOrgs = []
     
     for DOI in DOIs:
-        # getting the organizations related to each publication
-        paperOrgs = [org[0] for org in AbstractRetrieval(DOI).affiliation]
-
-        # getting the organizations with which each paper's author is affiliated to (currently or in the past)
+        # accessing each author's info for a given publication
         for author in AbstractRetrieval(DOI).authors:
-            # current organizations
-            currentOrgs = [org for org in AuthorRetrieval(author[0]).affiliation_current]
-            # total organizations 
-            totalOrgs = [org for org in AuthorRetrieval(author[0]).affiliation_history]
-            # removing current from total organizations list to get the former orgnizations
-            formerOrgs = [org for org in totalOrgs if org not in currentOrgs]
-             
-            for org in currentOrgs:
-                # checking if any organization (org[0]) or its parent (org[1], if exists) from author's current affiliation,
-                # is included in publication's related organizations
-                if (org[0] in paperOrgs) | (org[1] in paperOrgs):
-                    # 'Yes' is appended in isCurrentOrg list to state that the specific organization is
-                    # currently affiliated to the author
-                    isCurrentOrg.append('Yes')
-                    # both the ID of author and organizations are inserted in the corresponding lists
-                    orgsID.append(str(org[0]))
-                    authorsID.append(str(author[0]))
+            # checking if the author has any affiliation for the specific publication
+            if author[4] != None:
+                # organziations from author's affiliation that are related to the publication
+                paperOrgs = [int(org) for org in author[4].split(';')]
+                # current organizations
+                currentOrgs = [org for org in AuthorRetrieval(author[0]).affiliation_current]
+                # total organizations 
+                totalOrgs = [org for org in AuthorRetrieval(author[0]).affiliation_history]
+                # removing current from total organizations list to get the former orgnizations
+                formerOrgs = [org for org in totalOrgs if org not in currentOrgs]
+                
+                for org in currentOrgs:
+                    # checking if any organization (org[0]) or its parent (org[1], if exists) from author's current affiliation,
+                    # is included in publication's related organizations
+                    if (org[0] in paperOrgs) | (org[1] in paperOrgs):
+                        # 'Yes' is appended in isCurrentOrg list to state that the specific organization is
+                        # currently affiliated to the author
+                        isCurrentOrg.append('Yes')
+                        # both the ID of author and organizations are inserted in the corresponding lists
+                        orgsID.append(str(org[0]))
+                        authorsID.append(str(author[0]))
 
-            # checking if any organization (or its parent) from author's former affiliation, 
-            # is included in publication's related organizations
-            for org in formerOrgs:
-                if (org[0] in paperOrgs) | (org[1] in paperOrgs):
-                    # the organizations in this list belong to former affiliations,
-                    # so 'No' is appended in isCurrentOrg list
-                    isCurrentOrg.append('No')
-                    # insertion of both author's and organization's ID
-                    orgsID.append(str(org[0]))                    
-                    authorsID.append(str(author[0]))      
-        
-        # reseting the list which contains each paper's related organizations
-        paperOrgs = []
+                # checking if any organization (or its parent) from author's former affiliation, 
+                # is included in publication's related organizations
+                for org in formerOrgs:
+                    if (org[0] in paperOrgs) | (org[1] in paperOrgs):
+                        # the organizations in this list belong to former affiliations,
+                        # so 'No' is appended in isCurrentOrg list
+                        isCurrentOrg.append('No')
+                        # insertion of both author's and organization's ID
+                        orgsID.append(str(org[0]))                    
+                        authorsID.append(str(author[0]))      
+            
+                # reseting the list which contains each paper's related organizations
+                paperOrgs = []
     
     return authorsID, orgsID, isCurrentOrg

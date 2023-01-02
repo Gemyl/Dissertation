@@ -20,7 +20,7 @@ DOI, year, journal, authorshipKeywords, userKeywords, subjects, title, citations
 authorID, eid, orcid, name, hIndex, subjectAreas, itemCitations, authorsCitations, \
     documentsCount = authors_data(DOIs)
 
-orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, \
+orgID, parent, orgEID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, \
      orgCountry =  orgs_data(DOIs)
 
 # retrieving identifiers to form collaboration table between authors and organizations
@@ -38,7 +38,7 @@ insert_publications(cursor, DOI, year, journal, authorshipKeywords, userKeywords
      subjects, title, citationsCount)
 insert_authors(cursor, authorID, eid, orcid, name, hIndex, subjectAreas, itemCitations, 
      authorsCitations, documentsCount)
-insert_organizations(cursor, orgID, orgEID, orgName, orgType, orgAddress, orgPostalCode,
+insert_organizations(cursor, orgID, parent, orgEID, orgName, orgType, orgAddress, orgPostalCode,
      orgCity, orgState, orgCountry)
 insert_publications_and_authors(cursor, papersDOIRelAuthors, authorsIDRelPapers)
 insert_publications_and_organizations(cursor, papersDOIRelOrgs, orgsIDRelPapers)
