@@ -14,14 +14,17 @@
           href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
           crossorigin="anonymous"
         />
-
         <title>{% block title %}Base{% endblock %}</title>
     </head>
+
     <body>
       <style type="text/css">
         body { background: #9fc5f8 !important; } /* Adding !important forces the browser to overwrite the default style applied by Bootstrap */
      </style>
-      <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #2b78e4;">
+
+      <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #50aef1;">
+        <img class="navbarlogo" src="../static/navbarlogo.jpg" alt="error" >
+    
         <button
           class="navbar-toggler"
           type="button"
@@ -30,25 +33,29 @@
         >
           <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbar">
           <div class="navbar-nav">
-            <a class="nav-item nav-link" id="home" href="/" style="color: #f7f7f7;">Home</a>
+            <a class="nav-item nav-link" id="home" href="/" style="color: #f7f7f7;" >Home</a>
             <a class="nav-item nav-link" id="search" href="/search" style="color: #f7f7f7;">Search</a>
           </div>
         </div>
       </nav>
   
       <div class="container">{% block content %} {% endblock %}</div>
+
       <script
         src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
         crossorigin="anonymous"
       ></script>
+
       <script
         src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
         crossorigin="anonymous"
       ></script>
+
       <script
         src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
@@ -59,5 +66,6 @@
         type="text/javascript"
         src="{{ url_for('static', filename='index.js') }}"
       ></script>
+
     </body>
 </html>
