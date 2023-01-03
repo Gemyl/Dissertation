@@ -140,9 +140,9 @@ def papers_data(DOIs, keywords):
 def authors_data(DOIs):
 
     # each list corresponds to an author's attribute
-    eid = []
-    orcid = []
     hIndex = []
+    lastName = []
+    firstName = []
     identifier = []  
     indexedName = []
     itemCitations = []
@@ -171,17 +171,17 @@ def authors_data(DOIs):
                 except:
                     identifier.append(' ')
 
-                # author's EID
+                # author's first name
                 try:
-                    eid.append(str(authorInfo.eid))
+                    firstName.append(authorInfo.given_name)
                 except:
-                    eid.append(' ')
+                    firstName.append(' ')
 
-                # author's ORCID (if has one)
+                # author's last name
                 try:
-                    orcid.append(str(authorInfo.orcid))
+                    lastName.append(authorInfo.surname)
                 except:
-                    orcid.append(' ')
+                    firstName.append(' ')
 
                 # author's name as is indexed in Scopus
                 try:
@@ -219,7 +219,7 @@ def authors_data(DOIs):
                 except:
                     documentsCount.append(' ')
 
-    return identifier, eid, orcid, indexedName, hIndex, subjectedAreas, \
+    return identifier, firstName, lastName, subjectedAreas, hIndex, \
         itemCitations, authorsCitations, documentsCount 
 
 
@@ -227,14 +227,14 @@ def authors_data(DOIs):
 def orgs_data(DOIs):
 
     # each list corresponds to an organization's attribute
-    eid = []
     name = []
     city = []
     type = []
     state = []
-    parent = []
     country = []
     address = []
+    parentID = []
+    parentName = []    
     postalCode = []
     identifier = []
 
@@ -244,7 +244,8 @@ def orgs_data(DOIs):
         for org in tempOrgs:
             if org not in identifier:
                 identifier.append(org[0])
-                parent.append('None')
+                parentID.append('None')
+                parentName.append('None')
         
         authors = AbstractRetrieval(DOI).authors
         for author in authors:
@@ -252,22 +253,19 @@ def orgs_data(DOIs):
             for org in AuthorRetrieval(authorID).affiliation_current:
                 if (org[0] not in identifier) & (org[1] in identifier):
                     identifier.append(org[0])
-                    parent.append(str(org[1]))
+                    parentID.append(str(org[1]))
+                    parentName.append(org[6])
+                    
             for org in AuthorRetrieval(authorID).affiliation_history:
                 if (org[0] not in identifier) & (org[1] in identifier):
                     identifier.append(org[0])
-                    parent.append(str(org[1]))
+                    parentID.append(str(org[1]))
+                    parentName.append(org[6])
 
     # getting all organizations that are affiliated in each paper
     for orgID in identifier:
 
         orgInfo = AffiliationRetrieval(orgID)
-
-        # organization's EID
-        try:
-            eid.append(str(orgInfo.eid))
-        except:
-            eid.append(' ')
 
         # organization's name
         try:
@@ -311,7 +309,7 @@ def orgs_data(DOIs):
         except:
             country.append(' ')
 
-    return identifier, parent, eid, name, type, address, postalCode, city, state, country
+    return identifier, name, type, address, postalCode, city, state, country, parentID, parentName
 
 
 # this functions matches publications and authors through their identifiers

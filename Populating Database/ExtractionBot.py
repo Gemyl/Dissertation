@@ -17,12 +17,11 @@ DOIs = get_DOIs(keywords, yearsRange, subjects)
 DOI, year, journal, authorshipKeywords, userKeywords, subjects, title, citationsCount \
      = papers_data(DOIs, keywords)
 
-authorID, eid, orcid, name, hIndex, subjectAreas, itemCitations, authorsCitations, \
-    documentsCount = authors_data(DOIs)
+authorID, firstName, lastName, hIndex, subjectAreas, itemCitations, authorsCitations, \
+     documentsCount = authors_data(DOIs)
 
-orgID, parent, orgEID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, \
-     orgCountry =  orgs_data(DOIs)
-
+orgID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, orgCountry, parentID, \
+     parentName = orgs_data(DOIs)
 # retrieving identifiers to form collaboration table between authors and organizations
 papersDOIRelAuthors, authorsIDRelPapers = papers_and_authors(DOIs)
 papersDOIRelOrgs, orgsIDRelPapers = papers_and_orgs(DOIs)
@@ -36,10 +35,10 @@ connection, cursor = connect_to_MySQL(password)
 # data insertion
 insert_publications(cursor, DOI, year, journal, authorshipKeywords, userKeywords, 
      subjects, title, citationsCount)
-insert_authors(cursor, authorID, eid, orcid, name, hIndex, subjectAreas, itemCitations, 
+insert_authors(cursor, authorID, firstName, lastName, hIndex, subjectAreas, itemCitations, 
      authorsCitations, documentsCount)
-insert_organizations(cursor, orgID, parent, orgEID, orgName, orgType, orgAddress, orgPostalCode,
-     orgCity, orgState, orgCountry)
+insert_organizations(cursor, orgID, orgName, orgType, orgAddress, orgPostalCode, orgCity,
+     orgState, orgCountry, parentID, parentName)
 insert_publications_and_authors(cursor, papersDOIRelAuthors, authorsIDRelPapers)
 insert_publications_and_organizations(cursor, papersDOIRelOrgs, orgsIDRelPapers)
 insert_authors_and_publications(cursor, authorsIDRelOrgs, orgsIDRelAuthors, currentOrgs)

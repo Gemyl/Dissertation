@@ -2,7 +2,7 @@ from geopy.geocoders import Nominatim
 
 geolocator = Nominatim(user_agent='PersonalProject')
 
-address = "9201 University City Blvd"
+address = "Greece"
 
 location = geolocator.geocode(address)
 

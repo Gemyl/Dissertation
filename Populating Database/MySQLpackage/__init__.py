@@ -16,8 +16,7 @@ def connect_to_MySQL(password):
 
 
 # inserting publications data 
-def insert_publications(cursor, doi, year, journal, authorsKeywords,
-    userKeywords, subjects, title, citationsCount):
+def insert_publications(cursor, doi, year, journal, authorsKeywords, userKeywords, subjects, title, citationsCount):
 
     for i in range(len(doi)):
 
@@ -32,14 +31,13 @@ def insert_publications(cursor, doi, year, journal, authorsKeywords,
 
 
 # inserting authors data
-def insert_authors(cursor, id, eid, orcid, name, hIndex, subjectedAreas, 
-    itemCitations, authorsCitations, documentsCount):
+def insert_authors(cursor, id, firstName, lastName, subjectedAreas, hIndex, itemCitations, authorsCitations, documentsCount):
 
     for i in range(len(id)):
 
-        query = 'INSERT INTO authors VALUES (\'' + id[i] + '\', \'' + eid[i] + '\', \'' + orcid[i] + '\', \'' + name[i] + \
-            '\', ' + hIndex[i] + ', \'' + subjectedAreas[i] + '\', ' + itemCitations[i] + ', ' + \
-            authorsCitations[i] + ', ' + documentsCount[i] + ');'
+        query = 'INSERT INTO authors VALUES (\'' + id[i] + '\', \'' + firstName[i] + '\', \'' + lastName[i] + '\', \'' + \
+            subjectedAreas[i] + '\', ' + hIndex[i] + ', ' + itemCitations[i] + ', ' + authorsCitations[i] + ', ' +  \
+            documentsCount[i] + ');'
     
         try:
             cursor.execute(query)
@@ -48,13 +46,13 @@ def insert_authors(cursor, id, eid, orcid, name, hIndex, subjectedAreas,
 
 
 # inserting organizations data
-def insert_organizations(cursor, id, parent, eid, name, type, address, postalCode, city, state, country):
+def insert_organizations(cursor, id, name, type, address, postalCode, city, state, country, parentID, parentName):
 
     for i in range(len(id)):
 
-        query = 'INSERT INTO organizations VALUES (\'' + str(id[i]) + '\', \'' + parent[i] + '\', \'' + eid[i] + '\', \'' + \
-            name[i] + '\', \'' + type[i] + '\', \'' + address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + \
-            state[i] + '\', \'' + country[i] + '\');'
+        query = 'INSERT INTO organizations VALUES (\'' + str(id[i]) + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
+            address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + \
+            country[i] + '\', \'' + parentID[i] + '\',\'' + parentName[i] + '\');'
 
         try:
             cursor.execute(query)
