@@ -8,6 +8,6 @@ def create_app():
     from .search import SearchPage
 
     app.register_blueprint(HomePage, url_prefix = '/')
-    app.register_blueprint(SearchPage, url_prefix="")
+    app.register_blueprint(SearchPage, url_prefix='')
    
     return app

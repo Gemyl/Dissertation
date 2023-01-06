@@ -18,3 +18,10 @@ ul {
     left: 415px;
     top: 400px;
 }
+
+.box {
+    width: 50%;
+    height: 0%;
+    padding-bottom: 41.25%;
+    background-color: #0000;
+}
