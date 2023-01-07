@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <form method="post" id="search-form">
+            <label for="subjects" id="subjects">
+                <select id="subjects" name="subjects" aria-placeholder="Enter Subject">
+                    <option value=""></option>
+                    <option value="SOCI">SOCI</option>
+                    <option value="VETE">VETE</option>
+                </select>
+            </label>
+            <button type="button" onclick="addDropdown()">+ Add Label</button>
+        </form>
+        <script>
+            function addDropdown() {
+            // create a new select element
+            var newDropdown = document.createElement("select");
+
+            // create options for the new dropdown
+            var option1 = document.createElement("option");
+            option1.innerHTML = "";
+            var option2 = document.createElement("option");
+            option2.innerHTML = "SOCI";
+            var option3 = document.createElement("option");
+            option3.innerHTML = "VETE";
+
+            // find the form element and the last dropdown inside the form
+            var form = document.getElementsByTagName("form")[0];
+            var dropdowns = form.getElementsByTagName("select");
+            var lastDropdown = dropdowns[dropdowns.length - 1];
+
+            // add a new line after the last dropdown
+            lastDropdown.insertAdjacentHTML("afterend", "<br>");
+
+            // add the new dropdown after the new line
+            lastDropdown.insertAdjacentElement("afterend", newDropdown);
+            }
+        </script>
+    </body>
+</html>

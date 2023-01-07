@@ -1,5 +1,9 @@
-from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval, AuthorSearch
+from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
 from TextFormating import format_keywords, list_to_string
+from geopy.geocoders import Nominatim
+from itertools import combinations
+from geodistance import distance
+from statistics import mean
 from tqdm.auto import tqdm
 from requests import get
 import json
@@ -67,7 +71,7 @@ def get_DOIs(keywords, yearsRange, subjects):
 
 
 # this function retrieves papers data from Scopus
-def papers_data(DOIs, keywords):
+def papers_data(DOIs, keywords, yearsRange):
 
     # each list corresponds to a paper's attribute
     DOI = []
@@ -87,7 +91,7 @@ def papers_data(DOIs, keywords):
 
         # paper's year
         try:
-            year.append(str(paperInfo.confdate[0][0]))
+            year.append(yearsRange)
         except:
             year.append(' ')
         
@@ -417,3 +421,58 @@ def authors_and_organizations(DOIs):
                 paperOrgs = []
     
     return authorsID, orgsID, isCurrentOrg
+
+
+def cultural_distances(DOIs):
+
+    minDist = []
+    maxDist = []
+    avgDist = []
+    countries = []
+    distances = []
+    coordinates = []
+    citationsCount = []
+    affilCountries = []
+
+    for doi in tqdm(DOIs):
+        citationsCount.append(str(AbstractRetrieval(doi).citedby_count))
+        authorsID = [author[0] for author in AbstractRetrieval(doi).authors]
+        for i in range(len(authorsID)):
+            try:
+                orgID = (AbstractRetrieval(doi).authors[i][4]).split(';')[0]
+                affilCountries.append(AffiliationRetrieval(orgID).country)
+            except:
+                continue
+
+        countries.append(affilCountries)
+
+        geolocator = Nominatim(user_agent = 'PersonalProject')
+        for country in affilCountries:
+            location = geolocator.geocode(country)
+            coordinates.append((location.latitude, location.longitude))
+
+        locationsCombinations = list(combinations(coordinates, 2))
+
+        for combo in locationsCombinations:
+            distances.append(distance(combo[0][0], combo[0][1], combo[1][0], combo[1][1]))
+        
+        try:
+            minDist.append(str(min(distances)))
+        except:
+            minDist.append('-')
+
+        try:    
+            maxDist.append(str(max(distances)))
+        except:
+            maxDist.append('-')
+
+        try:
+            avgDist.append(str(mean(distances)))
+        except:
+            avgDist.append('-')
+        
+        distances = []
+        coordinates = []
+        affilCountries = []
+
+    return citationsCount, minDist, maxDist, avgDist

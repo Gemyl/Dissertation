@@ -17,13 +17,9 @@
         <title>{% block title %}Base{% endblock %}</title>
     </head>
 
-    <body>
-      <style type="text/css">
-        body { background: #9fc5f8 !important;} /* Adding !important forces the browser to overwrite the default style applied by Bootstrap */
-     </style>
+    <body  style="background-image: url('../static/mybg.jpg'); background-repeat: no-repeat; background-size: cover;">
 
-      <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #50aef1;">
-        <img class="navbarlogo" src="../static/navbarlogo.jpg" alt="error" >
+      <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #99D9EA;">
     
         <button
           class="navbar-toggler"
@@ -36,8 +32,8 @@
 
         <div class="collapse navbar-collapse" id="navbar">
           <div class="navbar-nav">
-            <a class="nav-item nav-link" id="home" href="/" style="color: #f7f7f7;" >Home</a>
-            <a class="nav-item nav-link" id="search" href="/search" style="color: #f7f7f7;">Search</a>
+            <a class="nav-item nav-link" id="home" href="/" style="color: #000000;" >Home</a>
+            <a class="nav-item nav-link" id="search" href="/search" style="color: #000000;">Search</a>
           </div>
         </div>
       </nav>
