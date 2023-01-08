@@ -1,4 +1,8 @@
-from pybliometrics.scopus import AuthorRetrieval
+from pybliometrics.scopus import AuthorRetrieval, AbstractRetrieval
 
-aut = AuthorRetrieval(35222178600, view='ENHANCED')
-print(aut.affiliation_current)
+paperInfo = AbstractRetrieval('10.1016/S0261-5177(02)00047-X').authors
+paperAffil = AbstractRetrieval('10.1016/S0261-5177(02)00047-X').affiliation
+
+authorAffil = AuthorRetrieval(6506504371).affiliation_history
+print(authorAffil)
+print(paperAffil)

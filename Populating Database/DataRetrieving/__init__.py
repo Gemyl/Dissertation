@@ -85,7 +85,7 @@ def papers_data(DOIs, keywords, yearsRange):
     
     # in this loop every DOI is accessed
     # each DOI represents a paper
-    for i in range(len(DOIs)):
+    for i in tqdm(range(len(DOIs))):
 
         paperInfo = AbstractRetrieval(DOIs[i], view='FULL')
 
@@ -155,7 +155,7 @@ def authors_data(DOIs):
     authorsCitations = []  
 
     # in this loop every DOI is accessed
-    for i in range(len(DOIs)):
+    for i in tqdm(range(len(DOIs))):
 
         # getting a paper's authors
         authors = AbstractRetrieval(DOIs[i]).authors
@@ -243,7 +243,7 @@ def orgs_data(DOIs):
     identifier = []
 
     # in this loop every DOI is accessed
-    for DOI in DOIs:
+    for DOI in tqdm(DOIs):
         tempOrgs = AbstractRetrieval(DOI).affiliation
         for org in tempOrgs:
             if org not in identifier:
@@ -322,7 +322,7 @@ def papers_and_authors(DOIs):
     papersDOI = []
     authorsID = []
 
-    for i in range(len(DOIs)):
+    for i in tqdm(range(len(DOIs))):
 
         # checking if a publication has been already accessed
         if papersDOI.count(DOIs[i]) == 0:
@@ -350,7 +350,7 @@ def papers_and_orgs(DOIs):
     papersDOI = []
     orgsID = []
 
-    for i in range(len(DOIs)):
+    for i in tqdm(range(len(DOIs))):
         # checking if a publication has been already accessed
         if papersDOI.count(DOIs[i]) == 0:
             # getting publication's info
@@ -381,7 +381,7 @@ def authors_and_organizations(DOIs):
     totalOrgs = []
     formerOrgs = []
     
-    for DOI in DOIs:
+    for DOI in tqdm(DOIs):
         # accessing each author's info for a given publication
         for author in AbstractRetrieval(DOI).authors:
             # checking if the author has any affiliation for the specific publication

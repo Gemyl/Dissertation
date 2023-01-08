@@ -1,4 +1,5 @@
 import mysql.connector as connector
+from tqdm import tqdm
 
 # connection to a MySQL database
 def connect_to_MySQL(password):
@@ -19,7 +20,7 @@ def connect_to_MySQL(password):
 # inserting publications data 
 def insert_publications(cursor, doi, year, journal, authorsKeywords, userKeywords, subjects, title, citationsCount):
 
-    for i in range(len(doi)):
+    for i in tqdm(range(len(doi))):
         query = 'INSERT INTO publications VALUES (\'' + doi[i] + '\', \'' + year[i] + '\', \'' + journal[i] + '\', \'' + \
             str(authorsKeywords[i]) + '\', \'' + userKeywords[i] + '\', \'' + subjects[i] + '\', \'' + title[i] + '\', \'' + \
             str(citationsCount[i]) + '\');'
@@ -33,7 +34,7 @@ def insert_publications(cursor, doi, year, journal, authorsKeywords, userKeyword
 # inserting authors data
 def insert_authors(cursor, id, firstName, lastName, subjectedAreas, hIndex, itemCitations, authorsCitations, documentsCount):
 
-    for i in range(len(id)):
+    for i in tqdm(range(len(id))):
         query = 'INSERT INTO authors VALUES (\'' + id[i] + '\', \'' + firstName[i] + '\', \'' + lastName[i] + '\', \'' + \
             subjectedAreas[i] + '\', ' + hIndex[i] + ', ' + itemCitations[i] + ', ' + authorsCitations[i] + ', ' +  \
             documentsCount[i] + ');'
@@ -48,7 +49,7 @@ def insert_authors(cursor, id, firstName, lastName, subjectedAreas, hIndex, item
 # inserting organizations data
 def insert_organizations(cursor, id, name, type, address, postalCode, city, state, country, parentID, parentName):
 
-    for i in range(len(id)):
+    for i in tqdm(range(len(id))):
         query = 'INSERT INTO organizations VALUES (\'' + str(id[i]) + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
             address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + \
             country[i] + '\', \'' + parentID[i] + '\',\'' + parentName[i] + '\');'
@@ -63,8 +64,8 @@ def insert_organizations(cursor, id, name, type, address, postalCode, city, stat
 # insertion of publications and authors identifiers in a relational table
 def insert_publications_and_authors(cursor, doi, authorID):
 
-    for i in range(len(doi)):
-        query = 'INSERT INTO publications_authors VALUES (\'' + doi[i] + '\', \'' + authorID[i] + '\');'
+    for i in tqdm(range(len(doi))):
+        query = 'INSERT INTO publications_authors (DOI, Author_ID) VALUES (\'' + doi[i] + '\', \'' + authorID[i] + '\');'
         try:
             cursor.execute(query)
         except connector.Error as err:
@@ -76,8 +77,9 @@ def insert_publications_and_authors(cursor, doi, authorID):
 # insertion of publications and organizations data in a relational table
 def insert_publications_and_organizations(cursor, doi, orgID):
 
-    for i in range(len(doi)):
-        query = 'INSERT INTO publications_organizations VALUES (\'' + doi[i] + '\', \'' + str(orgID[i]) + '\');'
+    for i in tqdm(range(len(doi))):
+        query = 'INSERT INTO publications_organizations (DOI, Organization_ID) VALUES (\'' + doi[i] + '\', \'' + \
+        str(orgID[i]) + '\');'
         try:
             cursor.execute(query)
         except connector.Error as err:
@@ -87,9 +89,9 @@ def insert_publications_and_organizations(cursor, doi, orgID):
 
 def insert_authors_and_publications(cursor, authorID, orgID, curOrgID):
 
-    for i in range(len(authorID)):
-        query = 'INSERT INTO authors_organizations VALUES (\'' + authorID[i] + '\', \'' + str(orgID[i]) + '\', \'' \
-            + curOrgID[i] + '\');'
+    for i in tqdm(range(len(authorID))):
+        query = 'INSERT INTO authors_organizations (Author_ID, Organization_ID, Current_Organization) VALUES (\'' + \
+        authorID[i] + '\', \'' + str(orgID[i]) + '\', \'' + curOrgID[i] + '\');'
         try:
             cursor.execute(query)
         except connector.Error as err:
@@ -100,7 +102,7 @@ def insert_authors_and_publications(cursor, authorID, orgID, curOrgID):
 
 def instert_cultural_distances(cursor, doi, citationsCount, minDist, maxDist, avgDist):
 
-    for i in range(len(doi)):
+    for i in tqdm(range(len(doi))):
         query = 'INSERT INTO cultural_distances VALUES (\'' + doi[i] + '\', ' + citationsCount[i] + ', ' \
             + minDist[i] + ', ' + maxDist[i] + ', ' + avgDist[i] + ');'
         try:
