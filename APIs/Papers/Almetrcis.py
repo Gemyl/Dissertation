@@ -2,15 +2,14 @@ from requests import get
 import json
 
 api_link = "https://api.altmetric.com/v1/doi/"
-doi = "10.1016/j.gloenvcha.2020.102194"
+doi = "10.1093/bjsw/bcaa237"
 
 url = api_link + doi
 
 req = get(url)
 res = json.loads(req.text.encode('ascii', errors='ignore'))
 
-for key in res.keys():
-    print(key)
+print(res['journal'])
 
 # KEYS
 # title

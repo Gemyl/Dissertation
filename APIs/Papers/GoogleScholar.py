@@ -3,7 +3,7 @@ from scholarly import scholarly
 query = scholarly.search_pubs('10.1016/j.gloenvcha.2020.102194')
 first_pub_res = next(query)
 
-print(len(first_pub_res['citedby_url']))
+print(first_pub_res['num_citations'])
 
 # KEYS
 # container_type: <class 'str'>

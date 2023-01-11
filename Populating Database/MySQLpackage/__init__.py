@@ -47,19 +47,24 @@ def insert_authors(cursor, id, firstName, lastName, subjectedAreas, hIndex, item
 
 
 # inserting organizations data
-def insert_organizations(cursor, id, name, type, address, postalCode, city, state, country, parentID, parentName):
+def insert_organizations(cursor, name, type, address, postalCode, city, state, country, nameVar):
 
-    for i in tqdm(range(len(id))):
-        query = 'INSERT INTO organizations VALUES (\'' + str(id[i]) + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
-            address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + \
-            country[i] + '\', \'' + parentID[i] + '\',\'' + parentName[i] + '\');'
-        try:   
+    for i in tqdm(range(len(name))):
+        try:
+            for var in nameVar[i]:
+                query = 'INSERT INTO organizations_name_variants VALUES (\'' + var.replace('\'', '\\'+'\'') + '\');'
+                cursor.execute(query)
+
+            query = 'INSERT INTO organizations VALUES (\'' + name[i] + '\', \'' + type[i] + '\', \'' + \
+                address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + \
+                country[i] + '\');'
+            
             cursor.execute(query)
+
         except connector.Error as err:
             if err.errno != 1062:
                 print(f'Query Failed: {query}| Error code {err.errno}: {err.msg}')
             continue
-
 
 # insertion of publications and authors identifiers in a relational table
 def insert_publications_and_authors(cursor, doi, authorID):
@@ -75,11 +80,11 @@ def insert_publications_and_authors(cursor, doi, authorID):
 
 
 # insertion of publications and organizations data in a relational table
-def insert_publications_and_organizations(cursor, doi, orgID):
+def insert_publications_and_organizations(cursor, doi, orgName):
 
     for i in tqdm(range(len(doi))):
-        query = 'INSERT INTO publications_organizations (DOI, Organization_ID) VALUES (\'' + doi[i] + '\', \'' + \
-        str(orgID[i]) + '\');'
+        query = 'INSERT INTO publications_organizations (DOI, Organization_Name) VALUES (\'' + doi[i] + '\', \'' + \
+        orgName[i] + '\');'
         try:
             cursor.execute(query)
         except connector.Error as err:
@@ -87,11 +92,11 @@ def insert_publications_and_organizations(cursor, doi, orgID):
                 print(f'Query Failed: {query}| Error code {err.errno}: {err.msg}')
             continue
 
-def insert_authors_and_publications(cursor, authorID, orgID, curOrgID):
+def insert_authors_and_organizations(cursor, authorID, orgName):
 
     for i in tqdm(range(len(authorID))):
-        query = 'INSERT INTO authors_organizations (Author_ID, Organization_ID, Current_Organization) VALUES (\'' + \
-        authorID[i] + '\', \'' + str(orgID[i]) + '\', \'' + curOrgID[i] + '\');'
+        query = 'INSERT INTO authors_organizations (Author_ID, Organization_Name) VALUES (\'' + \
+        authorID[i] + '\', \'' + orgName[i] + '\');'
         try:
             cursor.execute(query)
         except connector.Error as err:

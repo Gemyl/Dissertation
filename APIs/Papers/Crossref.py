@@ -2,7 +2,9 @@ import crossref_commons.retrieval as ret
 import crossref_commons.relations as rel
 
 pub = ret.get_publication_as_json('10.1016/j.softx.2019.100263')
-pub =rel.get_directly_related('10.1038/nrn3241')
+
+for key in pub.keys():
+    print(key)
 
 ######### Retrieval ########
 # KEYS (pub)

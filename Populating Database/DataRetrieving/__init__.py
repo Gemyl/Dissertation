@@ -1,8 +1,9 @@
-from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
+from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval, PlumXMetrics
 from TextFormating import format_keywords, list_to_string
 from geopy.geocoders import Nominatim
 from itertools import combinations
 from geodistance import distance
+from scholarly import scholarly
 from statistics import mean
 from tqdm.auto import tqdm
 from requests import get
@@ -85,9 +86,9 @@ def papers_data(DOIs, keywords, yearsRange):
     
     # in this loop every DOI is accessed
     # each DOI represents a paper
-    for i in tqdm(range(len(DOIs))):
+    for doi in tqdm(DOIs):
 
-        paperInfo = AbstractRetrieval(DOIs[i], view='FULL')
+        paperInfo = AbstractRetrieval(doi, view='FULL')
 
         # paper's year
         try:
@@ -97,7 +98,7 @@ def papers_data(DOIs, keywords, yearsRange):
         
         # paper's DOI
         try:    
-            DOI.append(str(DOIs[i]))
+            DOI.append(str(doi))
         except:
             DOI.append(' ')
 
@@ -121,7 +122,12 @@ def papers_data(DOIs, keywords, yearsRange):
 
         # paper's number of citations
         try:
-            citationsCount.append(paperInfo.citedby_count)
+            maxCitations = paperInfo.citedby_count
+            plumxCitations = PlumXMetrics(doi, id_type='doi').citation
+            if plumxCitations != None:
+                plumxCitations = max([citation[1] for citation in plumxCitations])
+                maxCitations = max(maxCitations, plumxCitations)
+            citationsCount.append(maxCitations)
         except:
             citationsCount.append(' ')
 
@@ -155,10 +161,10 @@ def authors_data(DOIs):
     authorsCitations = []  
 
     # in this loop every DOI is accessed
-    for i in tqdm(range(len(DOIs))):
+    for doi in tqdm(DOIs):
 
         # getting a paper's authors
-        authors = AbstractRetrieval(DOIs[i]).authors
+        authors = AbstractRetrieval(doi).authors
 
         # in this loop every author is accessed
         for author in authors:
@@ -235,47 +241,48 @@ def orgs_data(DOIs):
     city = []
     type = []
     state = []
+    nameVar = []
     country = []
-    address = []
-    parentID = []
-    parentName = []    
+    address = []  
+    tempOrgs = [] 
     postalCode = []
     identifier = []
 
     # in this loop every DOI is accessed
-    for DOI in tqdm(DOIs):
-        tempOrgs = AbstractRetrieval(DOI).affiliation
-        for org in tempOrgs:
-            if org not in identifier:
+    for doi in tqdm(DOIs):
+        paperOrgs = AbstractRetrieval(doi).affiliation
+        for org in paperOrgs:
+            if org[0] not in name:
+                name.append(org[1])
+                tempOrgs.append(org[0])
                 identifier.append(org[0])
-                parentID.append('None')
-                parentName.append('None')
+                nameVar.append([name[0] for name in AffiliationRetrieval(org[0]).name_variants])
         
-        authors = AbstractRetrieval(DOI).authors
+        authors = AbstractRetrieval(doi).authors
         for author in authors:
             authorID = author[0]
             for org in AuthorRetrieval(authorID).affiliation_current:
-                if (org[0] not in identifier) & (org[1] in identifier):
-                    identifier.append(org[0])
-                    parentID.append(str(org[1]))
-                    parentName.append(org[6])
+                if(org[6] != None):
+                    orgName = org[5] + ' - ' + org[6]
+                    if (orgName not in name) & (org[1] in tempOrgs):
+                        name.append(orgName)
+                        identifier.append(org[0])
+                        nameVar.append([name[0] + ' - ' + org[6] for name in AffiliationRetrieval(org[0]).name_variants])
                     
             for org in AuthorRetrieval(authorID).affiliation_history:
-                if (org[0] not in identifier) & (org[1] in identifier):
-                    identifier.append(org[0])
-                    parentID.append(str(org[1]))
-                    parentName.append(org[6])
+                if(org[6] != None):
+                    orgName = org[5] + ' - ' + org[6]
+                    if (orgName not in name) & (org[1] in tempOrgs):
+                        name.append(orgName)
+                        identifier.append(org[0])
+                        nameVar.append([name[0] + ' - ' for name in AffiliationRetrieval(org[0]).name_variants])
+        
+        tempOrgs = []
 
     # getting all organizations that are affiliated in each paper
     for orgID in identifier:
 
         orgInfo = AffiliationRetrieval(orgID)
-
-        # organization's name
-        try:
-            name.append(str(orgInfo.affiliation_name))
-        except:
-            name.append(' ')
 
         # organization's type (e.g. university, college)
         try:
@@ -313,7 +320,7 @@ def orgs_data(DOIs):
         except:
             country.append(' ')
 
-    return identifier, name, type, address, postalCode, city, state, country, parentID, parentName
+    return identifier, name, type, address, postalCode, city, state, country, nameVar
 
 
 # this functions matches publications and authors through their identifiers
@@ -322,105 +329,78 @@ def papers_and_authors(DOIs):
     papersDOI = []
     authorsID = []
 
-    for i in tqdm(range(len(DOIs))):
+    for doi in tqdm(DOIs):
+        # getting publication's info
+        paperInfo = AbstractRetrieval(doi)
 
-        # checking if a publication has been already accessed
-        if papersDOI.count(DOIs[i]) == 0:
+        # getting pubication's authors data
+        authors = paperInfo.authors
 
-            # getting publication's info
-            paperInfo = AbstractRetrieval(DOIs[i])
+        for author in authors:
 
-            # getting pubication's authors data
-            authors = paperInfo.authors
+            # a publication's DOI is appended so much times as the numbers of its authors
+            papersDOI.append(str(doi))
 
-            for author in authors:
-
-                # a publication's DOI is appended so much times as the numbers of its authors
-                papersDOI.append(str(DOIs[i]))
-
-                # the first element in an author's list of information (author[0]) is Scopus author identifier
-                authorsID.append(str(author[0]))
+            # the first element in an author's list of information (author[0]) is Scopus author identifier
+            authorsID.append(str(AuthorRetrieval(author[0]).identifier))
     
     return papersDOI, authorsID
 
 
 # this functions matches publications and organizations through their identifiers
-def papers_and_orgs(DOIs):
+def papers_and_orgs(DOIs, orgID, orgName):
 
-    papersDOI = []
-    orgsID = []
+    pubsExport = []
+    orgsExport = []
 
-    for i in tqdm(range(len(DOIs))):
-        # checking if a publication has been already accessed
-        if papersDOI.count(DOIs[i]) == 0:
-            # getting publication's info
-            paperInfo = AbstractRetrieval(DOIs[i])
+    for doi in tqdm(DOIs):
+        # getting publication's info
+        paperInfo = AbstractRetrieval(doi)
+        # getting publication's organizations data
+        tempOrgs = [org[0] for org in paperInfo.affiliation]
 
-            # getting publication's organizations data
-            orgs = paperInfo.affiliation
-
-            for org in orgs:
+        for org in orgID:
+            if (org in tempOrgs):
                 # a publication's DOI is appended so much times as the number of
                 # organizations affiliated to its authors
-                papersDOI.append(str(DOIs[i]))
-
-                # the first element in an organization's list of information (org[0]) is
-                # Scopus organization identifier
-                orgsID.append(str(org[0]))
+                pubsExport.append(str(doi))
+                # the position of organization's ID in orgID[] list retrieved,
+                # so the coressponding name be appended in orgsExport[]
+                index = orgID.index(org)
+                orgsExport.append(orgName[index])
         
-    return papersDOI, orgsID
+        tempOrgs = []
+        
+    return pubsExport, orgsExport
 
 
 # this function matches authors and organizations
-def authors_and_organizations(DOIs):
+def authors_and_organizations(DOIs, orgID, orgName):
 
-    orgsID = []
-    paperOrgs = []
-    authorsID = []
-    isCurrentOrg = []
-    totalOrgs = []
-    formerOrgs = []
-    
-    for DOI in tqdm(DOIs):
-        # accessing each author's info for a given publication
-        for author in AbstractRetrieval(DOI).authors:
-            # checking if the author has any affiliation for the specific publication
-            if author[4] != None:
-                # organziations from author's affiliation that are related to the publication
-                paperOrgs = [int(org) for org in author[4].split(';')]
-                # current organizations
-                currentOrgs = [org for org in AuthorRetrieval(author[0]).affiliation_current]
-                # total organizations 
-                totalOrgs = [org for org in AuthorRetrieval(author[0]).affiliation_history]
-                # removing current from total organizations list to get the former orgnizations
-                formerOrgs = [org for org in totalOrgs if org not in currentOrgs]
+    orgExport = []
+    authorExport = []
+
+    for doi in tqdm(DOIs):
+
+        authorsID = [str(AuthorRetrieval(author[0]).identifier) for author in AbstractRetrieval(doi).authors]
+        for authorID in authorsID:
+                authorAffilCurr = [AffiliationRetrieval(affil[0]).identifier for affil in AuthorRetrieval(authorID).affiliation_current]
+                authorAffilHist = [AffiliationRetrieval(affil[0]).identifier for affil in AuthorRetrieval(authorID).affiliation_history]
+
+                for org in orgID:
+                    index = orgID.index(org)
+                    if (org in authorAffilCurr) & ((orgName[index] not in orgExport) | (authorID not in authorExport)):
+                        authorExport.append(authorID)
+                        orgExport.append(orgName[index])
                 
-                for org in currentOrgs:
-                    # checking if any organization (org[0]) or its parent (org[1], if exists) from author's current affiliation,
-                    # is included in publication's related organizations
-                    if (org[0] in paperOrgs) | (org[1] in paperOrgs):
-                        # 'Yes' is appended in isCurrentOrg list to state that the specific organization is
-                        # currently affiliated to the author
-                        isCurrentOrg.append('Yes')
-                        # both the ID of author and organizations are inserted in the corresponding lists
-                        orgsID.append(str(org[0]))
-                        authorsID.append(str(author[0]))
+                for org in orgID:
+                    index = orgID.index(org)
+                    if (org in authorAffilHist) & ((orgName[index] not in orgExport) | (authorID not in authorExport)):
+                        authorExport.append(authorID)
+                        orgExport.append(orgName[index])
+                
 
-                # checking if any organization (or its parent) from author's former affiliation, 
-                # is included in publication's related organizations
-                for org in formerOrgs:
-                    if (org[0] in paperOrgs) | (org[1] in paperOrgs):
-                        # the organizations in this list belong to former affiliations,
-                        # so 'No' is appended in isCurrentOrg list
-                        isCurrentOrg.append('No')
-                        # insertion of both author's and organization's ID
-                        orgsID.append(str(org[0]))                    
-                        authorsID.append(str(author[0]))      
-            
-                # reseting the list which contains each paper's related organizations
-                paperOrgs = []
-    
-    return authorsID, orgsID, isCurrentOrg
+    return authorExport, orgExport
 
 
 def cultural_distances(DOIs):
