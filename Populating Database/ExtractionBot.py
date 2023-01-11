@@ -1,7 +1,7 @@
-from MySQLpackage import connect_to_MySQL, insert_publications, insert_authors, insert_organizations, \
+from insert2mysql import connect_to_MySQL, insert_publications, insert_authors, insert_organizations, \
      insert_publications_and_authors, insert_publications_and_organizations, commit_and_close, insert_authors_and_organizations, \
      instert_cultural_distances
-from DataRetrieving import get_DOIs, papers_data, authors_data, orgs_data, papers_and_authors, papers_and_orgs, \
+from scopusdata import get_DOIs, papers_data, authors_data, orgs_data, papers_and_authors, papers_and_orgs, \
      authors_and_organizations, cultural_distances
 from getpass import getpass
 
@@ -29,9 +29,9 @@ print('Inserting authors data to database:')
 insert_authors(cursor, authorID, firstName, lastName, hIndex, subjectAreas, itemCitations, authorsCitations, documentsCount)
 
 print('\nRetrieving organizations data:')
-orgID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, orgCountry, orgNameVariants = orgs_data(DOIs)
+orgID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, orgCountry = orgs_data(DOIs)
 print('Inserting organizations data to database:')
-insert_organizations(cursor, orgID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, orgCountry, orgNameVariants)
+insert_organizations(cursor, orgID, orgName, orgType, orgAddress, orgPostalCode, orgCity, orgState, orgCountry)
 
 print('\nMatching papers with authors:')
 pubDOI, authorID = papers_and_authors(DOIs)

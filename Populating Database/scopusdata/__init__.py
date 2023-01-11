@@ -1,9 +1,8 @@
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval, PlumXMetrics
-from TextFormating import format_keywords, list_to_string
+from textformating import format_keywords, list_to_string
 from geopy.geocoders import Nominatim
 from itertools import combinations
 from geodistance import distance
-from scholarly import scholarly
 from statistics import mean
 from tqdm.auto import tqdm
 from requests import get
@@ -241,7 +240,6 @@ def orgs_data(DOIs):
     city = []
     type = []
     state = []
-    nameVar = []
     country = []
     address = []  
     tempOrgs = [] 
@@ -263,7 +261,6 @@ def orgs_data(DOIs):
                 address.append(str(orgInfo.address))
                 postalCode.append(str(orgInfo.postal_code))
                 identifier.append(str(AffiliationRetrieval(orgInfo.identifier).identifier))
-                nameVar.append([name[0] for name in AffiliationRetrieval(org[0]).name_variants])
 
                 tempOrgs.append(org[0])
         
@@ -283,11 +280,10 @@ def orgs_data(DOIs):
                         address.append(str(orgInfo.address))
                         postalCode.append(str(orgInfo.postal_code))
                         identifier.append(str(AffiliationRetrieval(orgInfo.identifier).identifier))
-                        nameVar.append([name[0] + ' - ' for name in AffiliationRetrieval(org[0]).name_variants])
         
         tempOrgs = []
 
-    return identifier, name, type, address, postalCode, city, state, country, nameVar
+    return identifier, name, type, address, postalCode, city, state, country
 
 
 # this functions matches publications and authors through their identifiers
