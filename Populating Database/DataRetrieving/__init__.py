@@ -250,75 +250,42 @@ def orgs_data(DOIs):
 
     # in this loop every DOI is accessed
     for doi in tqdm(DOIs):
+
         paperOrgs = AbstractRetrieval(doi).affiliation
         for org in paperOrgs:
-            if org[0] not in name:
-                name.append(org[1])
-                tempOrgs.append(org[0])
-                identifier.append(org[0])
+            orgInfo = AffiliationRetrieval(org[0])
+            if orgInfo.identifier not in name:
+                name.append(str(org[1]))
+                city.append(str(orgInfo.city))
+                state.append(str(orgInfo.state))
+                type.append(str(orgInfo.org_type))
+                country.append(str(orgInfo.country))
+                address.append(str(orgInfo.address))
+                postalCode.append(str(orgInfo.postal_code))
+                identifier.append(str(AffiliationRetrieval(orgInfo.identifier).identifier))
                 nameVar.append([name[0] for name in AffiliationRetrieval(org[0]).name_variants])
+
+                tempOrgs.append(org[0])
         
         authors = AbstractRetrieval(doi).authors
         for author in authors:
-            authorID = author[0]
-            for org in AuthorRetrieval(authorID).affiliation_current:
-                if(org[6] != None):
-                    orgName = org[5] + ' - ' + org[6]
-                    if (orgName not in name) & (org[1] in tempOrgs):
-                        name.append(orgName)
-                        identifier.append(org[0])
-                        nameVar.append([name[0] + ' - ' + org[6] for name in AffiliationRetrieval(org[0]).name_variants])
-                    
+            authorID = author[0]                    
             for org in AuthorRetrieval(authorID).affiliation_history:
                 if(org[6] != None):
+                    orgInfo = AffiliationRetrieval(org[0])
                     orgName = org[5] + ' - ' + org[6]
                     if (orgName not in name) & (org[1] in tempOrgs):
-                        name.append(orgName)
-                        identifier.append(org[0])
+                        name.append(str(orgName))
+                        city.append(str(orgInfo.city))
+                        state.append(str(orgInfo.state))
+                        type.append(str(orgInfo.org_type))
+                        country.append(str(orgInfo.country))
+                        address.append(str(orgInfo.address))
+                        postalCode.append(str(orgInfo.postal_code))
+                        identifier.append(str(AffiliationRetrieval(orgInfo.identifier).identifier))
                         nameVar.append([name[0] + ' - ' for name in AffiliationRetrieval(org[0]).name_variants])
         
         tempOrgs = []
-
-    # getting all organizations that are affiliated in each paper
-    for orgID in identifier:
-
-        orgInfo = AffiliationRetrieval(orgID)
-
-        # organization's type (e.g. university, college)
-        try:
-            type.append(str(orgInfo.org_type))
-        except:
-            type.append(' ')
-
-        # organization's address
-        try:
-            address.append(str(orgInfo.address))
-        except:
-            address.append(' ')
-        
-        # organization's postal code
-        try:
-            postalCode.append(str(orgInfo.postal_code))
-        except:
-            postalCode.append(' ')
-
-        # organization's city
-        try:
-            city.append(str(orgInfo.city))
-        except:
-            city.append(' ')
-
-        # organization's state or region
-        try:
-            state.append(str(orgInfo.state))
-        except:
-            state.append(' ')
-
-        # organization's country
-        try:
-            country.append(str(orgInfo.country))
-        except:
-            country.append(' ')
 
     return identifier, name, type, address, postalCode, city, state, country, nameVar
 
@@ -348,7 +315,7 @@ def papers_and_authors(DOIs):
 
 
 # this functions matches publications and organizations through their identifiers
-def papers_and_orgs(DOIs, orgID, orgName):
+def papers_and_orgs(DOIs, orgID):
 
     pubsExport = []
     orgsExport = []
@@ -357,7 +324,7 @@ def papers_and_orgs(DOIs, orgID, orgName):
         # getting publication's info
         paperInfo = AbstractRetrieval(doi)
         # getting publication's organizations data
-        tempOrgs = [org[0] for org in paperInfo.affiliation]
+        tempOrgs = [str(org[0]) for org in paperInfo.affiliation]
 
         for org in orgID:
             if (org in tempOrgs):
@@ -366,8 +333,7 @@ def papers_and_orgs(DOIs, orgID, orgName):
                 pubsExport.append(str(doi))
                 # the position of organization's ID in orgID[] list retrieved,
                 # so the coressponding name be appended in orgsExport[]
-                index = orgID.index(org)
-                orgsExport.append(orgName[index])
+                orgsExport.append(org)
         
         tempOrgs = []
         
@@ -375,7 +341,7 @@ def papers_and_orgs(DOIs, orgID, orgName):
 
 
 # this function matches authors and organizations
-def authors_and_organizations(DOIs, orgID, orgName):
+def authors_and_organizations(DOIs, orgID):
 
     orgExport = []
     authorExport = []
@@ -384,20 +350,20 @@ def authors_and_organizations(DOIs, orgID, orgName):
 
         authorsID = [str(AuthorRetrieval(author[0]).identifier) for author in AbstractRetrieval(doi).authors]
         for authorID in authorsID:
-                authorAffilCurr = [AffiliationRetrieval(affil[0]).identifier for affil in AuthorRetrieval(authorID).affiliation_current]
-                authorAffilHist = [AffiliationRetrieval(affil[0]).identifier for affil in AuthorRetrieval(authorID).affiliation_history]
+                authorAffilCurr = [str(AffiliationRetrieval(affil[0]).identifier)
+                    for affil in AuthorRetrieval(authorID).affiliation_current]
+                authorAffilHist = [str(AffiliationRetrieval(affil[0]).identifier)
+                    for affil in AuthorRetrieval(authorID).affiliation_history]
 
                 for org in orgID:
-                    index = orgID.index(org)
-                    if (org in authorAffilCurr) & ((orgName[index] not in orgExport) | (authorID not in authorExport)):
+                    if (org in authorAffilCurr) & ((org not in orgExport) | (authorID not in authorExport)):
                         authorExport.append(authorID)
-                        orgExport.append(orgName[index])
+                        orgExport.append(org)
                 
                 for org in orgID:
-                    index = orgID.index(org)
-                    if (org in authorAffilHist) & ((orgName[index] not in orgExport) | (authorID not in authorExport)):
+                    if (org in authorAffilHist) & ((org not in orgExport) | (authorID not in authorExport)):
                         authorExport.append(authorID)
-                        orgExport.append(orgName[index])
+                        orgExport.append(org)
                 
 
     return authorExport, orgExport

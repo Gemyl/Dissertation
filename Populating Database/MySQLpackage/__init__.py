@@ -47,7 +47,7 @@ def insert_authors(cursor, id, firstName, lastName, subjectedAreas, hIndex, item
 
 
 # inserting organizations data
-def insert_organizations(cursor, name, type, address, postalCode, city, state, country, nameVar):
+def insert_organizations(cursor, id, name, type, address, postalCode, city, state, country, nameVar):
 
     for i in tqdm(range(len(name))):
         try:
@@ -55,7 +55,7 @@ def insert_organizations(cursor, name, type, address, postalCode, city, state, c
                 query = 'INSERT INTO organizations_name_variants VALUES (\'' + var.replace('\'', '\\'+'\'') + '\');'
                 cursor.execute(query)
 
-            query = 'INSERT INTO organizations VALUES (\'' + name[i] + '\', \'' + type[i] + '\', \'' + \
+            query = 'INSERT INTO organizations VALUES (\'' + id[i] + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
                 address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + \
                 country[i] + '\');'
             
@@ -80,11 +80,11 @@ def insert_publications_and_authors(cursor, doi, authorID):
 
 
 # insertion of publications and organizations data in a relational table
-def insert_publications_and_organizations(cursor, doi, orgName):
+def insert_publications_and_organizations(cursor, doi, orgID):
 
     for i in tqdm(range(len(doi))):
-        query = 'INSERT INTO publications_organizations (DOI, Organization_Name) VALUES (\'' + doi[i] + '\', \'' + \
-        orgName[i] + '\');'
+        query = 'INSERT INTO publications_organizations (DOI, Organization_ID) VALUES (\'' + doi[i] + '\', \'' + \
+        orgID[i] + '\');'
         try:
             cursor.execute(query)
         except connector.Error as err:
@@ -92,11 +92,11 @@ def insert_publications_and_organizations(cursor, doi, orgName):
                 print(f'Query Failed: {query}| Error code {err.errno}: {err.msg}')
             continue
 
-def insert_authors_and_organizations(cursor, authorID, orgName):
+def insert_authors_and_organizations(cursor, authorID, orgID):
 
     for i in tqdm(range(len(authorID))):
-        query = 'INSERT INTO authors_organizations (Author_ID, Organization_Name) VALUES (\'' + \
-        authorID[i] + '\', \'' + orgName[i] + '\');'
+        query = 'INSERT INTO authors_organizations (Author_ID, Organization_ID) VALUES (\'' + \
+        authorID[i] + '\', \'' + orgID[i] + '\');'
         try:
             cursor.execute(query)
         except connector.Error as err:
