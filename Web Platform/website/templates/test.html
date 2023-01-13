@@ -1,42 +1,79 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <link rel="stylesheet" href="../static/fond.css">
+        <style>
+            form{
+                position: absolute;
+                top: 50%;
+                left: 50%;
+            }
+            body{
+                width: 100vh;
+            }
+            .btn:focus {
+                outline: black;
+            }
+        </style>
     </head>
     <body>
-        <form method="post" id="search-form">
-            <label for="subjects" id="subjects">
-                <select id="subjects" name="subjects" aria-placeholder="Enter Subject">
-                    <option value=""></option>
+        <form id="search-form" method="POST">
+
+            <label for = "keywords">
+                <strong><p style="color: #000000; font-size: large;" />Keywords</strong><br>
+                <input
+                    type = "text"
+                    id = "keywords"
+                    name = "keywords"
+                    placeholder = "Enter Keywords"
+                    size = "50"
+                >
+            </label>
+
+            <label for = "years-range">
+                <strong><p style="color: #000000; font-size: large;" />Years Range</strong><br>
+                <input
+                    type = "text"
+                    id = "years-range"
+                    name = "years-range"
+                    placeholder = "Enter First Year"
+                    size = "21"
+                >
+                <strong>-</strong>
+                <input
+                    type = "text"
+                    id = "years-range"
+                    name = "years-range"
+                    placeholder = "Enter Last Year  "
+                    size = "21"
+                >
+            </label>
+
+            <label id="subjects" for = "subjects"> 
+                <strong><p style="color: #000000; font-size: large;" />Subjects/Topics</strong><br>
+                <select id="subjects" name="subjects" aria-placeholder="Enter Subject" >
+                    <option value=" " > </option>
                     <option value="SOCI">SOCI</option>
-                    <option value="VETE">VETE</option>
+                    <option value="VETE">VETE</option> 
                 </select>
             </label>
-            <button type="button" onclick="addDropdown()">+ Add Label</button>
+            <button onclick="addLabel()">Add Label +</button>
+
+            <br />
+            <button type = "submit" class = "btn" style="background-color: #000000; color: #ffffff;"> Submit </button>
         </form>
-        <script>
-            function addDropdown() {
-            // create a new select element
-            var newDropdown = document.createElement("select");
+        
+    <script>
+    function addLabel() {
+        var newLabel = document.createElement("subjects");
+        newLabel.innerHTML = "New label";
+    
+        var form = document.getElementsByTagName("search-form")[0];
+        var labels = form.getElementsByTagName("subjects");
+        var lastLabel = labels[labels.length - 1];
+        lastLabel.insertAdjacentElement("afterend", newLabel);
+    }
+    </script>
 
-            // create options for the new dropdown
-            var option1 = document.createElement("option");
-            option1.innerHTML = "";
-            var option2 = document.createElement("option");
-            option2.innerHTML = "SOCI";
-            var option3 = document.createElement("option");
-            option3.innerHTML = "VETE";
-
-            // find the form element and the last dropdown inside the form
-            var form = document.getElementsByTagName("form")[0];
-            var dropdowns = form.getElementsByTagName("select");
-            var lastDropdown = dropdowns[dropdowns.length - 1];
-
-            // add a new line after the last dropdown
-            lastDropdown.insertAdjacentHTML("afterend", "<br>");
-
-            // add the new dropdown after the new line
-            lastDropdown.insertAdjacentElement("afterend", newDropdown);
-            }
-        </script>
     </body>
 </html>
