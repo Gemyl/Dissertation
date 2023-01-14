@@ -10,18 +10,22 @@
     </head>
 
     <body>
-        <div class="container">
-        <form id="search-form" method="POST" style="width: 50%; position: absolute; top: 20%;">
-            <label for = "keywords">
-                <strong><p style="color: #000000; font-size: large;" />Keywords</strong><br>
-                <input
-                    type = "text"
-                    id = "keywords"
-                    name = "keywords"
-                    placeholder = "Enter Keywords"
-                    size = "50"
-                >
-            </label>
+        <form id="search-form" method="POST" style="width: 50%; position: absolute; top: 12%;">
+            <strong><p style="color: #000000; font-size: large;" />Keywords</strong><br>
+            <section style="overflow: auto; height: 100px; width: 462px;">
+                <label for = "keywords">
+                    <input
+                        type = "text"
+                        id = "keywords"
+                        name = "keywords"
+                        placeholder = "Enter Keywords"
+                        size = "50"
+                    >
+                </label><br/>
+
+            <div id="add_new_field"></div>
+            <button onclick="addField()" type="button">+ Add Field</button>
+            </section><br/>
 
             <label for = "years-range">
                 <strong><p style="color: #000000; font-size: large;" />Years Range</strong><br>
@@ -40,7 +44,7 @@
                     placeholder = "Enter Last Year  "
                     size = "21"
                 >
-            </label>
+            </label><br/>
 
             <label id="subjects" for = "subjects">
                 <strong><p style="color: #000000; font-size: large;" />Subjects</strong><br>
@@ -103,8 +107,9 @@
             </label><br/><br/>
 
             <button type = "submit" class = "btn" style="background-color: #000000; color: #ffffff;"> Submit </button>
-            
         </form>
+
+        <script src="../static/addfield.js"></script>
     </body>
 </html>
 {% endblock %}

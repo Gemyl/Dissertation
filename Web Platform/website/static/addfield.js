@@ -1,0 +1,30 @@
+function addField() {
+    var survey_options = document.getElementById("add_new_field");
+    var inputField = document.createElement("input");
+    inputField.setAttribute("type", "text");
+    inputField.setAttribute("name", "survey_options[]");
+    inputField.setAttribute("class", "survey_options");
+    inputField.setAttribute("size", 50);
+    inputField.setAttribute("placeholder", "Enter Keyword");
+    var selectField = document.createElement("select");
+    selectField.size = "50px";
+    var option_1 = document.createElement("option");
+    var option_2 = document.createElement("option");
+    var option_3 = document.createElement("option");
+    option_1.setAttribute("value", "AND");
+    option_1.text = "AND";
+    option_1.setAttribute("selected", "selected");
+    option_2.setAttribute("value", "OR");
+    option_2.text = "OR";
+    option_3.setAttribute("value", "NOT");
+    option_3.text = "NOT";
+    selectField.appendChild(option_1);
+    selectField.appendChild(option_2);
+    selectField.appendChild(option_3);
+    survey_options.appendChild(selectField);
+    var newline = document.createElement("br");
+    survey_options.appendChild(newline);
+    survey_options.appendChild(inputField);
+    var newline = document.createElement("br");
+    survey_options.appendChild(newline);
+}
