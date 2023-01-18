@@ -47,12 +47,12 @@ def insert_authors(cursor, id, firstName, lastName, subjectedAreas, hIndex, item
 
 
 # inserting organizations data
-def insert_organizations(cursor, id, name, type, address, postalCode, city, state, country):
+def insert_organizations(cursor, id, name, type1, type2, address, postalCode, city, state, country):
 
     for i in tqdm(range(len(id))):
         try:
-            query = 'INSERT INTO organizations VALUES (\'' + id[i] + '\', \'' + name[i] + '\', \'' + type[i] + '\', \'' + \
-                address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + \
+            query = 'INSERT INTO organizations VALUES (\'' + id[i] + '\', \'' + name[i] + '\', \'' + type1[i] + '\', \'' + \
+                type2[i] + '\', \'' +  address[i] + '\', \'' + postalCode[i] + '\', \'' + city[i] + '\', \'' + state[i] + '\', \'' + \
                 country[i] + '\');'
             
             cursor.execute(query)

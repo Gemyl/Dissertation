@@ -86,61 +86,23 @@ def papers_data(DOIs, keywords, yearsRange):
     # in this loop every DOI is accessed
     # each DOI represents a paper
     for doi in tqdm(DOIs):
-
         paperInfo = AbstractRetrieval(doi, view='FULL')
 
-        # paper's year
-        try:
-            year.append(yearsRange)
-        except:
-            year.append(' ')
-        
-        # paper's DOI
-        try:    
-            DOI.append(str(doi))
-        except:
-            DOI.append(' ')
+        DOI.append(str(doi))
+        year.append(yearsRange)
+        userKeywords.append(keywords)
+        title.append(paperInfo.title)
+        journal.append(str(paperInfo.publisher))
+        authorshipKeywords.append(list_to_string(paperInfo.authkeywords))
+        subjects.append(', '.join(str(sub[0]) for sub in paperInfo.subject_areas))
 
-        # keywords given by user
-        try:    
-            userKeywords.append(keywords)
-        except:
-            userKeywords.append(' ')
-
-        # paper's journal
-        try:
-            journal.append(str(paperInfo.publisher))
-        except:
-            journal.append(' ')
-
-        # paper's title
-        try:
-            title.append(paperInfo.title)
-        except:
-            title.append(' ')
-
-        # paper's number of citations
-        try:
-            maxCitations = paperInfo.citedby_count
-            plumxCitations = PlumXMetrics(doi, id_type='doi').citation
-            if plumxCitations != None:
-                plumxCitations = max([citation[1] for citation in plumxCitations])
-                maxCitations = max(maxCitations, plumxCitations)
-            citationsCount.append(maxCitations)
-        except:
-            citationsCount.append(' ')
-
-        # paper's referenced subjected areas
-        try:
-            subjects.append(', '.join(str(sub[0]) for sub in paperInfo.subject_areas))
-        except:
-            subjects.append(' ')
-
-        # keywords given by paper's authors
-        try:    
-            authorshipKeywords.append(list_to_string(paperInfo.authkeywords))
-        except:
-            authorshipKeywords.append(' ')
+        # paper'smaximum number of citations
+        maxCitations = paperInfo.citedby_count
+        plumxCitations = PlumXMetrics(doi, id_type='doi').citation
+        if plumxCitations != None:
+            plumxCitations = max([citation[1] for citation in plumxCitations])
+            maxCitations = max(maxCitations, plumxCitations)
+        citationsCount.append(maxCitations)
 
     return DOI, year, journal, authorshipKeywords, userKeywords, subjects, title, citationsCount 
 
@@ -152,7 +114,7 @@ def authors_data(DOIs):
     hIndex = []
     lastName = []
     firstName = []
-    identifier = []  
+    identifier = []
     indexedName = []
     itemCitations = []
     documentsCount = []
@@ -173,61 +135,16 @@ def authors_data(DOIs):
 
             # checking if an author has been already accesed during this search
             if identifier.count(authorInfo.identifier) == 0:                   
-
-                # author's Scopus ID
-                try:
-                    identifier.append(str(authorInfo.identifier))
-                except:
-                    identifier.append(' ')
-
-                # author's first name
-                try:
-                    firstName.append(authorInfo.given_name)
-                except:
-                    firstName.append(' ')
-
-                # author's last name
-                try:
-                    lastName.append(authorInfo.surname)
-                except:
-                    firstName.append(' ')
-
-                # author's name as is indexed in Scopus
-                try:
-                    indexedName.append(str(authorInfo.indexed_name))
-                except:
-                    indexedName.append(' ')
-
-                # author's referenced subjected areas
-                try:
-                    subjectedAreas.append(', '.join(str(sub[0]) for sub in authorInfo.subject_areas))
-                except:
-                    subjectedAreas.append('')  
-
-                # author's h-index
-                try:
-                    hIndex.append(str(authorInfo.h_index))
-                except:
-                    hIndex.append(' ')
-
-                # author's number of citations in items (e.g. papers)
-                try:
-                    itemCitations.append(str(authorInfo.citation_count))
-                except:
-                    itemCitations.append(' ')
-
-                # author's number of citations made by other authors
-                try:
-                    authorsCitations.append(str(authorInfo.cited_by_count))
-                except:
-                    authorsCitations.append(' ')
-
-                # number of documents authored
-                try:
-                    documentsCount.append(str(authorInfo.document_count))
-                except:
-                    documentsCount.append(' ')
-
+                identifier.append(str(authorInfo.identifier))
+                firstName.append(authorInfo.given_name)
+                lastName.append(authorInfo.surname)
+                indexedName.append(str(authorInfo.indexed_name))
+                subjectedAreas.append(', '.join(str(sub[0]).lower() for sub in authorInfo.subject_areas)) 
+                hIndex.append(str(authorInfo.h_index))
+                itemCitations.append(str(authorInfo.citation_count))
+                authorsCitations.append(str(authorInfo.cited_by_count))
+                documentsCount.append(str(authorInfo.document_count))
+                    
     return identifier, firstName, lastName, subjectedAreas, hIndex, \
         itemCitations, authorsCitations, documentsCount 
 
@@ -238,7 +155,8 @@ def orgs_data(DOIs):
     # each list corresponds to an organization's attribute
     name = []
     city = []
-    type = []
+    type1 = []
+    type2 = []
     state = []
     country = []
     address = []  
@@ -256,11 +174,43 @@ def orgs_data(DOIs):
                 name.append(str(org[1]))
                 city.append(str(orgInfo.city))
                 state.append(str(orgInfo.state))
-                type.append(str(orgInfo.org_type))
                 country.append(str(orgInfo.country))
                 address.append(str(orgInfo.address))
                 postalCode.append(str(orgInfo.postal_code))
                 identifier.append(str(AffiliationRetrieval(orgInfo.identifier).identifier))
+
+                if (orgInfo.org_type == 'univ'):
+                    type1.append('Academic')
+                    type2.append('University-College')
+                elif orgInfo.org_type == 'coll':
+                    type1.append('Academic')
+                    type2.append('University-College')
+                elif orgInfo.org_type == 'sch':
+                    type1.append('Academic')
+                    type2.append('School')
+                elif orgInfo.org_type == 'res':
+                    type1.append('Academic')
+                    type2.append('Research Institute')
+                elif orgInfo.org_type == 'gov':
+                    type1.append('Government Organization')
+                    type2.append(' ')
+                elif orgInfo.org_type == 'assn':
+                    type1.append('Association')
+                    type2.append(' ')
+                elif orgInfo.org_type == 'corp':
+                    type1.append('Business')
+                    type2.append(' ')
+                elif orgInfo.org_type == 'non':
+                    type1.append('Non-profit Private Entity')    
+                elif ('academic' in name[len(name)-1].lower()) | ('academy' in name[len(name)-1].lower()):
+                    type1.append('Academic')
+                    type2.append('Academy')
+                elif ('international' in name[len(name)-1].lower()) | ('intergovernmental' in name[len(name)-1].lower()):
+                    type1.append('International/Intergovernmental Organization')
+                    type2.append(' ')
+                else:
+                    type1.append(orgInfo.org_type)
+                    type2.append(' ')
 
                 tempOrgs.append(org[0])
         
@@ -275,15 +225,75 @@ def orgs_data(DOIs):
                         name.append(str(orgName))
                         city.append(str(orgInfo.city))
                         state.append(str(orgInfo.state))
-                        type.append(str(orgInfo.org_type))
                         country.append(str(orgInfo.country))
                         address.append(str(orgInfo.address))
                         postalCode.append(str(orgInfo.postal_code))
                         identifier.append(str(AffiliationRetrieval(orgInfo.identifier).identifier))
+
+                        if (orgInfo.org_type == 'univ'):
+                            type1.append('Academic')
+                            type2.append('University-College')
+                        elif orgInfo.org_type == 'coll':
+                            type1.append('Academic')
+                            type2.append('University-College')
+                        elif orgInfo.org_type == 'res':
+                            type1.append('Academic')
+                            type2.append('Research Institute')
+                        elif orgInfo.org_type == 'gov':
+                            type1.append('Government Organization')
+                            type2.append(' ')
+                        elif orgInfo.org_type == 'assn':
+                            type1.append('Association')
+                            type2.append(' ')
+                        elif orgInfo.org_type == 'corp':
+                            type1.append('Business')
+                            type2.append(' ')
+                        elif orgInfo.org_type == 'non':
+                            type1.append('Non-profit Private Entity')
+                            type2.append(' ')    
+                        elif ('department' in name[len(name)-1].lower()) | ('dept.' in name[len(name)-1].lower()):
+                            type1.append('Academic')
+                            type2.append('Department')
+                        elif 'college' in name[len(name)-1].lower():
+                            type1.append('Academic')
+                            type2.append('College')
+                        elif ('academy' in name[len(name)-1].lower()) | ('academic' in name[len(name)-1].lower()):
+                            type1.append('Academic')
+                            type2.append('Academy')
+                        elif ('school' in name[len(name)-1].lower()) | ('faculty' in name[len(name)-1].lower()):
+                            type1.append('Academic')
+                            type2.append('School')
+                        elif ('research' in name[len(name)-1].lower()) | ('researchers' in name[len(name)-1].lower()):
+                            type1.append('Academic')
+                            type2.append('Research Institute')
+                        elif ('government' in name[len(name)-1].lower()) | ('public' in name[len(name)-1].lower()) | \
+                            ('state' in name[len(name)-1].lower()) | ('national' in name[len(name)-1].lower()) | \
+                            ('federal' in name[len(name)-1].lower()) | ('royal' in name[len(name)-1].lower()) | \
+                            ('federate' in name[len(name)-1].lower()) | ('confederate' in name[len(name)-1].lower()):
+                            type1.append('Government')
+                            type2.append(' ')
+                        elif ('association' in name[len(name)-1].lower()):
+                            type1.append('Association')
+                            type2.append(' ')
+                        elif ('inc.' in name[len(name)-1].lower()) | ('ltd.' in name[len(name)-1].lower()):
+                            type1.append('Business')
+                            type2.append(' ')
+                        elif ('non-profit' in name[len(name)-1].lower()):
+                            type1.append('Non-profit Private Entity')
+                            type2.append(' ')
+                        elif ('international' in name[len(name)-1].lower()) | ('intergovernmental' in name[len(name)-1].lower()):
+                            type1.append('International/Intergovernmental Organization')
+                            type2.append(' ')
+                        elif ('university' in name[len(name)-1].lower()):
+                            type1.append('Academic')
+                            type2.append('Department')
+                        else:
+                            type1.append('Other')
+                            type2.append(' ')
         
         tempOrgs = []
 
-    return identifier, name, type, address, postalCode, city, state, country
+    return identifier, name, type1, type2, address, postalCode, city, state, country
 
 
 # this functions matches publications and authors through their identifiers
@@ -300,7 +310,6 @@ def papers_and_authors(DOIs):
         authors = paperInfo.authors
 
         for author in authors:
-
             # a publication's DOI is appended so much times as the numbers of its authors
             papersDOI.append(str(doi))
 
@@ -345,7 +354,8 @@ def authors_and_organizations(DOIs, orgID):
     for doi in tqdm(DOIs):
 
         authorsID = [str(AuthorRetrieval(author[0]).identifier) for author in AbstractRetrieval(doi).authors]
-        for authorID in authorsID:
+
+        for authorID in authorsID:            
                 authorAffilCurr = [str(AffiliationRetrieval(affil[0]).identifier)
                     for affil in AuthorRetrieval(authorID).affiliation_current]
                 authorAffilHist = [str(AffiliationRetrieval(affil[0]).identifier)
