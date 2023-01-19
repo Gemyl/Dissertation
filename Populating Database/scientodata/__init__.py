@@ -1,9 +1,5 @@
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval, PlumXMetrics
 from textformating import format_keywords, list_to_string
-from geopy.geocoders import Nominatim
-from itertools import combinations
-from geodistance import distance
-from statistics import mean
 from tqdm.auto import tqdm
 from requests import get
 import json
@@ -163,56 +159,63 @@ def orgs_data(DOIs):
     tempOrgs = [] 
     postalCode = []
     identifier = []
-
+    type1Temp = []
+    type2Temp = []
+    type1Overall = []
+    type2Overall = []
+    cityTemp = []
+    cityOverall = []
     # in this loop every DOI is accessed
     for doi in tqdm(DOIs):
 
         paperOrgs = AbstractRetrieval(doi).affiliation
         for org in paperOrgs:
             orgInfo = AffiliationRetrieval(org[0])
-            if orgInfo.identifier not in name:
-                name.append(str(org[1]))
-                city.append(str(orgInfo.city))
-                state.append(str(orgInfo.state))
-                country.append(str(orgInfo.country))
-                address.append(str(orgInfo.address))
-                postalCode.append(str(orgInfo.postal_code))
-                identifier.append(str(AffiliationRetrieval(orgInfo.identifier).identifier))
+            name.append(str(org[1]))
+            city.append(str(orgInfo.city))
+            state.append(str(orgInfo.state))
+            country.append(str(orgInfo.country))
+            address.append(str(orgInfo.address))
+            postalCode.append(str(orgInfo.postal_code))
+            identifier.append(str(AffiliationRetrieval(orgInfo.identifier).identifier))
 
-                if (orgInfo.org_type == 'univ'):
-                    type1.append('Academic')
-                    type2.append('University-College')
-                elif orgInfo.org_type == 'coll':
-                    type1.append('Academic')
-                    type2.append('University-College')
-                elif orgInfo.org_type == 'sch':
-                    type1.append('Academic')
-                    type2.append('School')
-                elif orgInfo.org_type == 'res':
-                    type1.append('Academic')
-                    type2.append('Research Institute')
-                elif orgInfo.org_type == 'gov':
-                    type1.append('Government Organization')
-                    type2.append(' ')
-                elif orgInfo.org_type == 'assn':
-                    type1.append('Association')
-                    type2.append(' ')
-                elif orgInfo.org_type == 'corp':
-                    type1.append('Business')
-                    type2.append(' ')
-                elif orgInfo.org_type == 'non':
-                    type1.append('Non-profit Private Entity')    
-                elif ('academic' in name[len(name)-1].lower()) | ('academy' in name[len(name)-1].lower()):
-                    type1.append('Academic')
-                    type2.append('Academy')
-                elif ('international' in name[len(name)-1].lower()) | ('intergovernmental' in name[len(name)-1].lower()):
-                    type1.append('International/Intergovernmental Organization')
-                    type2.append(' ')
-                else:
-                    type1.append(orgInfo.org_type)
-                    type2.append(' ')
+            if (orgInfo.org_type == 'univ'):
+                type1.append('Academic')
+                type2.append('University - College')
+            elif orgInfo.org_type == 'coll':
+                type1.append('Academic')
+                type2.append('University - College')
+            elif orgInfo.org_type == 'sch':
+                type1.append('Academic')
+                type2.append('School')
+            elif orgInfo.org_type == 'res':
+                type1.append('Academic')
+                type2.append('Research Institute')
+            elif orgInfo.org_type == 'gov':
+                type1.append('Government')
+                type2.append(' ')
+            elif orgInfo.org_type == 'assn':
+                type1.append('Association')
+                type2.append(' ')
+            elif orgInfo.org_type == 'corp':
+                type1.append('Business')
+                type2.append(' ')
+            elif orgInfo.org_type == 'non':
+                type1.append('Non-profit')    
+            elif ('academic' in name[len(name)-1].lower()) | ('academy' in name[len(name)-1].lower()):
+                type1.append('Academic')
+                type2.append('Academy')
+            elif ('international' in name[len(name)-1].lower()) | ('intergovernmental' in name[len(name)-1].lower()):
+                type1.append('International')
+                type2.append(' ')
+            else:
+                type1.append(orgInfo.org_type)
+                type2.append(' ')
 
-                tempOrgs.append(org[0])
+            tempOrgs.append(org[0])
+            type1Temp.append(type1[len(type1)-1])
+            type2Temp.append(type2[len(type2)-1])
+            cityTemp.append(city[len(city)-1])
         
         authors = AbstractRetrieval(doi).authors
         for author in authors:
@@ -221,7 +224,7 @@ def orgs_data(DOIs):
                 if(org[6] != None):
                     orgInfo = AffiliationRetrieval(org[0])
                     orgName = org[5] + ' - ' + org[6]
-                    if (orgName not in name) & (org[1] in tempOrgs):
+                    if (org[1] in tempOrgs):
                         name.append(str(orgName))
                         city.append(str(orgInfo.city))
                         state.append(str(orgInfo.state))
@@ -232,15 +235,15 @@ def orgs_data(DOIs):
 
                         if (orgInfo.org_type == 'univ'):
                             type1.append('Academic')
-                            type2.append('University-College')
+                            type2.append('University - College')
                         elif orgInfo.org_type == 'coll':
                             type1.append('Academic')
-                            type2.append('University-College')
+                            type2.append('University - College')
                         elif orgInfo.org_type == 'res':
                             type1.append('Academic')
                             type2.append('Research Institute')
                         elif orgInfo.org_type == 'gov':
-                            type1.append('Government Organization')
+                            type1.append('Government')
                             type2.append(' ')
                         elif orgInfo.org_type == 'assn':
                             type1.append('Association')
@@ -249,14 +252,17 @@ def orgs_data(DOIs):
                             type1.append('Business')
                             type2.append(' ')
                         elif orgInfo.org_type == 'non':
-                            type1.append('Non-profit Private Entity')
+                            type1.append('Non-profit')
                             type2.append(' ')    
                         elif ('department' in name[len(name)-1].lower()) | ('dept.' in name[len(name)-1].lower()):
                             type1.append('Academic')
-                            type2.append('Department')
+                            type2.append('University - College')
+                        elif ('university' in name[len(name)-1].lower()):
+                            type1.append('Academic')
+                            type2.append('University - College')
                         elif 'college' in name[len(name)-1].lower():
                             type1.append('Academic')
-                            type2.append('College')
+                            type2.append('University - College')
                         elif ('academy' in name[len(name)-1].lower()) | ('academic' in name[len(name)-1].lower()):
                             type1.append('Academic')
                             type2.append('Academy')
@@ -279,21 +285,28 @@ def orgs_data(DOIs):
                             type1.append('Business')
                             type2.append(' ')
                         elif ('non-profit' in name[len(name)-1].lower()):
-                            type1.append('Non-profit Private Entity')
+                            type1.append('Non-profit')
                             type2.append(' ')
                         elif ('international' in name[len(name)-1].lower()) | ('intergovernmental' in name[len(name)-1].lower()):
-                            type1.append('International/Intergovernmental Organization')
+                            type1.append('International')
                             type2.append(' ')
-                        elif ('university' in name[len(name)-1].lower()):
-                            type1.append('Academic')
-                            type2.append('Department')
                         else:
                             type1.append('Other')
                             type2.append(' ')
+                        
+                        type1Temp.append(type1[len(type1)-1])
+                        type2Temp.append(type2[len(type2)-1])
+                        cityTemp.append(city[len(city)-1])
         
         tempOrgs = []
+        type1Overall.append(type1Temp)
+        type2Overall.append(type2Temp)
+        cityOverall.append(cityTemp)
+        type1Temp = []
+        type2Temp = []
+        cityTemp = []
 
-    return identifier, name, type1, type2, address, postalCode, city, state, country
+    return identifier, name, type1, type2, address, postalCode, city, state, country, type1Overall, type2Overall, cityOverall
 
 
 # this functions matches publications and authors through their identifiers
@@ -373,58 +386,3 @@ def authors_and_organizations(DOIs, orgID):
                 
 
     return authorExport, orgExport
-
-
-def cultural_distances(DOIs):
-
-    minDist = []
-    maxDist = []
-    avgDist = []
-    countries = []
-    distances = []
-    coordinates = []
-    citationsCount = []
-    affilCountries = []
-
-    for doi in tqdm(DOIs):
-        citationsCount.append(str(AbstractRetrieval(doi).citedby_count))
-        authorsID = [author[0] for author in AbstractRetrieval(doi).authors]
-        for i in range(len(authorsID)):
-            try:
-                orgID = (AbstractRetrieval(doi).authors[i][4]).split(';')[0]
-                affilCountries.append(AffiliationRetrieval(orgID).country)
-            except:
-                continue
-
-        countries.append(affilCountries)
-
-        geolocator = Nominatim(user_agent = 'PersonalProject')
-        for country in affilCountries:
-            location = geolocator.geocode(country)
-            coordinates.append((location.latitude, location.longitude))
-
-        locationsCombinations = list(combinations(coordinates, 2))
-
-        for combo in locationsCombinations:
-            distances.append(distance(combo[0][0], combo[0][1], combo[1][0], combo[1][1]))
-        
-        try:
-            minDist.append(str(min(distances)))
-        except:
-            minDist.append('-')
-
-        try:    
-            maxDist.append(str(max(distances)))
-        except:
-            maxDist.append('-')
-
-        try:
-            avgDist.append(str(mean(distances)))
-        except:
-            avgDist.append('-')
-        
-        distances = []
-        coordinates = []
-        affilCountries = []
-
-    return citationsCount, minDist, maxDist, avgDist

@@ -2,7 +2,8 @@ from gemysql import connect_to_MySQL, insert_publications, insert_authors, inser
      insert_publications_and_authors, insert_publications_and_organizations, commit_and_close, insert_authors_and_organizations, \
      instert_cultural_distances
 from scientodata import get_DOIs, papers_data, authors_data, orgs_data, papers_and_authors, papers_and_orgs, \
-     authors_and_organizations, cultural_distances
+     authors_and_organizations
+from distances import geographical_distances, organizational_distances
 from getpass import getpass
 
 # parameters given by user
@@ -29,7 +30,8 @@ print('Inserting authors data to database:')
 insert_authors(cursor, authorID, firstName, lastName, hIndex, subjectAreas, itemCitations, authorsCitations, documentsCount)
 
 print('\nRetrieving organizations data:')
-orgID, orgName, orgType1, orgType2, orgAddress, orgPostalCode, orgCity, orgState, orgCountry = orgs_data(DOIs)
+orgID, orgName, orgType1, orgType2, orgAddress, orgPostalCode, orgCity, orgState, orgCountry, orgType1Grp, orgType2Grp, cityGrp \
+= orgs_data(DOIs)
 print('Inserting organizations data to database:')
 insert_organizations(cursor, orgID, orgName, orgType1, orgType2, orgAddress, orgPostalCode, orgCity, orgState, orgCountry)
 
@@ -49,9 +51,10 @@ print('Inserting authors-organizations mathcing data to database:')
 insert_authors_and_organizations(cursor, authorID, orgIDTemp)
 
 print('\nCalculating distances per publication:')
-citationsCount, minDIst, maxDist, avgDist = cultural_distances(DOIs)
+minDIst, maxDist, avgDist = geographical_distances(cityGrp)
+minOrgDist, maxOrgDist, avgOrgDist = organizational_distances(orgType1Grp)
 print('\Inserting calculated distances to database:')
-instert_cultural_distances(cursor, DOIs, citationsCount, minDIst, maxDist, avgDist)
+instert_cultural_distances(cursor, DOIs, citationsCount, minDIst, maxDist, avgDist, minOrgDist, maxOrgDist, avgOrgDist)
 
 # committing changes and closing connection
 commit_and_close(connection, cursor)

@@ -101,11 +101,12 @@ def insert_authors_and_organizations(cursor, authorID, orgID):
             continue
 
 
-def instert_cultural_distances(cursor, doi, citationsCount, minDist, maxDist, avgDist):
+def instert_cultural_distances(cursor, doi, citationsCount, minGeoDist, maxGeoDist, avgGeoDist, minOrgDist, maxOrgDist, avgOrgDist):
 
     for i in tqdm(range(len(doi))):
-        query = 'INSERT INTO cultural_distances VALUES (\'' + doi[i] + '\', ' + citationsCount[i] + ', ' \
-            + minDist[i] + ', ' + maxDist[i] + ', ' + avgDist[i] + ');'
+        query = 'INSERT INTO cultural_distances VALUES (\'' + doi[i] + '\', ' + str(citationsCount[i]) + ', ' \
+            + minGeoDist[i] + ', ' + maxGeoDist[i] + ', ' + avgGeoDist[i] + ', ' \
+            + minOrgDist[i] + ', ' + maxOrgDist[i] + ', ' + avgOrgDist[i] + ');'
         try:
             cursor.execute(query)
         except connector.Error as err:
