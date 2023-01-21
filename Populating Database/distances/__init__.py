@@ -35,33 +35,28 @@ def geographical_distances(cities):
 
     for cityGrp in tqdm(cities):
 
-        geolocator = Nominatim(user_agent = 'PersonalProject')
-        for city in cityGrp:
-            location = geolocator.geocode(city)
-            cityCoord.append((location.latitude, location.longitude))
-
-        combos = list(combinations(cityCoord, 2))
-
-        for combo in combos:
-            distances.append(distance(combo[0][0], combo[0][1], combo[1][0], combo[1][1]))
-        
         try:
+            geolocator = Nominatim(user_agent = 'PersonalProject')
+            for city in cityGrp:
+                location = geolocator.geocode(city)
+                cityCoord.append((location.latitude, location.longitude))
+
+            combos = list(combinations(cityCoord, 2))
+
+            for combo in combos:
+                distances.append(distance(combo[0][0], combo[0][1], combo[1][0], combo[1][1]))
+            
             minDist.append(str(min(distances)))
+            maxDist.append(str(max(distances)))
+            avgDist.append(str(mean(distances)))
+
+            distances = []
+            cityCoord = []
+
         except:
             minDist.append('-')
-
-        try:    
-            maxDist.append(str(max(distances)))
-        except:
             maxDist.append('-')
-
-        try:
-            avgDist.append(str(mean(distances)))
-        except:
             avgDist.append('-')
-        
-        distances = []
-        cityCoord = []
 
     return minDist, maxDist, avgDist
 
@@ -88,17 +83,24 @@ def organizational_distances(orgTypes1):
 
     for orgs in orgTypes1:
 
-        for i in range(len(orgs)-1):
-            for j in range(i+1, len(orgs)):
-                index1 = orgTypeDict[orgs[i]]
-                index2 = orgTypeDict[orgs[j]]
-                dist = orgDistMap[index1][index2]
-                distTemp.append(dist)
-        
-        minDist.append(str(min(distTemp)))
-        maxDist.append(str(max(distTemp)))
-        avgDist.append(str(mean(distTemp)))
+        if 'Other' not in orgs:
+            for i in range(len(orgs)-1):
+                for j in range(i+1, len(orgs)):
+                    index1 = orgTypeDict[orgs[i]]
+                    index2 = orgTypeDict[orgs[j]]
+                    dist = orgDistMap[index1][index2]
+                    distTemp.append(dist)
+            
+            minDist.append(str(min(distTemp)))
+            maxDist.append(str(max(distTemp)))
+            avgDist.append(str(mean(distTemp)))
 
-        distTemp = []
+            distTemp = []
+        
+        else:
+            minDist.append('0')
+            maxDist.append('0')
+            avgDist.append('0')
+        
     
     return minDist, maxDist, avgDist

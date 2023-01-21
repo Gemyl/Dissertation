@@ -39,7 +39,7 @@ cursor.execute(query)
 for row in cursor:
     mysqlID.append(row[0])
 
-query = 'SELECT Type FROM organizations ORDER BY Name;'
+query = 'SELECT `Type (1)` FROM organizations ORDER BY Name;'
 cursor.execute(query)
 for row in cursor:
     mysqlTypes.append(row[0])
@@ -51,7 +51,7 @@ for row in cursor:
 
 for i in range(len(mysqlNames)-1):
     for j in range(i+1, len(mysqlNames)):
-        if (fuzz.ratio(mysqlNames[i], mysqlNames[j]) > 80) & (mysqlAddresses[i] == mysqlAddresses[j]) & \
+        if (fuzz.ratio(mysqlNames[i], mysqlNames[j]) > 84) & (mysqlAddresses[i] == mysqlAddresses[j]) & \
             (mysqlTypes[i] == mysqlTypes[j]):
                 date1 = AffiliationRetrieval(int(mysqlID[i])).date_created
                 date2 = AffiliationRetrieval(int(mysqlID[j])).date_created

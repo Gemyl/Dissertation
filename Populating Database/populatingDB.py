@@ -22,39 +22,39 @@ connection, cursor, error = connect_to_MySQL(password)
 print('\nRetrieving papers data:')
 DOI, year, journal, authorshipKeywords, userKeywords, subjects, title, citationsCount = papers_data(DOIs, keywords, yearsRange)
 print('Inserting papers data to database:')
-insert_publications(cursor, DOI, year, journal, authorshipKeywords, userKeywords,subjects, title, citationsCount)
+insert_publications(connection, cursor, DOI, year, journal, authorshipKeywords, userKeywords,subjects, title, citationsCount)
 
 print('\nRetrieving authors data:')
 authorID, firstName, lastName, hIndex, subjectAreas, itemCitations, authorsCitations, documentsCount = authors_data(DOIs)
 print('Inserting authors data to database:')
-insert_authors(cursor, authorID, firstName, lastName, hIndex, subjectAreas, itemCitations, authorsCitations, documentsCount)
+insert_authors(connection, cursor, authorID, firstName, lastName, hIndex, subjectAreas, itemCitations, authorsCitations, documentsCount)
 
 print('\nRetrieving organizations data:')
 orgID, orgName, orgType1, orgType2, orgAddress, orgPostalCode, orgCity, orgState, orgCountry, orgType1Grp, orgType2Grp, cityGrp \
 = orgs_data(DOIs)
 print('Inserting organizations data to database:')
-insert_organizations(cursor, orgID, orgName, orgType1, orgType2, orgAddress, orgPostalCode, orgCity, orgState, orgCountry)
+insert_organizations(connection, cursor, orgID, orgName, orgType1, orgType2, orgAddress, orgPostalCode, orgCity, orgState, orgCountry)
 
 print('\nMatching papers with authors:')
 pubDOI, authorID = papers_and_authors(DOIs)
 print('Inserting papers-authors matching data to database:')
-insert_publications_and_authors(cursor, pubDOI, authorID)
+insert_publications_and_authors(connection, cursor, pubDOI, authorID)
 
 print('\nMatching papers with organizations:')
 pubDOI, orgIDTemp = papers_and_orgs(DOIs, orgID)
 print('Inserting papers-organizations matching data to database:')
-insert_publications_and_organizations(cursor, pubDOI, orgIDTemp)
+insert_publications_and_organizations(connection, cursor, pubDOI, orgIDTemp)
 
 print('\nMatching authors with organizations:')
-authorID, orgIDTemp = authors_and_organizations(DOIs, orgID)
+authorID, orgIDTemp = authors_and_organizations(DOIs)
 print('Inserting authors-organizations mathcing data to database:')
-insert_authors_and_organizations(cursor, authorID, orgIDTemp)
+insert_authors_and_organizations(connection, cursor, authorID, orgIDTemp)
 
 print('\nCalculating distances per publication:')
 minDIst, maxDist, avgDist = geographical_distances(cityGrp)
 minOrgDist, maxOrgDist, avgOrgDist = organizational_distances(orgType1Grp)
 print('\Inserting calculated distances to database:')
-instert_cultural_distances(cursor, DOIs, citationsCount, minDIst, maxDist, avgDist, minOrgDist, maxOrgDist, avgOrgDist)
+instert_cultural_distances(connection, cursor, DOIs, citationsCount, minDIst, maxDist, avgDist, minOrgDist, maxOrgDist, avgOrgDist)
 
 # committing changes and closing connection
 commit_and_close(connection, cursor)

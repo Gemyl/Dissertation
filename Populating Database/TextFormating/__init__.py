@@ -12,10 +12,12 @@ def format_keywords(keywords):
 
     return keywords
 
-def list_to_string(keywords):
-    if keywords != None:
-                keywords = ', '.join(keywords)
-    else:
-        keywords = [' ']
+def list_to_string(list):
 
-    return keywords
+    if list != None:
+
+        string = ', '.join([str(i).lower() for i in list])
+    else:
+        string = ' '
+
+    return string
