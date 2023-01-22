@@ -71,39 +71,40 @@ def get_DOIs(keywords, yearsRange, subjects):
 # this function retrieves papers data from Scopus
 def papers_data(DOIs, keywords, yearsRange):
 
-    # each list corresponds to a paper's attribute
     DOI = []
     year = []
     title = []
-    journal = []
     subjects = []
+    publisher = []
     userKeywords = []
     citationsCount = []
-    authorshipKeywords = []
+    authorsKeywords = []
 
     # in this loop every DOI is accessed
     # each DOI corresponds to a paper
     for doi in tqdm(DOIs):
+
         paperInfo = AbstractRetrieval(doi, view='FULL')
 
         DOI.append(str(doi))
         year.append(yearsRange)
         userKeywords.append(keywords)
         title.append(str(paperInfo.title).replace('\'', '\\' + '\''))
-        journal.append(str(paperInfo.publisher))
-        authorshipKeywords.append(list_to_string(paperInfo.authkeywords))
+        publisher.append(str(paperInfo.publisher))
+        authorsKeywords.append(list_to_string(paperInfo.authkeywords))
         subjects.append(', '.join(str(sub[0]).lower()
-                        for sub in paperInfo.subject_areas))
+                                  for sub in paperInfo.subject_areas))
 
         # paper'smaximum number of citations
         maxCitations = paperInfo.citedby_count
         plumxCitations = PlumXMetrics(doi, id_type='doi').citation
         if plumxCitations != None:
-            plumxCitations = max([citation[1] for citation in plumxCitations])
+            plumxCitations = max([citation[1]
+                                  for citation in plumxCitations])
             maxCitations = max(maxCitations, plumxCitations)
         citationsCount.append(str(maxCitations))
 
-    return DOI, year, journal, authorshipKeywords, userKeywords, subjects, title, citationsCount
+    return DOI, year, publisher, authorsKeywords, userKeywords, subjects, title, citationsCount
 
 
 # this function retrieves authors data from Scopus
