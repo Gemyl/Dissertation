@@ -6,7 +6,6 @@ from geopy.geocoders import Nominatim
 import mysql.connector as connector
 from itertools import combinations
 from statistics import mean
-from getpass import getpass
 from requests import get
 from tqdm import tqdm
 import json
