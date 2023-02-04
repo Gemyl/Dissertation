@@ -1,0 +1,16 @@
+.spacer {
+    flex: 1 1 auto;
+}
+
+.toolbar-item {
+    display: inline-block;
+    font-size:large;
+    font-weight: lighter;
+    text-decoration: none;
+    color: white;
+    padding: 0 12px;
+}
+
+.toolbar-icon {
+    padding: 0 10px;
+}

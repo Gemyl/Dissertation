@@ -5,6 +5,9 @@ import { map, shareReplay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-navbar',
+  template:`
+    <app-navbar></app-navbar>
+  `,
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
