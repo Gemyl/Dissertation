@@ -3,10 +3,10 @@
     </head>
 
     <body style="overflow: hidden;">
-        <div style="height: 87%; width: 32%; background-color: rgb(219, 219, 219); border-radius: 3%;
+        <div style="height: 90%; width: 32%; background-color: rgb(219, 219, 219); border-radius: 3%;
         margin-left: auto; margin-right: auto; margin-top: 3%; box-shadow: 0px 0px 10px 2px #6b6b6b;">
-            <form id="search-form" method="POST" style="margin-left: 12px;">
-                    <strong><p style="color: #000000; font-size: large;">Keywords</strong>
+            <form id="search-form" method="POST" style="margin-left: 12px;"><br>
+                    <strong><p style="color: #000000; font-size: large; font-weight: lighter;">Keywords</strong>
                     <section style="overflow: auto; height: 125px; width: 462px;">
                         <label for = "keywords">
                             <input
@@ -19,11 +19,12 @@
                         </label>
 
                     <div id="add_new_field" style="display: inline-block;"></div>
-                    <button onclick="addField()" type="button">+ Add Field</button>
+                    <button onclick="addField()" type="button" style="background-color: black;
+                    border-radius: 10%; color: white; margin-top: 5px;">+ Add Field</button>
                     </section><br/>
 
                 <label for = "first-year">
-                        <strong><p style="color: #000000; font-size: large;">First Year</strong>
+                        <strong><p style="color: #000000; font-size: large; font-weight: lighter;">First Year</strong>
                         <input
                             type = "text"
                             id = "year1"
@@ -33,7 +34,8 @@
                         >
                     </label>
                     <label for ="second-year">
-                        <strong><p style="color: #000000; font-size: large; margin-left: 30px;">Second Year</strong>
+                        <strong><p style="color: #000000; font-size: large; margin-left: 30px; 
+                        font-weight: lighter;">Second Year</strong>
                         <input
                             type = "text"
                             id = "year2"
@@ -45,8 +47,9 @@
                     </label><br/>
 
                     <label id="subjects" for = "subjects">
-                        <strong><p style="color: #000000; font-size: large; margin-top: 20px;">Subjects</strong><br>
-                        <section style="overflow: auto; height: 200px; width: 465px;">
+                        <strong><p style="color: #000000; font-size: large; margin-top: 20px;
+                        font-weight: lighter;">Subjects</strong></label>
+                        <section style="overflow: auto; height: 220px; width: 460px;">
                             <input type="checkbox" name="AGRI" id="AGRI" value="AGRI">
                             <label for="button1">Agricultural and Biological Sciences</label><br/>
                             <input type="checkbox" name="ARTS" id="ARTS" value="ARTS">
@@ -102,10 +105,9 @@
                             <input type="checkbox" name="MULT" id="MULT" value="MULT">
                             <label for="button1">Multidisciplinary</label><br/>
                         </section>
-                    </label><br/><br/>
 
                     <button type = "submit" class = "btn" style="background-color: #000000; color: #ffffff;
-                        border-radius: 10%;"> Submit </button>
+                        border-radius: 15%; margin-top: 20px;"> Submit </button>
             </form>
         </div>
     </body>

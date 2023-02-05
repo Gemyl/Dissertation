@@ -14,13 +14,18 @@ function addField() {
 
     var remButton = document.createElement("button");
     remButton.type = "button";
-    remButton.textContent = "X";
     remButton.style.color = "white";
     remButton.style.fontWeight = "bold";
     remButton.style.backgroundColor = "black";
+    remButton.style.marginLeft = "10px";
+
+    var icon = document.createElement("i");
+    icon.classList.add("fa", "fa-trash");
+    icon.style.color = "white";
+    remButton.appendChild(icon);
 
     var selectField = document.createElement("select");
-    selectField.size = "50px";
+    selectField.size = "75px";
     selectField.setAttribute("id", "select"+uniqVal[0]);
     selectField.setAttribute("name", "select"+uniqVal[0]);
 
@@ -39,8 +44,8 @@ function addField() {
     option_2.setAttribute("id", "option2"+uniqVal[0]);
     option_2.setAttribute("name", "option2"+uniqVal[0]);
 
-    option_3.text = "NOT";
-    option_3.setAttribute("value", "NOT");    
+    option_3.text = "AND NOT";
+    option_3.setAttribute("value", " AND NOT");    
     option_3.setAttribute("id", "option3"+uniqVal[0]);
     option_3.setAttribute("name", "option3"+uniqVal[0]);
 

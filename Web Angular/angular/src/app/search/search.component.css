@@ -5,3 +5,7 @@
 input[type=checkbox]{
     accent-color: black;
 }
+
+label {
+    font-weight: lighter;
+}

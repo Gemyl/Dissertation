@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+declare function addField():void;
 
 @Component({
   selector: 'app-search',
