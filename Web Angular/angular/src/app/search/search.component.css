@@ -1,0 +1,7 @@
+.btn:focus {
+    outline: black;
+}
+
+input[type=checkbox]{
+    accent-color: black;
+}

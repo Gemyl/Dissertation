@@ -1,17 +1,12 @@
 {% extends 'base.html' %}{% block title %}Search{% endblock %}{% block content %}
 <html>
     <head>     
-        <link rel="stylesheet" href="../static/buttons&boxes.css">
     </head>
 
-    <body>
-        <link rel="stylesheet" href="../static/buttons&boxes.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
-        integrity="sha512-zH2VUfJ6jF0aEu4jS8m8U+jvfhcxE1gZ4QWO/z4wZ6UzP6UuT7TjC6q3V7MhcMupuW7b8Qv2FV7gx4lh2H7j8g==" 
-        crossorigin="anonymous" />
-        <form id="search-form" method="POST" style="width: 50%; position: absolute; top: 12%;" action="{{ url_for('SearchPage.search') }}">
-            <strong><p style="color: #000000; font-size: large;" />Keywords</strong>
-            <section style="overflow: auto; height: 150px; width: 462px; margin: 0px;">
+    <body style="overflow: hidden;">
+        <form id="search-form" method="POST" style="width: 30%; margin-top: 5%; margin-left: auto; margin-right: auto;">
+            <strong><p style="color: #000000; font-size: large;">Keywords</strong>
+            <section style="overflow: auto; height: 100px; width: 462px; margin: 0px;">
                 <label for = "keywords">
                     <input
                         type = "text"
@@ -27,7 +22,7 @@
             </section><br/>
 
            <label for = "first-year">
-                <strong><p style="color: #000000; font-size: large;" />First Year</strong><br>
+                <strong><p style="color: #000000; font-size: large;">First Year</strong>
                 <input
                     type = "text"
                     id = "year1"
@@ -37,19 +32,19 @@
                 >
             </label>
             <label for ="second-year">
-                <strong><p style="color: #000000; font-size: large; position: absolute; top: 216px; left: 241px;">Second Year</strong><br>
+                <strong><p style="color: #000000; font-size: large; margin-left: 30px;">Second Year</strong>
                 <input
                     type = "text"
                     id = "year2"
                     name = "years2"
                     placeholder = "Enter Last Year "
                     size = "21"
-                    style="position: absolute; top: 28px; left: 0px;"
+                    style = "margin-left: 30px;"
                 >
             </label><br/>
 
             <label id="subjects" for = "subjects">
-                <strong><p style="color: #000000; font-size: large;" />Subjects</strong><br>
+                <strong><p style="color: #000000; font-size: large; margin-top: 20px;">Subjects</strong><br>
                 <section style="overflow: auto; height: 200px; width: 465px;">
                     <input type="checkbox" name="AGRI" id="AGRI" value="AGRI">
                     <label for="button1">Agricultural and Biological Sciences</label><br/>
@@ -111,7 +106,76 @@
             <button type = "submit" class = "btn" style="background-color: #000000; color: #ffffff;"> Submit </button>
         </form>
 
-        <script src="../static/addfield.js"></script>
+        <script>
+            function addField() {
+                const uniqVal = new Uint32Array(1);
+                crypto.getRandomValues(uniqVal);
+                var survey_options = document.getElementById("add_new_field");
+                var container = document.createElement("div");
+
+                var inputField = document.createElement("input");
+                inputField.setAttribute("size", 50);
+                inputField.setAttribute("type", "text");
+                inputField.setAttribute("id", "input"+uniqVal[0]);
+                inputField.setAttribute("class", "survey_options");
+                inputField.setAttribute("name", "input"+uniqVal[0]);
+                inputField.setAttribute("placeholder", "Enter Keyword");
+
+                var remButton = document.createElement("button");
+                remButton.type = "button";
+                remButton.textContent = "X";
+                remButton.style.color = "white";
+                remButton.style.fontWeight = "bold";
+                remButton.style.backgroundColor = "black";
+
+                var selectField = document.createElement("select");
+                selectField.size = "50px";
+                selectField.setAttribute("id", "select"+uniqVal[0]);
+                selectField.setAttribute("name", "select"+uniqVal[0]);
+
+                var option_1 = document.createElement("option");
+                var option_2 = document.createElement("option");
+                var option_3 = document.createElement("option");
+
+                option_1.text = "AND";
+                option_1.setAttribute("value", "AND");
+                option_1.setAttribute("selected", "selected");
+                option_1.setAttribute("id", "option1"+uniqVal[0]);
+                option_1.setAttribute("name", "option1"+uniqVal[0]);
+
+                option_2.text = "OR";
+                option_2.setAttribute("value", "OR");
+                option_2.setAttribute("id", "option2"+uniqVal[0]);
+                option_2.setAttribute("name", "option2"+uniqVal[0]);
+
+                option_3.text = "NOT";
+                option_3.setAttribute("value", "NOT");    
+                option_3.setAttribute("id", "option3"+uniqVal[0]);
+                option_3.setAttribute("name", "option3"+uniqVal[0]);
+
+                selectField.appendChild(option_1);
+                selectField.appendChild(option_2);
+                selectField.appendChild(option_3);
+
+                container.appendChild(selectField);
+                container.appendChild(inputField);
+                container.appendChild(remButton);
+
+                survey_options.appendChild(container);
+
+                remButton.onclick = function() {
+                    this.parentElement.remove();
+                    moveChildrenUp();
+                }
+
+                function moveChildrenUp() {
+                    var children = survey_options.children;
+                    for (var i = 0; i < children.length; i++) {
+                        children[i].style.marginTop = (i * 20) + "px";
+                    }
+                }
+            }
+        </script>
     </body>
 </html>
 {% endblock %}
