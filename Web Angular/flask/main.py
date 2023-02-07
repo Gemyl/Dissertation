@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Blueprint, request
+from flask import Flask, render_template, Blueprint, request, redirect, url_for
 
 app = Flask(__name__)
 
@@ -10,8 +10,10 @@ def root():
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
-    return 'This is search page'
+    form_data = request.form
+    print(form_data)
+    return redirect('http://localhost:4200/search', code=200)
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

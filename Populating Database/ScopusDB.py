@@ -9,6 +9,7 @@ from statistics import mean
 from requests import get
 from tqdm import tqdm
 import json
+import uuid
 
 
 def distance(lat1, lon1, lat2, lon2):
@@ -147,25 +148,28 @@ citationsCount = []
 
 for doi in tqdm(DOIs):
 
+    paperInfo = AbstractRetrieval(doi, view='FULL')
+
+    year = yearsRange
+    userKeywords = keywords
+    title = str(paperInfo.title).replace('\'', '\\' + '\'')
+    journal = str(paperInfo.publisher)
+    authorsKeywords = list_to_string(paperInfo.authkeywords)
+    subjects = ', '.join(str(sub[0]).lower()
+                         for sub in paperInfo.subject_areas)
+
+    # paper'smaximum number of citations
+    maxCitations = paperInfo.citedby_count
+    plumxCitations = PlumXMetrics(doi, id_type='doi').citation
+
+    if plumxCitations != None:
+
+        plumxCitations = max([citation[1] for citation in plumxCitations])
+        maxCitations = max(maxCitations, plumxCitations)
+
+    citationsCount.append(str(maxCitations))
+
     try:
-        paperInfo = AbstractRetrieval(doi, view='FULL')
-
-        year = yearsRange
-        userKeywords = keywords
-        title = str(paperInfo.title).replace('\'', '\\' + '\'')
-        journal = str(paperInfo.publisher)
-        authorsKeywords = list_to_string(paperInfo.authkeywords)
-        subjects = ', '.join(str(sub[0]).lower()
-                             for sub in paperInfo.subject_areas)
-
-        # paper'smaximum number of citations
-        maxCitations = paperInfo.citedby_count
-        plumxCitations = PlumXMetrics(doi, id_type='doi').citation
-        if plumxCitations != None:
-            plumxCitations = max([citation[1] for citation in plumxCitations])
-            maxCitations = max(maxCitations, plumxCitations)
-        citationsCount.append(str(maxCitations))
-
         query = 'INSERT INTO publications VALUES (\'' + str(doi) + '\', ' + year + ', \'' + journal + '\', \'' + \
             authorsKeywords + '\', \'' + userKeywords + '\', \'' + subjects + '\', \'' + title + '\', \'' + \
             citationsCount[len(citationsCount)-1] + '\');'
@@ -178,39 +182,42 @@ for doi in tqdm(DOIs):
 
 
 print('\nRetrieving authors data:')
+AuthorsID = {}
 for doi in tqdm(DOIs):
 
-    try:
+    # getting a paper's authors
+    authors = AbstractRetrieval(doi).authors
 
-        # getting a paper's authors
-        authors = AbstractRetrieval(doi).authors
+    # in this loop every author is accessed
+    for author in authors:
+        # getting all the available information for each author
+        authorInfo = AuthorRetrieval(author[0])
 
-        # in this loop every author is accessed
-        for author in authors:
-            # getting all the available information for each author
-            authorInfo = AuthorRetrieval(author[0])
+        # checking if an author has been already accesed during this search
+        identifier = str(uuid.uuid4())
+        authorScopusID = str(authorInfo.identifier)
+        firstName = str(authorInfo.given_name)
+        lastName = str(authorInfo.surname)
+        indexedName = str(authorInfo.indexed_name)
+        subjectedAreas = ', '.join(str(sub[0]).lower()
+                                   for sub in authorInfo.subject_areas)
+        hIndex = str(authorInfo.h_index)
+        itemCitations = str(authorInfo.citation_count)
+        authorsCitations = str(authorInfo.cited_by_count)
+        documentsCount = str(authorInfo.document_count)
 
-            # checking if an author has been already accesed during this search
-            identifier = str(authorInfo.identifier)
-            firstName = str(authorInfo.given_name)
-            lastName = str(authorInfo.surname)
-            indexedName = str(authorInfo.indexed_name)
-            subjectedAreas = ', '.join(str(sub[0]).lower()
-                                       for sub in authorInfo.subject_areas)
-            hIndex = str(authorInfo.h_index)
-            itemCitations = str(authorInfo.citation_count)
-            authorsCitations = str(authorInfo.cited_by_count)
-            documentsCount = str(authorInfo.document_count)
+        AuthorsID[authorScopusID] = identifier
 
-            query = 'INSERT INTO authors VALUES (\'' + identifier + '\', \'' + firstName + '\', \'' + lastName + '\', \'' + \
-                subjectedAreas + '\', ' + hIndex + ', ' + itemCitations + ', ' + authorsCitations + ', ' +  \
-                documentsCount + ');'
+        try:
+            query = 'INSERT INTO authors VALUES (\'' + identifier + '\', \'' + authorScopusID + '\', \'' + firstName + '\', \'' \
+                + lastName + '\', \'' + subjectedAreas + '\', ' + hIndex + ', ' + itemCitations + ', ' + authorsCitations \
+                + ', ' + documentsCount + ');'
 
             cursor.execute(query)
             connection.commit()
 
-    except:
-        continue
+        except:
+            continue
 
 
 print('\nRetrieving organizations data:')
@@ -223,18 +230,23 @@ type2Temp = []
 type1Dist = []
 type2Dist = []
 
+orgsID = {}
+
 for doi in tqdm(DOIs):
 
     paperOrgs = AbstractRetrieval(doi).affiliation
+
     for org in paperOrgs:
+
         orgInfo = AffiliationRetrieval(org[0])
+        identifier = str(uuid.uuid4())
+        orgScopusID = str(orgInfo.identifier)
         name = str(org[1])
         city = str(orgInfo.city)
         state = str(orgInfo.state)
         country = str(orgInfo.country)
         address = str(orgInfo.address)
         postalCode = str(orgInfo.postal_code)
-        identifier = str(orgInfo.identifier)
 
         if orgInfo.org_type == 'univ':
             type1 = 'Academic'
@@ -299,19 +311,19 @@ for doi in tqdm(DOIs):
             type1 = 'Other'
             type2 = ' '
 
+        orgsID[orgScopusID] = identifier
+
         type1Temp.append(type1)
         type2Temp.append(type2)
         cityTemp.append(city)
 
         try:
-            query = 'INSERT INTO organizations VALUES (\'' + identifier + '\', \'' + name + '\', \'' + type1 + '\', \'' + \
-                type2 + '\', \'' + address + '\', \'' + postalCode + '\', \'' + city + '\', \'' + \
-                state + '\', \'' + country + '\');'
+            query = 'INSERT INTO organizations VALUES (\'' + identifier + '\', \'' + orgScopusID + '\', \'' \
+                + name + '\', \'' + type1 + '\', \'' + type2 + '\', \'' + address + '\', \'' + postalCode + '\', \'' \
+                + city + '\', \'' + state + '\', \'' + country + '\');'
 
             cursor.execute(query)
             connection.commit()
-
-            orgID.append(str(orgInfo.identifier))
 
         except:
             continue
@@ -332,12 +344,13 @@ for doi in tqdm(DOIs):
     authors = AbstractRetrieval(doi).authors
 
     for author in authors:
-        authorID = str(AuthorRetrieval(author[0]).identifier)
 
-        query = 'INSERT INTO publications_authors (DOI, Author_ID) VALUES (\'' + \
-                doi + '\', \'' + authorID + '\');'
+        authorID = AuthorsID[str(AuthorRetrieval(author[0]).identifier)]
 
         try:
+            query = 'INSERT INTO publications_authors (DOI, Author_ID) VALUES (\'' + \
+                    doi + '\', \'' + authorID + '\');'
+
             cursor.execute(query)
             connection.commit()
 
@@ -352,13 +365,18 @@ for doi in tqdm(DOIs):
                for org in AbstractRetrieval(doi).affiliation]
 
     authors = AbstractRetrieval(doi).authors
+
     for org in pubOrgs:
-        query = 'INSERT INTO publications_organizations (DOI, Organization_ID) VALUES (\'' + doi + '\', \'' + \
-            org + '\');'
+
+        orgID = orgsID[org]
 
         try:
+            query = 'INSERT INTO publications_organizations (DOI, Organization_ID) VALUES (\'' + doi + '\', \'' + \
+                orgID + '\');'
+
             cursor.execute(query)
             connection.commit()
+
         except:
             continue
 
@@ -369,16 +387,24 @@ print('\nMatching authors with organizations:')
 for doi in tqdm(DOIs):
 
     for author in AbstractRetrieval(doi).authors:
-        authorID = str(AuthorRetrieval(author[0]).identifier)
+
+        authorID = AuthorsID[str(AuthorRetrieval(author[0]).identifier)]
+
         if author[4] != None:
+
             affil = author[4].split(';')
+
             for org in affil:
-                query = 'INSERT INTO authors_organizations (Author_ID, Organization_ID) VALUES (\'' + \
-                    authorID + '\', \'' + org + '\');'
+
+                orgID = orgsID[org]
 
                 try:
+                    query = 'INSERT INTO authors_organizations (Author_ID, Organization_ID) VALUES (\'' + \
+                        authorID + '\', \'' + orgID + '\');'
+
                     cursor.execute(query)
                     connection.commit()
+
                 except:
                     continue
 
