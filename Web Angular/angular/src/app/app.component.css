@@ -7,10 +7,25 @@
     font-size:large;
     font-weight: lighter;
     text-decoration: none;
-    color: white;
+    color: rgb(173, 173, 173);
+    padding: 0 12px;
+}
+
+.toolbar-item:hover {
+    display: inline-block;
+    font-size:large;
+    font-weight: lighter;
+    text-decoration: none;
+    color: rgb(255, 255, 255);
     padding: 0 12px;
 }
 
 .toolbar-icon {
     padding: 0 10px;
+    color: rgb(173, 173, 173);
+}
+
+.toolbar-icon:hover {
+    padding: 0 10px;
+    color: white;
 }

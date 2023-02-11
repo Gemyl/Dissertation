@@ -7,9 +7,9 @@ function addField() {
     var inputField = document.createElement("input");
     inputField.setAttribute("size", 50);
     inputField.setAttribute("type", "text");
-    inputField.setAttribute("id", "input"+uniqVal[0]);
+    inputField.setAttribute("id", "keywords"+uniqVal[0]);
     inputField.setAttribute("class", "survey_options");
-    inputField.setAttribute("name", "input"+uniqVal[0]);
+    inputField.setAttribute("name", "keywords"+uniqVal[0]);
     inputField.setAttribute("placeholder", "Enter Keyword");
 
     var remButton = document.createElement("button");
@@ -26,8 +26,8 @@ function addField() {
 
     var selectField = document.createElement("select");
     selectField.size = "75px";
-    selectField.setAttribute("id", "select"+uniqVal[0]);
-    selectField.setAttribute("name", "select"+uniqVal[0]);
+    selectField.setAttribute("id", "boolean"+uniqVal[0]);
+    selectField.setAttribute("name", "boolean"+uniqVal[0]);
 
     var option_1 = document.createElement("option");
     var option_2 = document.createElement("option");
