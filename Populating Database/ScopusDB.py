@@ -8,6 +8,7 @@ from itertools import combinations
 from statistics import mean
 from requests import get
 from tqdm import tqdm
+from getpass import getpass
 import json
 import uuid
 
@@ -122,7 +123,7 @@ def list_to_string(list):
 keywords = 'AI'  # str(input('Keywords: '))
 yearsRange = '2022'  # str(input('Years Range: '))
 subjects = ['SOCI']  # input('Subjects: ').split(', ')
-password = 'gemyl'  # getpass('Password: ')
+password = getpass('Password: ')
 
 
 # finding DOIs of related publications
