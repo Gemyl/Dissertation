@@ -1,4 +1,4 @@
-<html>
+<!-- <html>
     <head>    
     </head>
 
@@ -49,7 +49,7 @@
                     <label id="subjects" for = "subjects">
                         <strong><p style="color: #000000; font-size: large; margin-top: 20px;
                         font-weight: lighter;">Subjects</strong></label>
-                        <section style="overflow: auto; height: 220px; width: 460px;">
+                        <section style="overflow: auto; height: 210px; width: 460px;">
                             <input type="checkbox" name="AGRI" id="AGRI" value="AGRI">
                             <label for="button1">Agricultural and Biological Sciences</label><br/>
                             <input type="checkbox" name="ARTS" id="ARTS" value="ARTS">
@@ -107,7 +107,36 @@
                         </section>
 
                     <button type = "submit" class = "btn" style="background-color: #000000; color: #ffffff;
-                        border-radius: 15%; margin-top: 20px;"> Submit </button>
+                        border-radius: 15%; margin-top: 30px;"> Submit </button>
+            </form>
+        </div>
+    </body>
+</html> -->
+
+<html>
+    <head>
+    </head>
+    <body>
+        <div class="container">
+            <form>
+                <div class="form-row">
+                    <div class="form-column">
+                        <p id="keywords-label">Keywords</p>
+                        <section id="keywords-section">
+                        <input
+                            id = "keywords"
+                            name = "keywords"
+                            type = "text"
+                            placeholder = "Enter Keyword"
+                            size = "40"
+                        ><br>
+                        <div id="add_new_field" style="display: inline-block;"></div><br>
+                        <button onclick="addField()" type="button" style="background-color: black;
+                        border-radius: 10%; color: white; margin-top: 5px;">+ Add Field</button>
+                        </section>
+                    </div>
+                </div>
+            
             </form>
         </div>
     </body>

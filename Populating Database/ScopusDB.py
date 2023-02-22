@@ -13,6 +13,32 @@ import json
 import uuid
 
 
+# ************ FUNCTIONS ************ #
+def list_to_string(list):
+
+    if list != None:
+        string = ', '.join([str(i).lower() for i in list])
+    else:
+        string = ' '
+
+    return string
+
+
+def format_keywords(keywords):
+    keywords = keywords.split(', ')
+    keywordsList = '('
+    for i in range(len(keywords)):
+        if i == len(keywords)-1:
+            keywordsList = keywordsList + '{' + keywords[i] + '}'
+        else:
+            keywordsList = keywordsList + '{' + keywords[i] + '} ' + 'OR '
+
+    keywordsList = keywordsList + ')'
+    keywords = keywordsList
+
+    return keywords
+
+
 def distance(lat1, lon1, lat2, lon2):
     # Convert latitude and longitude to radians
     lat1 = radians(lat1)
@@ -93,36 +119,11 @@ def get_DOIs(keywords, yearsRange, subjects):
     return DOIs
 
 
-def format_keywords(keywords):
-    keywords = keywords.split(', ')
-    keywordsList = '('
-    for i in range(len(keywords)):
-        if i == len(keywords)-1:
-            keywordsList = keywordsList + '{' + keywords[i] + '}'
-        else:
-            keywordsList = keywordsList + '{' + keywords[i] + '} ' + 'OR '
-
-    keywordsList = keywordsList + ')'
-    keywords = keywordsList
-
-    return keywords
-
-
-def list_to_string(list):
-
-    if list != None:
-
-        string = ', '.join([str(i).lower() for i in list])
-    else:
-        string = ' '
-
-    return string
-
-
+# ************* POPULATING DATABASE ************* #
 # parameters given by user
-keywords = 'AI'  # str(input('Keywords: '))
-yearsRange = '2022'  # str(input('Years Range: '))
-subjects = ['SOCI']  # input('Subjects: ').split(', ')
+keywords = 'AI'
+yearsRange = '2022'
+subjects = ['SOCI']
 password = getpass('Password: ')
 
 
@@ -131,18 +132,18 @@ print('Retrieving DOIs:')
 DOIs = get_DOIs(keywords, yearsRange, subjects)
 
 
-# establishing connection with database
+# establishing connection to database
 connection = connector.connect(host='localhost',
                                port='3306',
                                user='root',
                                password=password,
-                               database='george',
+                               database='scopus',
                                auth_plugin='mysql_native_password')
 
 cursor = connection.cursor()
 
 
-# retrieving and inserting data into database
+# **************** PUBLICATIONS METADATA **************** #
 print('\nRetrieving papers data:')
 
 citationsCount = []
@@ -171,9 +172,9 @@ for doi in tqdm(DOIs):
     citationsCount.append(str(maxCitations))
 
     try:
-        query = 'INSERT INTO publications VALUES (\'' + str(doi) + '\', ' + year + ', \'' + journal + '\', \'' + \
-            authorsKeywords + '\', \'' + userKeywords + '\', \'' + subjects + '\', \'' + title + '\', \'' + \
-            citationsCount[len(citationsCount)-1] + '\');'
+        query = 'INSERT INTO publications VALUES (\'' + str(doi) + '\', ' + year + ', \'' + title + '\', \'' + \
+            authorsKeywords + '\', \'' + subjects + '\', \'' + \
+                citationsCount[len(citationsCount)-1] + '\');'
 
         cursor.execute(query)
         connection.commit()
@@ -182,6 +183,7 @@ for doi in tqdm(DOIs):
         continue
 
 
+# ******************** AUTHORS METADATA ******************** #
 print('\nRetrieving authors data:')
 AuthorsID = {}
 for doi in tqdm(DOIs):
@@ -211,8 +213,8 @@ for doi in tqdm(DOIs):
 
         try:
             query = 'INSERT INTO authors VALUES (\'' + identifier + '\', \'' + authorScopusID + '\', \'' + firstName + '\', \'' \
-                + lastName + '\', \'' + subjectedAreas + '\', ' + hIndex + ', ' + itemCitations + ', ' + authorsCitations \
-                + ', ' + documentsCount + ');'
+                + lastName + '\', ' + hIndex + ', \'' + \
+                    subjectedAreas + '\', ' + itemCitations + ');'
 
             cursor.execute(query)
             connection.commit()
@@ -221,8 +223,8 @@ for doi in tqdm(DOIs):
             continue
 
 
+# **************** ORGANIZATIONS METADATA **************** #
 print('\nRetrieving organizations data:')
-
 orgID = []
 cityTemp = []
 cityDist = []
@@ -320,8 +322,8 @@ for doi in tqdm(DOIs):
 
         try:
             query = 'INSERT INTO organizations VALUES (\'' + identifier + '\', \'' + orgScopusID + '\', \'' \
-                + name + '\', \'' + type1 + '\', \'' + type2 + '\', \'' + address + '\', \'' + postalCode + '\', \'' \
-                + city + '\', \'' + state + '\', \'' + country + '\');'
+                + name + '\', \'' + type1 + '\', \'' + type2 + '\', \'' + address + '\', \'' + city + '\', \'' \
+                + country + '\');'
 
             cursor.execute(query)
             connection.commit()
@@ -339,6 +341,7 @@ for doi in tqdm(DOIs):
     parentOrgs = []
 
 
+# ************** PUBLICATIONS & AUTHORS ************** #
 print('\nMatching papers with authors:')
 for doi in tqdm(DOIs):
 
@@ -349,7 +352,7 @@ for doi in tqdm(DOIs):
         authorID = AuthorsID[str(AuthorRetrieval(author[0]).identifier)]
 
         try:
-            query = 'INSERT INTO publications_authors (DOI, Author_ID) VALUES (\'' + \
+            query = 'INSERT INTO publications_authors VALUES (\'' + \
                     doi + '\', \'' + authorID + '\');'
 
             cursor.execute(query)
@@ -359,6 +362,7 @@ for doi in tqdm(DOIs):
             continue
 
 
+# ***************** PUBLICATIONS & ORGANIZATIONS ***************** #
 print('\nMatching papers with organizations:')
 for doi in tqdm(DOIs):
 
@@ -372,7 +376,7 @@ for doi in tqdm(DOIs):
         orgID = orgsID[org]
 
         try:
-            query = 'INSERT INTO publications_organizations (DOI, Organization_ID) VALUES (\'' + doi + '\', \'' + \
+            query = 'INSERT INTO publications_organizations VALUES (\'' + doi + '\', \'' + \
                 orgID + '\');'
 
             cursor.execute(query)
@@ -384,6 +388,7 @@ for doi in tqdm(DOIs):
     tempOrgs = []
 
 
+# **************** AUTHORS & ORGANIZATIONS **************** #
 print('\nMatching authors with organizations:')
 for doi in tqdm(DOIs):
 
@@ -400,7 +405,7 @@ for doi in tqdm(DOIs):
                 orgID = orgsID[org]
 
                 try:
-                    query = 'INSERT INTO authors_organizations (Author_ID, Organization_ID) VALUES (\'' + \
+                    query = 'INSERT INTO authors_organizations VALUES (\'' + \
                         authorID + '\', \'' + orgID + '\');'
 
                     cursor.execute(query)
@@ -410,8 +415,8 @@ for doi in tqdm(DOIs):
                     continue
 
 
+# ******************** DISTANCES ******************** #
 print('\nCalculating geographical distances per publication:')
-
 distTemp = []
 distances = []
 cityCoord = []
@@ -473,7 +478,7 @@ for k in tqdm(range(len(DOIs))):
                 maxOrgDist = str(0)
                 avgOrgDist = str(0)
 
-        query = 'INSERT INTO cultural_distances VALUES (\'' + DOIs[k] + '\', ' + citationsCount[k] + ', ' \
+        query = 'INSERT INTO distances VALUES (\'' + DOIs[k] + '\', ' + citationsCount[k] + ', ' \
             + minGeoDist + ', ' + maxGeoDist + ', ' + avgGeoDist + ', ' + minOrgDist + ', ' + \
             maxOrgDist + ', ' + avgOrgDist + ');'
 
@@ -488,6 +493,6 @@ for k in tqdm(range(len(DOIs))):
         continue
 
 
-# committing changes and closing connection
+# *** CLOSING CONNECTION *** #
 cursor.close()
 connection.close()
