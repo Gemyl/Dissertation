@@ -24,5 +24,5 @@ export class SearchComponent{
     form.reset();
     event.preventDefault();
   }
-
+  
 }

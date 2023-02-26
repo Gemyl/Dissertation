@@ -199,6 +199,7 @@ for doi in tqdm(DOIs):
         # checking if an author has been already accesed during this search
         identifier = str(uuid.uuid4())
         authorScopusID = str(authorInfo.identifier)
+        orcidId = str(authorInfo.orcid)
         firstName = str(authorInfo.given_name)
         lastName = str(authorInfo.surname)
         indexedName = str(authorInfo.indexed_name)
@@ -211,16 +212,13 @@ for doi in tqdm(DOIs):
 
         AuthorsID[authorScopusID] = identifier
 
-        try:
-            query = 'INSERT INTO authors VALUES (\'' + identifier + '\', \'' + authorScopusID + '\', \'' + firstName + '\', \'' \
-                + lastName + '\', ' + hIndex + ', \'' + \
-                    subjectedAreas + '\', ' + itemCitations + ');'
+        query = 'INSERT INTO authors VALUES (\'' + identifier + \
+            '\', \'' + authorScopusID + '\', \'' + orcidId + '\', \'' \
+            + firstName + '\', \'' + lastName + '\', ' + hIndex + ', \'' + \
+            subjectedAreas + '\', ' + itemCitations + ');'
 
-            cursor.execute(query)
-            connection.commit()
-
-        except:
-            continue
+        cursor.execute(query)
+        connection.commit()
 
 
 # **************** ORGANIZATIONS METADATA **************** #

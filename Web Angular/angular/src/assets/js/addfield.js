@@ -19,8 +19,9 @@ function addField() {
     remButton.style.color = "white";
     remButton.style.fontWeight = "bold";
     remButton.style.backgroundColor = "black";
-    remButton.style.width = "35px";
-    remButton.style.height = "35px";
+    remButton.style.width = "36px";
+    remButton.style.height = "36px";
+    remButton.style.marginLeft = "7px";
 
     var icon = document.createElement("i");
     icon.classList.add("fa", "fa-trash");

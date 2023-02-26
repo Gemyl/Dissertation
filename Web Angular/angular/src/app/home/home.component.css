@@ -34,7 +34,8 @@
 .top-card:hover{
     width: calc(33.33% - 40px);
     margin: 20px 20px 20px;
-    background-color: rgb(0, 0, 0);
+    /* background-color: #000; */
+    background: linear-gradient(to top left, #aaa8a8, #000);
     color: white;
     font-weight: lighter;
     cursor:default;

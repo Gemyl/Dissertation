@@ -1,55 +1,44 @@
-<!-- <html>
-    <head>    
+<html>
+    <head>
     </head>
-
-    <body style="overflow: hidden;">
-        <div style="height: 90%; width: 32%; background-color: rgb(219, 219, 219); border-radius: 3%;
-        margin-left: auto; margin-right: auto; margin-top: 3%; box-shadow: 0px 0px 10px 2px #6b6b6b;">
-            <form id="search-form" method="POST" (submit)="onSubmit($event)" action="http://localhost:5000/search" style="margin-left: 12px;"><br>
-                    <strong><p style="color: #000000; font-size: large; font-weight: lighter;">Keywords</strong>
-                    <section style="overflow: auto; height: 125px; width: 462px;">
-                        <label for = "keywords">
-                            <input
-                                type = "text"
-                                id = "keywords"
-                                name = "keywords"
-                                placeholder = "Enter Keywords"
-                                size = "50"
-                            >
-                        </label>
-
-                    <div id="add_new_field" style="display: inline-block;"></div>
-                    <button onclick="addField()" type="button" style="background-color: black;
-                    border-radius: 10%; color: white; margin-top: 5px;">+ Add Field</button>
-                    </section><br/>
-
-                <label for = "first-year">
-                        <strong><p style="color: #000000; font-size: large; font-weight: lighter;">First Year</strong>
+    <body>
+        <div class="container">
+            <form>
+                <div class="form-row">
+                    <div class="form-column">
+                        <p>Keywords</p>
+                        <section id="keywords-section">
                         <input
+                            id = "keywords"
+                            name = "keywords"
                             type = "text"
-                            id = "year1"
-                            name = "years1"
-                            placeholder = "Enter First Year"
-                            size = "21"
-                        >
-                    </label>
-                    <label for ="second-year">
-                        <strong><p style="color: #000000; font-size: large; margin-left: 30px; 
-                        font-weight: lighter;">Second Year</strong>
+                            placeholder = "Enter Keyword"
+                            size = "35"
+                        ><br>
+                        <div id="add_new_field" style="display: inline-block;"></div><br>
+                        <button id="add-keyword" class="fa fa-plus" aria-hidden="true"
+                        type="button" onclick="addField()"></button>
+                        </section>
+                    </div>
+                    <div class="form-column">
+                        <p>Years Range</p>
                         <input
-                            type = "text"
-                            id = "year2"
-                            name = "years2"
-                            placeholder = "Enter Last Year "
-                            size = "21"
-                            style = "margin-left: 30px;"
+                        type = "text"
+                        id = "year1"
+                        name = "years1"
+                        placeholder = "Enter First Year"
+                        size = "20"
+                        style="margin-right: 10px;"
                         >
-                    </label><br/>
-
-                    <label id="subjects" for = "subjects">
-                        <strong><p style="color: #000000; font-size: large; margin-top: 20px;
-                        font-weight: lighter;">Subjects</strong></label>
-                        <section style="overflow: auto; height: 210px; width: 460px;">
+                        <input
+                        type = "text"
+                        id = "years2"
+                        name = "years1"
+                        placeholder = "Enter Last Year"
+                        size = "21"
+                        ><br><br>
+                        <p>Fields</p>
+                        <section id="fields-section">
                             <input type="checkbox" name="AGRI" id="AGRI" value="AGRI">
                             <label for="button1">Agricultural and Biological Sciences</label><br/>
                             <input type="checkbox" name="ARTS" id="ARTS" value="ARTS">
@@ -57,7 +46,7 @@
                             <input type="checkbox" name="BIOC" id="BIOC" value="BIOC">
                             <label for="button1">Biochemistry, Genetics and Molecular Biology</label><br/>
                             <input type="checkbox" name="BUSI" id="BUSI" value="BUSI">
-                            <label for="button1">Business, Management, and Accounting</label><br/>
+                            <label for="button1">Business, Management and Accounting</label><br/>
                             <input type="checkbox" name="CENG" id="CENG" value="CENG">
                             <label for="button1">Chemical Engineering </label><br/>
                             <input type="checkbox" name="CENG" id="CENG" value="CENG">
@@ -104,39 +93,10 @@
                             <label for="button1">Health Professions</label><br/>
                             <input type="checkbox" name="MULT" id="MULT" value="MULT">
                             <label for="button1">Multidisciplinary</label><br/>
-                        </section>
-
-                    <button type = "submit" class = "btn" style="background-color: #000000; color: #ffffff;
-                        border-radius: 15%; margin-top: 30px;"> Submit </button>
-            </form>
-        </div>
-    </body>
-</html> -->
-
-<html>
-    <head>
-    </head>
-    <body>
-        <div class="container">
-            <form>
-                <div class="form-row">
-                    <div class="form-column">
-                        <p id="keywords-label">Keywords</p>
-                        <section id="keywords-section">
-                        <input
-                            id = "keywords"
-                            name = "keywords"
-                            type = "text"
-                            placeholder = "Enter Keyword"
-                            size = "40"
-                        ><br>
-                        <div id="add_new_field" style="display: inline-block;"></div><br>
-                        <button onclick="addField()" type="button" style="background-color: black;
-                        border-radius: 10%; color: white; margin-top: 5px;">+ Add Field</button>
-                        </section>
+                        </section><br><br>
+                        <button type = "submit"> Submit </button>
                     </div>
-                </div>
-            
+                </div>            
             </form>
         </div>
     </body>
