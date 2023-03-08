@@ -13,12 +13,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatCardModule } from '@angular/material/card';
 import { SearchComponent } from './search/search.component';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    SearchComponent,
+    SearchComponent
   ],
   imports: [
     BrowserModule,
@@ -31,8 +34,14 @@ import { SearchComponent } from './search/search.component';
     MatIconModule,
     MatListModule,
     MatCardModule,
+    HttpClientModule,
+    FormsModule,
+    RouterModule.forRoot(
+      [{path: 'dashboard', component: SearchComponent}],
+      {onSameUrlNavigation: 'reload'}
+      )
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
 export class AppModule { }

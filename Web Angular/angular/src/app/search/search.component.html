@@ -3,7 +3,7 @@
     </head>
     <body>
         <div class="container">
-            <form>
+            <form #searchForm="ngForm" (ngSubmit)="onSubmit(searchForm, searchForm.value)">
                 <div class="form-row">
                     <div class="form-column">
                         <p>Keywords</p>
@@ -14,6 +14,7 @@
                             type = "text"
                             placeholder = "Enter Keyword"
                             size = "35"
+                            ngModel
                         ><br>
                         <div id="add_new_field" style="display: inline-block;"></div><br>
                         <button id="add-keyword" class="fa fa-plus" aria-hidden="true"
@@ -29,70 +30,22 @@
                         placeholder = "Enter First Year"
                         size = "20"
                         style="margin-right: 10px;"
+                        ngModel
                         >
                         <input
                         type = "text"
                         id = "years2"
-                        name = "years1"
+                        name = "years2"
                         placeholder = "Enter Last Year"
                         size = "21"
+                        ngModel
                         ><br><br>
                         <p>Fields</p>
                         <section id="fields-section">
-                            <input type="checkbox" name="AGRI" id="AGRI" value="AGRI">
-                            <label for="button1">Agricultural and Biological Sciences</label><br/>
-                            <input type="checkbox" name="ARTS" id="ARTS" value="ARTS">
-                            <label for="button1">Arts and Humanities</label><br/>
-                            <input type="checkbox" name="BIOC" id="BIOC" value="BIOC">
-                            <label for="button1">Biochemistry, Genetics and Molecular Biology</label><br/>
-                            <input type="checkbox" name="BUSI" id="BUSI" value="BUSI">
-                            <label for="button1">Business, Management and Accounting</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Chemical Engineering </label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Chemistry</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Computer Science</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Decision Sciences</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Earth and Planetary Sciences</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Economics, Econometrics and Finance</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Energy</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Engineering</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Environmental Science</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Immunology and Microbiology</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Materials Science</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Mathematics</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Medicine</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Neuroscience</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Nursing</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Pharmacology, Toxicology, and Pharmaceutics</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Physics and Astronomy</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Psychology</label><br/>
-                            <input type="checkbox" name="social science" id="social science" value="social science">
-                            <label for="button1">Social Sciences</label><br/>
-                            <input type="checkbox" name="social science" id="social science" value="social science">
-                            <label for="button1">Veterinary</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Dentistry</label><br/>
-                            <input type="checkbox" name="CENG" id="CENG" value="CENG">
-                            <label for="button1">Health Professions</label><br/>
-                            <input type="checkbox" name="MULT" id="MULT" value="MULT">
-                            <label for="button1">Multidisciplinary</label><br/>
+                            <div *ngFor="let option of options">
+                                <input type="checkbox" [name]="option.name" [(ngModel)]="option.selected" ngModel>
+                                <label>{{ option.name}}</label>
+                            </div>
                         </section><br><br>
                         <button type = "submit"> Submit </button>
                     </div>
