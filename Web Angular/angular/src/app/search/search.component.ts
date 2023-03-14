@@ -1,6 +1,5 @@
-import { Component} from "@angular/core";
+import { Component, ViewChildren, QueryList} from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import {Router, NavigationEnd,ActivatedRoute} from '@angular/router';
 import { NgForm } from "@angular/forms";
 
 @Component({
@@ -9,11 +8,11 @@ import { NgForm } from "@angular/forms";
   styleUrls: ['./search.component.css']
 })
 export class SearchComponent{
+  @ViewChildren('dynamicInputs') dynamicInputs!: QueryList<any>;
+  keywordSets: any[] = [];
 
   constructor(
     private http: HttpClient,
-    private router:Router,
-    private activatedRoute: ActivatedRoute
     ){}
 
   options = [
@@ -46,12 +45,24 @@ export class SearchComponent{
     {name:"Veterinary", selected: false}    
   ]
 
+  ngOnInit(){}
+
+  removeSet(i:any){
+    this.keywordSets.splice(i,1);
+  }
+
+  addSet(){
+    const keyword = {value: '' };
+    this.keywordSets.push(keyword);
+  }
+
   onSubmit(form:NgForm, formData: FormData){
     this.http.post("http://localhost:5000/search", formData).subscribe(response => {
       console.log(response);
       console.error();      
     });
     form.resetForm();
+    this.dynamicInputs.forEach(input=>input.nativeElement.remove());
   }
 
 }
