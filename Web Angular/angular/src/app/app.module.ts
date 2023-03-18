@@ -16,12 +16,15 @@ import { SearchComponent } from './search/search.component';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { SearchFormComponent } from './search/search-form/search-form.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    SearchComponent
+    SearchComponent,
+    SearchFormComponent
   ],
   imports: [
     BrowserModule,
@@ -36,6 +39,7 @@ import { RouterModule } from '@angular/router';
     MatCardModule,
     HttpClientModule,
     FormsModule,
+    ReactiveFormsModule,
     RouterModule.forRoot(
       [{path: 'dashboard', component: SearchComponent}],
       {onSameUrlNavigation: 'reload'}

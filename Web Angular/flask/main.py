@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Blueprint, request, redirect, url_for
+from flask import Flask, request
 from flask_cors import CORS
 
 app = Flask(__name__)
