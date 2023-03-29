@@ -59,7 +59,7 @@ def distance(lat1, lon1, lat2, lon2):
     return c * r
 
 
-def get_DOIs(keywords, yearsRange, subjects):
+def get_DOIs(keywords, yearsRange, fields):
 
     DOIs = []
     count = '&count=25'
@@ -73,7 +73,7 @@ def get_DOIs(keywords, yearsRange, subjects):
     scopusAPIKey = '&apiKey=33a5ac626141313c10881a0db097b497'
     scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
 
-    for sub in tqdm(subjects):
+    for sub in tqdm(fields):
 
         # startIndex is used to summarize all the previous DOIs
         # that have been retrieved for a given subject
@@ -123,13 +123,13 @@ def get_DOIs(keywords, yearsRange, subjects):
 # parameters given by user
 keywords = 'AI'
 yearsRange = '2022'
-subjects = ['SOCI']
+fields = ['SOCI']
 password = getpass('Password: ')
 
 
 # finding DOIs of related publications
 print('Retrieving DOIs:')
-DOIs = get_DOIs(keywords, yearsRange, subjects)
+DOIs = get_DOIs(keywords, yearsRange, fields)
 
 
 # establishing connection to database
@@ -157,10 +157,15 @@ for doi in tqdm(DOIs):
     title = str(paperInfo.title).replace('\'', '\\' + '\'')
     journal = str(paperInfo.publisher)
     authorsKeywords = list_to_string(paperInfo.authkeywords)
-    subjects = ', '.join(str(sub[0]).lower()
-                         for sub in paperInfo.subject_areas)
+    fields = ', '.join(str(sub[0]).lower()
+                       for sub in paperInfo.subject_areas)
 
-    # paper'smaximum number of citations
+    if (paperInfo.abstract != None):
+        abstract = paperInfo.abstract
+    else:
+        abstract = paperInfo.description
+    abstract = abstract.replace('\'', '\\' + '\'')
+
     maxCitations = paperInfo.citedby_count
     plumxCitations = PlumXMetrics(doi, id_type='doi').citation
 
@@ -171,16 +176,46 @@ for doi in tqdm(DOIs):
 
     citationsCount.append(str(maxCitations))
 
-    try:
-        query = 'INSERT INTO publications VALUES (\'' + str(doi) + '\', ' + year + ', \'' + title + '\', \'' + \
-            authorsKeywords + '\', \'' + subjects + '\', \'' + \
-                citationsCount[len(citationsCount)-1] + '\');'
-
-        cursor.execute(query)
-        connection.commit()
-
-    except:
-        continue
+    titleLength = 400
+    abstractLength = 4000
+    keywordsLength = 600
+    fieldsLength = 600
+    while True:
+        try:
+            query = f"INSERT INTO publications VALUES ('{str(doi)}', {year}, '{title}', '{abstract}', \
+            '{authorsKeywords}', '{fields}', '{citationsCount[len(citationsCount)-1]}');"
+            cursor.execute(query)
+            connection.commit()
+            break
+        except Exception as err:
+            if "Duplicate entry" in str(err):
+                break
+            elif "Data too long" in str(err):
+                print(str(err))
+                if "Title" in str(err):
+                    titleLength += 200
+                    cursor.execute(
+                        f"ALTER TABLE publications MODIFY COLUMN Title VARCHAR({titleLength});")
+                    connection.commit()
+                elif "Abstract" in str(err):
+                    abstractLength += 500
+                    cursor.execute(
+                        f"ALTER TABLE publications MODIFY COLUMN Abstract VARCHAR({abstractLength});")
+                    connection.commit()
+                elif "Keywords" in str(err):
+                    keywordsLength += 200
+                    cursor.execute(
+                        f"ALTER TABLE publications MODIFY COLUMN Keywords VARCHAR({keywordsLength});")
+                    connection.commit()
+                elif "Fields" in str(err):
+                    fieldsLength += 200
+                    cursor.execute(
+                        f"ALTER TABLE publications MODIFY COLUMN Fields VARCHAR({fieldsLength});")
+                    connection.commit()
+            else:
+                print(str(err))
+                print(query)
+                break
 
 
 # ******************** AUTHORS METADATA ******************** #
@@ -188,15 +223,11 @@ print('\nRetrieving authors data:')
 AuthorsID = {}
 for doi in tqdm(DOIs):
 
-    # getting a paper's authors
     authors = AbstractRetrieval(doi).authors
 
-    # in this loop every author is accessed
     for author in authors:
-        # getting all the available information for each author
         authorInfo = AuthorRetrieval(author[0])
 
-        # checking if an author has been already accesed during this search
         identifier = str(uuid.uuid4())
         authorScopusID = str(authorInfo.identifier)
         orcidId = str(authorInfo.orcid)
@@ -212,13 +243,26 @@ for doi in tqdm(DOIs):
 
         AuthorsID[authorScopusID] = identifier
 
-        query = 'INSERT INTO authors VALUES (\'' + identifier + \
-            '\', \'' + authorScopusID + '\', \'' + orcidId + '\', \'' \
-            + firstName + '\', \'' + lastName + '\', ' + hIndex + ', \'' + \
-            subjectedAreas + '\', ' + itemCitations + ');'
-
-        cursor.execute(query)
-        connection.commit()
+        columnLength = 1600
+        while True:
+            try:
+                query = f"INSERT INTO authors VALUES ('{identifier}', '{authorScopusID}', '{orcidId}', '{firstName}', \
+                '{lastName}', {hIndex}, '{subjectedAreas}', {itemCitations});"
+                cursor.execute(query)
+                connection.commit()
+                break
+            except Exception as err:
+                if "Duplicate entry" in str(err):
+                    break
+                elif "Data too long" in str(err):
+                    columnLength += 200
+                    cursor.execute(
+                        f"ALTER TABLE authors MODIFY COLUMN Subjected_Areas VARCHAR({columnLength});")
+                    connection.commit()
+                else:
+                    print(str(err))
+                    print(query)
+                    break
 
 
 # **************** ORGANIZATIONS METADATA **************** #
@@ -319,14 +363,14 @@ for doi in tqdm(DOIs):
         cityTemp.append(city)
 
         try:
-            query = 'INSERT INTO organizations VALUES (\'' + identifier + '\', \'' + orgScopusID + '\', \'' \
-                + name + '\', \'' + type1 + '\', \'' + type2 + '\', \'' + address + '\', \'' + city + '\', \'' \
-                + country + '\');'
-
+            query = f"INSERT INTO organizations VALUES ('{identifier}', '{orgScopusID}', '{name}', \
+            '{type1}', '{type2}', '{address}', '{city}', '{country}');"
             cursor.execute(query)
             connection.commit()
-
-        except:
+        except Exception as err:
+            if "Duplicate entry" not in str(err):
+                print(str(err))
+                print(query)
             continue
 
     type1Dist.append(type1Temp)
@@ -346,17 +390,15 @@ for doi in tqdm(DOIs):
     authors = AbstractRetrieval(doi).authors
 
     for author in authors:
-
         authorID = AuthorsID[str(AuthorRetrieval(author[0]).identifier)]
-
         try:
-            query = 'INSERT INTO publications_authors VALUES (\'' + \
-                    doi + '\', \'' + authorID + '\');'
-
+            query = f"INSERT INTO publications_authors VALUES ('{doi}', '{authorID}');"
             cursor.execute(query)
             connection.commit()
-
-        except:
+        except Exception as err:
+            if "Cannot add or update a child row" not in str(err):
+                print(str(err))
+                print(query)
             continue
 
 
@@ -370,17 +412,15 @@ for doi in tqdm(DOIs):
     authors = AbstractRetrieval(doi).authors
 
     for org in pubOrgs:
-
         orgID = orgsID[org]
-
         try:
-            query = 'INSERT INTO publications_organizations VALUES (\'' + doi + '\', \'' + \
-                orgID + '\');'
-
+            query = f"INSERT INTO publications_organizations VALUES ('{doi}', '{orgID}');"
             cursor.execute(query)
             connection.commit()
-
-        except:
+        except Exception as err:
+            if "Cannot add or update a child row" not in str(err):
+                print(str(err))
+                print(query)
             continue
 
     tempOrgs = []
@@ -395,21 +435,17 @@ for doi in tqdm(DOIs):
         authorID = AuthorsID[str(AuthorRetrieval(author[0]).identifier)]
 
         if author[4] != None:
-
             affil = author[4].split(';')
-
             for org in affil:
-
                 orgID = orgsID[org]
-
                 try:
-                    query = 'INSERT INTO authors_organizations VALUES (\'' + \
-                        authorID + '\', \'' + orgID + '\');'
-
+                    query = f"INSERT INTO authors_organizations VALUES ('{authorID}', '{orgID}');"
                     cursor.execute(query)
                     connection.commit()
-
-                except:
+                except Exception as err:
+                    if "Cannot add or update a child row" not in str(err):
+                        print(str(err))
+                        print(query)
                     continue
 
 
@@ -487,7 +523,8 @@ for k in tqdm(range(len(DOIs))):
         distances = []
         cityCoord = []
 
-    except:
+    except Exception as err:
+        print(str(err))
         continue
 
 
