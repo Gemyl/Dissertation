@@ -121,7 +121,7 @@ def get_DOIs(keywords, yearsRange, fields):
 
 # ************* POPULATING DATABASE ************* #
 # parameters given by user
-keywords = 'AI'
+keywords = 'artificial intelligence, machine learning'
 yearsRange = '2022'
 fields = ['SOCI']
 password = getpass('Password: ')
@@ -150,120 +150,170 @@ citationsCount = []
 
 for doi in tqdm(DOIs):
 
-    paperInfo = AbstractRetrieval(doi, view='FULL')
+    try:
+        paperInfo = AbstractRetrieval(doi, view='FULL')
 
-    year = yearsRange
-    userKeywords = keywords
-    title = str(paperInfo.title).replace('\'', '\\' + '\'')
-    journal = str(paperInfo.publisher)
-    authorsKeywords = list_to_string(paperInfo.authkeywords)
-    fields = ', '.join(str(sub[0]).lower()
-                       for sub in paperInfo.subject_areas)
+        year = yearsRange
+        userKeywords = keywords
+        title = str(paperInfo.title).replace('\'', '\\' + '\'')
+        journal = str(paperInfo.publisher)
+        authorsKeywords = list_to_string(paperInfo.authkeywords)
+        fields = ', '.join(str(sub[0]).lower()
+                           for sub in paperInfo.subject_areas)
 
-    if (paperInfo.abstract != None):
-        abstract = paperInfo.abstract
-    else:
-        abstract = paperInfo.description
-    abstract = abstract.replace('\'', '\\' + '\'')
+        if (paperInfo.abstract != None):
+            abstract = paperInfo.abstract
+        else:
+            abstract = paperInfo.description
+        abstract = abstract.replace('\'', '\\' + '\'')
 
-    maxCitations = paperInfo.citedby_count
-    plumxCitations = PlumXMetrics(doi, id_type='doi').citation
+        maxCitations = paperInfo.citedby_count
+        plumxCitations = PlumXMetrics(doi, id_type='doi').citation
 
-    if plumxCitations != None:
+        if plumxCitations != None:
 
-        plumxCitations = max([citation[1] for citation in plumxCitations])
-        maxCitations = max(maxCitations, plumxCitations)
+            plumxCitations = max([citation[1] for citation in plumxCitations])
+            maxCitations = max(maxCitations, plumxCitations)
 
-    citationsCount.append(str(maxCitations))
+        citationsCount.append(str(maxCitations))
 
-    titleLength = 400
-    abstractLength = 4000
-    keywordsLength = 600
-    fieldsLength = 600
-    while True:
-        try:
-            query = f"INSERT INTO publications VALUES ('{str(doi)}', {year}, '{title}', '{abstract}', \
-            '{authorsKeywords}', '{fields}', '{citationsCount[len(citationsCount)-1]}');"
-            cursor.execute(query)
-            connection.commit()
-            break
-        except Exception as err:
-            if "Duplicate entry" in str(err):
+        titleLength = 400
+        abstractLength = 4000
+        keywordsLength = 600
+        fieldsLength = 600
+        while True:
+            try:
+                query = f"INSERT INTO publications VALUES ('{str(doi)}', {year}, '{title}', '{abstract}', \
+                '{authorsKeywords}', '{fields}', '{citationsCount[len(citationsCount)-1]}');"
+                cursor.execute(query)
+                connection.commit()
                 break
-            elif "Data too long" in str(err):
-                print(str(err))
-                if "Title" in str(err):
-                    titleLength += 200
-                    cursor.execute(
-                        f"ALTER TABLE publications MODIFY COLUMN Title VARCHAR({titleLength});")
-                    connection.commit()
-                elif "Abstract" in str(err):
-                    abstractLength += 500
-                    cursor.execute(
-                        f"ALTER TABLE publications MODIFY COLUMN Abstract VARCHAR({abstractLength});")
-                    connection.commit()
-                elif "Keywords" in str(err):
-                    keywordsLength += 200
-                    cursor.execute(
-                        f"ALTER TABLE publications MODIFY COLUMN Keywords VARCHAR({keywordsLength});")
-                    connection.commit()
-                elif "Fields" in str(err):
-                    fieldsLength += 200
-                    cursor.execute(
-                        f"ALTER TABLE publications MODIFY COLUMN Fields VARCHAR({fieldsLength});")
-                    connection.commit()
-            else:
-                print(str(err))
-                print(query)
-                break
+
+            except Exception as err:
+                if "Duplicate entry" in str(err):
+                    break
+                elif "Data too long" in str(err):
+                    print(str(err))
+                    if "Title" in str(err):
+                        try:
+                            titleLength += 200
+                            cursor.execute(
+                                f"ALTER TABLE publications MODIFY COLUMN Title VARCHAR({titleLength});")
+                            connection.commit()
+                        except:
+                            continue
+
+                    elif "Abstract" in str(err):
+                        try:
+                            abstractLength += 500
+                            cursor.execute(
+                                f"ALTER TABLE publications MODIFY COLUMN Abstract VARCHAR({abstractLength});")
+                            connection.commit()
+                        except:
+                            continue
+
+                    elif "Keywords" in str(err):
+                        try:
+                            keywordsLength += 200
+                            cursor.execute(
+                                f"ALTER TABLE publications MODIFY COLUMN Keywords VARCHAR({keywordsLength});")
+                            connection.commit()
+                        except:
+                            continue
+
+                    elif "Fields" in str(err):
+                        try:
+                            fieldsLength += 200
+                            cursor.execute(
+                                f"ALTER TABLE publications MODIFY COLUMN Fields VARCHAR({fieldsLength});")
+                            connection.commit()
+                        except:
+                            continue
+                else:
+                    print(str(err))
+                    print(query)
+                    break
+    except:
+        continue
 
 
 # ******************** AUTHORS METADATA ******************** #
 print('\nRetrieving authors data:')
 AuthorsID = {}
+
 for doi in tqdm(DOIs):
 
     authors = AbstractRetrieval(doi).authors
 
     for author in authors:
-        authorInfo = AuthorRetrieval(author[0])
+        try:
+            affilHistory = []
+            authorInfo = AuthorRetrieval(author[0])
 
-        identifier = str(uuid.uuid4())
-        authorScopusID = str(authorInfo.identifier)
-        orcidId = str(authorInfo.orcid)
-        firstName = str(authorInfo.given_name)
-        lastName = str(authorInfo.surname)
-        indexedName = str(authorInfo.indexed_name)
-        subjectedAreas = ', '.join(str(sub[0]).lower()
-                                   for sub in authorInfo.subject_areas)
-        hIndex = str(authorInfo.h_index)
-        itemCitations = str(authorInfo.citation_count)
-        authorsCitations = str(authorInfo.cited_by_count)
-        documentsCount = str(authorInfo.document_count)
+            identifier = str(uuid.uuid4())
+            authorScopusID = str(authorInfo.identifier)
+            orcidId = str(authorInfo.orcid)
+            firstName = str(authorInfo.given_name)
+            lastName = str(authorInfo.surname)
+            indexedName = str(authorInfo.indexed_name)
+            subjectedAreas = ', '.join(str(sub[0]).lower()
+                                       for sub in authorInfo.subject_areas)
+            hIndex = str(authorInfo.h_index)
+            itemCitations = str(authorInfo.citation_count)
+            authorsCitations = str(authorInfo.cited_by_count)
+            documentsCount = str(authorInfo.document_count)
 
-        AuthorsID[authorScopusID] = identifier
+            AuthorsID[authorScopusID] = identifier
 
-        columnLength = 1600
-        while True:
-            try:
-                query = f"INSERT INTO authors VALUES ('{identifier}', '{authorScopusID}', '{orcidId}', '{firstName}', \
-                '{lastName}', {hIndex}, '{subjectedAreas}', {itemCitations});"
-                cursor.execute(query)
-                connection.commit()
-                break
-            except Exception as err:
-                if "Duplicate entry" in str(err):
-                    break
-                elif "Data too long" in str(err):
-                    columnLength += 200
-                    cursor.execute(
-                        f"ALTER TABLE authors MODIFY COLUMN Subjected_Areas VARCHAR({columnLength});")
+            for affil in AuthorRetrieval(authorScopusID).affiliation_history:
+                if (affil[1] == None) & (affil[5] not in affilHistory):
+                    affilHistory.append(affil[5])
+                elif (f"{affil[5]} - {affil[6]}" not in affilHistory):
+                    affilHistory.append(affil[5] + ' - ' + affil[6])
+                    affilHistory.append(affil[6])
+
+            affilHistoryStr = ','.join(affilHistory).replace("\'", f"\\\'")
+
+            subjAreasLength = 1600
+            affilHistoryLength = 500
+            while True:
+                try:
+                    query = f"INSERT INTO authors VALUES ('{identifier}', '{authorScopusID}', '{orcidId}', '{firstName}', \
+                    '{lastName}', '{affilHistoryStr}', {hIndex}, '{subjectedAreas}', {itemCitations});"
+                    cursor.execute(query)
                     connection.commit()
-                else:
-                    print(str(err))
-                    print(query)
                     break
 
+                except Exception as err:
+                    if "Duplicate entry" in str(err):
+                        break
+                    elif "Data too long" in str(err):
+                        print(str(err))
+                        if "Affiliation_History" in str(err):
+                            try:
+                                affilHistoryLength += 200
+                                cursor.execute(
+                                    f"ALTER TABLE authors MODIFY COLUMN Affiliation_History VARCHAR({affilHistoryLength});"
+                                )
+                                connection.commit()
+                            except:
+                                pass
+
+                        elif "Subjected_Areas" in str(err):
+                            try:
+                                subjAreasLength += 200
+                                cursor.execute(
+                                    f"ALTER TABLE authors MODIFY COLUMN Subjected_Areas VARCHAR({subjAreasLength});"
+                                )
+                                connection.commit()
+                            except:
+                                pass
+                    else:
+                        print(str(err))
+                        print(query)
+                        break
+        except:
+            continue
 
 # **************** ORGANIZATIONS METADATA **************** #
 print('\nRetrieving organizations data:')
@@ -283,90 +333,91 @@ for doi in tqdm(DOIs):
 
     for org in paperOrgs:
 
-        orgInfo = AffiliationRetrieval(org[0])
-        identifier = str(uuid.uuid4())
-        orgScopusID = str(orgInfo.identifier)
-        name = str(org[1])
-        city = str(orgInfo.city)
-        state = str(orgInfo.state)
-        country = str(orgInfo.country)
-        address = str(orgInfo.address)
-        postalCode = str(orgInfo.postal_code)
-
-        if orgInfo.org_type == 'univ':
-            type1 = 'Academic'
-            type2 = 'University - College'
-        elif orgInfo.org_type == 'coll':
-            type1 = 'Academic'
-            type2 = 'University - College'
-        elif orgInfo.org_type == 'sch':
-            type1 = 'Academic'
-            type2 = 'School'
-        elif orgInfo.org_type == 'res':
-            type1 = 'Academic'
-            type2 = 'Research Institute'
-        elif orgInfo.org_type == 'gov':
-            type1 = 'Government'
-            type2 = ' '
-        elif orgInfo.org_type == 'assn':
-            type1 = 'Association'
-            type2 = ' '
-        elif orgInfo.org_type == 'corp':
-            type1 = 'Business'
-            type2 = ' '
-        elif orgInfo.org_type == 'non':
-            type1 = 'Non-profit'
-            type2 = ' '
-        elif ('university' in name.lower()) | ('universiti' in name.lower()) | \
-            ('universidade' in name.lower()) | ('universidad' in name.lower()) | \
-            ('college' in name.lower()) | ('universität' in name.lower()) | \
-            ('department' in name.lower()) | ('dept.' in name.lower()) | \
-                ('uniwersytet' in name.lower()) | ('dipartimento' in name.lower()):
-            type1 = 'Academic'
-            type2 = 'University - College'
-        elif ('academy' in name.lower()) | ('academic' in name.lower()):
-            type1 = 'Academic'
-            type2 = 'Academy'
-        elif ('school' in name.lower()) | ('faculty' in name.lower()):
-            type1 = 'Academic'
-            type2 = 'School'
-        elif ('research' in name.lower()) | ('researchers' in name.lower()):
-            type1 = 'Academic'
-            type2 = 'Research Institute'
-        elif ('inc.' in name.lower()) | ('inc' in name.lower()) | \
-                ('ltd.' in name.lower()) | ('ltd' in name.lower()):
-            type1 = 'Business'
-            type2 = ' '
-        elif ('association' in name.lower()):
-            type1 = 'Association'
-            type2 = ' '
-        elif ('non-profit' in name.lower()):
-            type1 = 'Non-profit'
-            type2 = ' '
-        elif ('government' in name.lower()) | ('public' in name.lower()) | \
-            ('state' in name.lower()) | ('national' in name.lower()) | \
-            ('federal' in name.lower()) | ('royal' in name.lower()) | \
-                ('federate' in name.lower()) | ('confederate' in name.lower()):
-            type1 = 'Government'
-            type2 = ' '
-        elif ('international' in name.lower()) | ('intergovernmental' in name.lower()):
-            type1 = 'International'
-            type2 = ' '
-        else:
-            type1 = 'Other'
-            type2 = ' '
-
-        orgsID[orgScopusID] = identifier
-
-        type1Temp.append(type1)
-        type2Temp.append(type2)
-        cityTemp.append(city)
-
         try:
+            orgInfo = AffiliationRetrieval(org[0])
+            identifier = str(uuid.uuid4())
+            orgScopusID = str(orgInfo.identifier)
+            name = str(org[1])
+            city = str(orgInfo.city)
+            state = str(orgInfo.state)
+            country = str(orgInfo.country)
+            address = str(orgInfo.address)
+            postalCode = str(orgInfo.postal_code)
+
+            if orgInfo.org_type == 'univ':
+                type1 = 'Academic'
+                type2 = 'University - College'
+            elif orgInfo.org_type == 'coll':
+                type1 = 'Academic'
+                type2 = 'University - College'
+            elif orgInfo.org_type == 'sch':
+                type1 = 'Academic'
+                type2 = 'School'
+            elif orgInfo.org_type == 'res':
+                type1 = 'Academic'
+                type2 = 'Research Institute'
+            elif orgInfo.org_type == 'gov':
+                type1 = 'Government'
+                type2 = ' '
+            elif orgInfo.org_type == 'assn':
+                type1 = 'Association'
+                type2 = ' '
+            elif orgInfo.org_type == 'corp':
+                type1 = 'Business'
+                type2 = ' '
+            elif orgInfo.org_type == 'non':
+                type1 = 'Non-profit'
+                type2 = ' '
+            elif ('university' in name.lower()) | ('universiti' in name.lower()) | \
+                ('universidade' in name.lower()) | ('universidad' in name.lower()) | \
+                ('college' in name.lower()) | ('universität' in name.lower()) | \
+                ('department' in name.lower()) | ('dept.' in name.lower()) | \
+                    ('uniwersytet' in name.lower()) | ('dipartimento' in name.lower()):
+                type1 = 'Academic'
+                type2 = 'University - College'
+            elif ('academy' in name.lower()) | ('academic' in name.lower()):
+                type1 = 'Academic'
+                type2 = 'Academy'
+            elif ('school' in name.lower()) | ('faculty' in name.lower()):
+                type1 = 'Academic'
+                type2 = 'School'
+            elif ('research' in name.lower()) | ('researchers' in name.lower()):
+                type1 = 'Academic'
+                type2 = 'Research Institute'
+            elif ('inc.' in name.lower()) | ('inc' in name.lower()) | \
+                    ('ltd.' in name.lower()) | ('ltd' in name.lower()):
+                type1 = 'Business'
+                type2 = ' '
+            elif ('association' in name.lower()):
+                type1 = 'Association'
+                type2 = ' '
+            elif ('non-profit' in name.lower()):
+                type1 = 'Non-profit'
+                type2 = ' '
+            elif ('government' in name.lower()) | ('public' in name.lower()) | \
+                ('state' in name.lower()) | ('national' in name.lower()) | \
+                ('federal' in name.lower()) | ('royal' in name.lower()) | \
+                    ('federate' in name.lower()) | ('confederate' in name.lower()):
+                type1 = 'Government'
+                type2 = ' '
+            elif ('international' in name.lower()) | ('intergovernmental' in name.lower()):
+                type1 = 'International'
+                type2 = ' '
+            else:
+                type1 = 'Other'
+                type2 = ' '
+
+            orgsID[orgScopusID] = identifier
+
+            type1Temp.append(type1)
+            type2Temp.append(type2)
+            cityTemp.append(city)
+
             query = f"INSERT INTO organizations VALUES ('{identifier}', '{orgScopusID}', '{name}', \
             '{type1}', '{type2}', '{address}', '{city}', '{country}');"
             cursor.execute(query)
             connection.commit()
+
         except Exception as err:
             if "Duplicate entry" not in str(err):
                 print(str(err))
