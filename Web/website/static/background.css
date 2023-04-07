@@ -1,8 +1,0 @@
-body{
-    width: 100%;
-    min-height: 100vh;
-    background-image: url(../static/gridbg.png);
-    background-repeat: no-repeat;
-    background-position: left;
-    background-size: cover;
-}
