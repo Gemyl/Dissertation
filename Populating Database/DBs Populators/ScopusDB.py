@@ -1,29 +1,14 @@
-
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval, PlumXMetrics
-from math import radians, sin, cos, sqrt, atan2
-from geopy.geocoders import Nominatim
-import mysql.connector as connector
-from itertools import combinations
-from statistics import mean
 from requests import get
 from tqdm import tqdm
 from getpass import getpass
+import mysql.connector as connector
 import json
 import uuid
 
 
-# ************ FUNCTIONS ************ #
-def list_to_string(list):
-
-    if list != None:
-        string = ', '.join([str(i).lower() for i in list])
-    else:
-        string = ' '
-
-    return string
-
-
-def format_keywords(keywords):
+# build a proper keyword request query
+def buildKeywordsQuery(keywords):
     keywords = keywords.split(', ')
     keywordsList = '('
     for i in range(len(keywords)):
@@ -34,550 +19,533 @@ def format_keywords(keywords):
 
     keywordsList = keywordsList + ')'
     keywords = keywordsList
-
     return keywords
 
 
-def distance(lat1, lon1, lat2, lon2):
-    # Convert latitude and longitude to radians
-    lat1 = radians(lat1)
-    lon1 = radians(lon1)
-    lat2 = radians(lat2)
-    lon2 = radians(lon2)
+# get string from list
+def getStringFromList(list):
+    if list != None:
+        string = ', '.join([str(i).lower() for i in list])
+    else:
+        string = ' '
+    return string
 
-    # Apply the Haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+# get columns length
+def getColumnLength(column, table, cursor):
 
-    # Radius of Earth in kilometers
-    r = 6371
+    try:
+        query = f"SELECT MAX(LENGTH({column})) FROM {table};"
+        cursor.execute(query)
+        resultSet = cursor.fetchall()
 
-    # Return the distance in kilometers
-    return c * r
+        if resultSet[0][0] != None:
+            return resultSet[0][0]
+        else:
+            return 500
+
+    except:
+        return 500
 
 
-def get_DOIs(keywords, yearsRange, fields):
+# replace "'" with "\'" for valid SQL syntax
+def replaceSingleQuote(string):
 
-    DOIs = []
-    count = '&count=25'
-    term1 = '( {python} )'
-    term2 = format_keywords(keywords)
-    terms = '( {} AND {} )'.format(term1, term2)
-    scope = 'TITLE-ABS-KEY'
-    view = '&view=standard'
-    sort = '&sort=citedby_count'
-    date = '&date=' + str(yearsRange)
-    scopusAPIKey = '&apiKey=33a5ac626141313c10881a0db097b497'
-    scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
+    if string != None:
+        return string.replace("\'", " ")
+    else:
+        return "-"
 
-    for sub in tqdm(fields):
 
-        # startIndex is used to summarize all the previous DOIs
-        # that have been retrieved for a given subject
-        startIndex = 0
+# remove common words
+def removeCommonWords(abstract, commonWords):
 
-        while True:
+    abstractList = abstract.split(" ")
+    abstractString = " ".join(
+        [word for word in abstractList if word.lower() not in commonWords])
+    return abstractString
 
-            start = '&start={}'.format(startIndex)
-            subj = '&subj={}'.format(sub)
 
-            query = 'query=' + scope + terms + date + start + \
-                count + sort + subj + scopusAPIKey + view
-            url = scopusBaseUrl + query
+# get maximum citations count
+def getMaximumCitationsCount(citationsCount, doi):
 
-            # sending request to Scopus
-            req = get(url)
-            if req.status_code == 200:
-                content = json.loads(req.content)['search-results']
-                totalResults = int(content['opensearch:totalResults'])
-                startIndex = int(content['opensearch:startIndex'])
-                metadata = content['entry']
+    maxCitations = citationsCount
+    plumxCitations = PlumXMetrics(doi, id_type='doi').citation
+
+    if plumxCitations != None:
+        plumxCitations = max([citation[1] for citation in plumxCitations])
+        maxCitations = max(maxCitations, plumxCitations)
+
+    return maxCitations
+
+
+# get safely abstract
+def getAbstract(abstract, description):
+
+    if abstract != None:
+        return replaceSingleQuote(abstract)
+    elif description != None:
+        return replaceSingleQuote(description)
+    else:
+        return "-"
+
+
+# get safely keywords
+def getKeywords(keywords):
+
+    if keywords != None:
+        return replaceSingleQuote(", ".join([keyword for keyword in keywords]))
+    else:
+        return "-"
+
+
+# get safely fields
+def getFields(fields):
+
+    if fields != None:
+        return replaceSingleQuote(", ".join([field[0].lower() for field in fields]))
+    else:
+        return "-"
+
+
+# get author's affiliations
+def getAffiliations(affiliations):
+
+    if(affiliations == None):
+        return "-"
+    
+    affilHistory = []
+    for affil in affiliations:
+        if ((affil.preferred_name not in affilHistory) & (affil.preferred_name != None)):
+            if (affil.parent == None):
+                affilHistory.append(affil.preferred_name)
             else:
-                Error = json.loads(req.content)['service-error']['status']
-                print(req.status_code, Error['statusText'])
+                affilHistory.append(affil.preferred_name + ' - ' + affil.parent_preferred_name)
+                affilHistory.append(affil.parent_preferred_name)
 
-            for metadataIndex in metadata:
-                try:
-                    TempDOI = metadataIndex['prism:doi']
-                    DOIs.append(str(TempDOI))
-                except:
-                    continue
+    affilHistoryStr = ', '.join(affilHistory).replace("\'", " ")
 
-            # 'totalResults' is the number of all items that search has been resulted in
-            # 'startIndex' is the number of items whose data have been already obtained
-            # the length of 'metadata' is the number of items whose data are going to be extracted
-            Remain = totalResults - startIndex - len(metadata)
-
-            if Remain > 0:
-                startIndex += 25
-            else:
-                break
-
-    return DOIs
+    return replaceSingleQuote(affilHistoryStr)
 
 
-# ************* POPULATING DATABASE ************* #
-# parameters given by user
+def getAffiliationsIds(affiliations):
+
+    if affiliations != None:
+        return [affil for affil in affiliations.split(";")]
+    else:
+        return "-"
+
+
+def getAffiliationTypes(affiliationObj):
+
+    if (affiliationObj.org_type == 'univ') | (affiliationObj.org_type == 'coll') | \
+            (len([univ for univ in university if univ in affiliationObj.affiliation_name.lower()]) > 0):
+        type1 = 'Academic'
+        type2 = 'University - College'
+
+    elif (affiliationObj.org_type == 'sch') | \
+            (len([sch for sch in school if sch in affiliationObj.affiliation_name.lower()]) > 0):
+        type1 = 'Academic'
+        type2 = 'School'
+
+    elif (affiliationObj.org_type == 'res') | \
+            (len([acad for acad in academy if acad in affiliationObj.affiliation_name.lower()]) > 0):
+        type1 = 'Academic'
+        type2 = 'Research Institute'
+
+    elif (affiliationObj.org_type == 'gov') | \
+            (len([gov for gov in government if gov in affiliationObj.affiliation_name.lower()]) > 0):
+        type1 = 'Government'
+        type2 = ' '
+
+    elif (affiliationObj.org_type == 'assn') | \
+            (len([assn for assn in association if assn in affiliationObj.affiliation_name.lower()]) > 0):
+        type1 = 'Association'
+        type2 = ' '
+
+    elif (affiliationObj.org_type == 'corp') | \
+            (len([bus for bus in bussiness if bus in affiliationObj.affiliation_name.lower()]) > 0):
+        type1 = 'Business'
+        type2 = ' '
+
+    elif (affiliationObj.org_type == 'non') | \
+            (len([np for np in nonProfit if np in affiliationObj.affiliation_name.lower()]) > 0):
+        type1 = 'Non-profit'
+        type2 = ' '
+
+    else:
+        type1 = "Other"
+        type2 = "Other"
+
+    return type1, type2
+
+
+# count publication's affiliations
+def countAffiliations(affiliations):
+
+    if (affiliations == None):
+        return 0
+    
+    return len(affiliations)
+
+
+# string affiliation type identifiers
+university = ['univ', 'university', 'universiti', 'universidade', 'universidad', 'college',
+              'universität', 'departement', 'dept', 'uniwersytet', 'dipartimento']
+academy = ['academy', 'academic', 'academia']
+school = ['school', 'faculty']
+research = ['research', 'researchers', 'institut']
+bussiness = ['inc', 'ltd']
+association = ['association']
+nonProfit = ['non-profit']
+government = ['government', 'gov', 'public', 'state', 'national',
+              'federal', 'federate', 'confederate', 'royal']
+international = ['international']
+
+# list of common words in order to be removed from abstracts
+commonWords = ['a', 'an', 'the', 'and', 'or', 'but', 'if', 'of', 'at', 'by', 'for', 'with', 'about',
+               'to', 'from', 'in', 'on', 'up', 'out', 'as', 'into', 'through', 'over', 'after', 'under',
+               'i', 'you', 'he', 'she', 'it', 'we', 'they', 'is', 'are', 'was', 'were', 'has', 'had',
+               'will', 'be', 'not', 'would', 'should', 'before', 'few', 'many', 'much', 'so', 'furthermore']
+
+
+# search parameters
 keywords = 'ai'
-yearsRange = '2022'
-fields = ['SOCI']
+yearPublished = '2022'
+fields = ['AGRI', 'ARTS', 'BIOC', 'BUSI', 'CENG', 'CHEM', 'COMP',
+          'DECI', 'DENT', 'EART', 'ECON', 'ENER', 'ENGI', 'ENVI',
+          'HEAL', 'IMMU', 'MATE', 'MATH', 'MEDI', 'NEUR', 'NURS',
+          'PHAR', 'PHYS', 'PSYC', 'SOCI', 'VETE', 'MULT']
+
+# password for MySQL DB
+database = getpass('Database:')
 password = getpass('Password: ')
-
-
-# finding DOIs of related publications
-print('Retrieving DOIs:')
-DOIs = get_DOIs(keywords, yearsRange, fields)
-
 
 # establishing connection to database
 connection = connector.connect(host='localhost',
                                port='3306',
                                user='root',
                                password=password,
-                               database='scopus',
+                               database=database,
                                auth_plugin='mysql_native_password')
-
 cursor = connection.cursor()
 
+# upper limit for columns size
+MAX_COLUMN_SIZE = 1500
 
-# **************** PUBLICATIONS METADATA **************** #
-print('\nRetrieving papers data:')
+# getting columns size
+titleLength = getColumnLength('Title', 'scopus_publications', cursor)
+abstractLength = getColumnLength('Abstract', 'scopus_publications', cursor)
+keywordsLength = getColumnLength('Keywords', 'scopus_publications', cursor)
+fieldsLength = getColumnLength('Fields', 'scopus_publications', cursor)
+fieldsOfStudyLength = getColumnLength('Fields_Of_Study', 'scopus_authors', cursor)
+affiliationsLength = getColumnLength('Affiliations', 'scopus_authors', cursor)
+affilNameLength = getColumnLength('Name', 'scopus_organizations', cursor)
+affilAddressLength = getColumnLength('Address', 'scopus_piblications', cursor)
+affilCityLength = getColumnLength('City', 'scopus_organizations', cursor)
+affilCountryLength = getColumnLength('Country', 'scopus_organizations', cursor)
 
+# query parameters
+count = '&count=25'
+term1 = '( {python} )'
+term2 = buildKeywordsQuery(keywords)
+terms = f'( {term1} AND {term2} )'
+scope = 'TITLE-ABS-KEY'
+view = '&view=standard'
+sort = '&sort=citedby_count'
+date = '&date=' + str(yearPublished)
+scopusAPIKey = '&apiKey=33a5ac626141313c10881a0db097b497'
+scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
+
+# declaration of lists
+dois = []
+uniqueDois = []
+uniqueAuthorsScopusIds = []
 citationsCount = []
+authorsNumber = []
+affiliationsNumber = []
 
-for doi in tqdm(DOIs):
+# matching Scopus IDs with UUIDs
+with open("Populating Database\DBs Populators\IdsMaps\PublicationsIds.json","r") as f:
+    scopusPublicationsIds = json.load(f)
 
-    try:
-        paperInfo = AbstractRetrieval(doi, view='FULL')
+with open("Populating Database\DBs Populators\IdsMaps\AuthorsIds.json","r") as f:
+    scopusAuthorsIds = json.load(f)
 
-        year = yearsRange
-        userKeywords = keywords
-        title = str(paperInfo.title).replace('\'', '\\' + '\'')
-        journal = str(paperInfo.publisher)
-        authorsKeywords = list_to_string(paperInfo.authkeywords)
-        fields = ', '.join(str(sub[0]).lower()
-                           for sub in paperInfo.subject_areas)
+with open("Populating Database\DBs Populators\IdsMaps\AffiliationsIds.json","r") as f:
+    scopusAffiliationsIds = json.load(f)
 
-        if (paperInfo.abstract != None):
-            abstract = paperInfo.abstract
+# retrieving publications DOIs
+print("Retrieving DOIs ...")
+for field in tqdm(fields):
+
+    startIndex = 0
+    while True:
+        start = f"&start={startIndex}"
+        currentField = f"&subj={field}"
+        # building GET query
+        query = 'query=' + scope + terms + date + start + \
+            count + sort + currentField + scopusAPIKey + view
+        url = scopusBaseUrl + query
+
+        req = get(url)
+        # if request is successful, get DOIs
+        if req.status_code == 200:
+            content = json.loads(req.content)['search-results']
+            totalResults = int(content['opensearch:totalResults'])
+            startIndex = int(content['opensearch:startIndex'])
+            metadata = content['entry']
+        # else print the error cause
         else:
-            abstract = paperInfo.description
-        abstract = abstract.replace('\'', '\\' + '\'')
+            Error = json.loads(req.content)['service-error']['status']
+            print(req.status_code, Error['statusText'])
 
-        maxCitations = paperInfo.citedby_count
-        plumxCitations = PlumXMetrics(doi, id_type='doi').citation
+        for md in metadata:
+            try:
+                TempDOI = md['prism:doi']
+                dois.append(str(TempDOI))
+            except:
+                pass
 
-        if plumxCitations != None:
+        remainingData = totalResults - startIndex - len(metadata)
 
-            plumxCitations = max([citation[1] for citation in plumxCitations])
-            maxCitations = max(maxCitations, plumxCitations)
+        # if there are any records remained, update startIndex and start the next loop
+        if remainingData > 0:
+            startIndex += 25
+        # else exit the loop and continue with the next subject
+        else:
+            break
 
-        citationsCount.append(str(maxCitations))
+# getting publication metadata
+print("Getting publications metadata ...")
+for doi in tqdm(dois):
 
-        titleLength = 400
-        abstractLength = 4000
-        keywordsLength = 600
-        fieldsLength = 600
+    publicationInfo = AbstractRetrieval(doi, view="FULL")
+
+    id = str(uuid.uuid4())
+    year = yearPublished
+    title = replaceSingleQuote(publicationInfo.title)
+    abstract = getAbstract(publicationInfo.abstract, publicationInfo.description)
+    abstract = removeCommonWords(abstract, commonWords)
+    keywords = getKeywords(publicationInfo.authkeywords)
+    fields = getFields(publicationInfo.subject_areas)
+    citationsCount = getMaximumCitationsCount(publicationInfo.citedby_count, doi)
+    authorsNumber = len(publicationInfo.authors)
+    affiliationsNumber = countAffiliations(publicationInfo.affiliation)
+
+    while True:
+        try:
+            query = f"INSERT INTO scopus_publications VALUES('{id}','{doi}','{year}','{title}','{abstract}','{keywords}',\
+                '{fields}',{citationsCount},{authorsNumber},{affiliationsNumber});"
+            cursor.execute(query)
+            connection.commit()
+            scopusPublicationsIds[doi] = id
+            uniqueDois.append(doi)  
+            break
+
+        except Exception as err:
+            if "Duplicate entry" not in str(err):
+                print(str(err) + "\n")
+
+                if "Data too long" in str(err):
+                    if "Title" in str(err):
+                        titleLength += 100
+                        try:
+                            query = f"ALTER TABLE scopus_publications MODIFY COLUMN Title VARCHAR({titleLength});"
+                            cursor.execute(query)
+                            connection.commit()
+                        except:
+                            pass
+
+                    elif "Abstract" in str(err):
+                        abstractLength += 100
+                        if abstractLength >= MAX_COLUMN_SIZE:
+                            abstract = abstract[:1500]
+                            abstractLength = 1500
+                        try:
+                            query = f"ALTER TABLE scopus_publications MODIFY COLUMN Abstract VARCHAR({abstractLength});"
+                            cursor.execute(query)
+                            connection.commit()
+                        except:
+                            pass
+
+                    elif "Keywords" in str(err):
+                        keywordsLength += 100
+                        try:
+                            query = f"ALTER TABLE scopus_publications MODIFY COLUMN Keywords VARCHAR({keywordsLength});"
+                            cursor.execute(query)
+                            connection.commit()
+                        except:
+                            pass
+
+                    elif "Fields" in str(err):
+                        fieldsLength += 100
+                        try:
+                            query = f"ALTER TABLE scopus_publications MODIFY COLUMN Fields VARCHAR({fieldsLength});"
+                            cursor.execute(query)
+                            connection.commit()
+                        except:
+                            pass
+            else:
+                break
+
+
+# getting authors metadata
+print("Retrieving authors metadata ...")
+for doi in tqdm(uniqueDois):
+
+    authors = AbstractRetrieval(doi).authors
+
+    for author in authors:
+
+        authorInfo = AuthorRetrieval(author[0])
+        id = str(uuid.uuid4())
+        scopusId = authorInfo.identifier
+        orcidId = authorInfo.orcid
+        firstName = replaceSingleQuote(authorInfo.given_name)
+        lastName = replaceSingleQuote(authorInfo.surname)
+        hIndex = authorInfo.h_index
+        fieldsOfStudy = replaceSingleQuote(getFields(authorInfo.subject_areas))
+        authorCitationsCount = authorInfo.cited_by_count
+        affiliations = replaceSingleQuote(getAffiliations(authorInfo.affiliation_history))
+
         while True:
             try:
-                query = f"INSERT INTO publications VALUES ('{str(doi)}', {year}, '{title}', '{abstract}', \
-                '{authorsKeywords}', '{fields}', '{citationsCount[len(citationsCount)-1]}');"
+                query = f"INSERT INTO scopus_authors VALUES('{id}','{scopusId}','{orcidId}','{firstName}','{lastName}',\
+                    '{fieldsOfStudy}','{affiliations}',{hIndex},{authorCitationsCount});"
                 cursor.execute(query)
                 connection.commit()
+                scopusAuthorsIds[scopusId] = id
+                uniqueAuthorsScopusIds.append(scopusId)
                 break
 
             except Exception as err:
-                if "Duplicate entry" in str(err):
-                    break
-                elif "Data too long" in str(err):
+                if "Duplicate entry" not in str(err):
                     print(str(err))
-                    if "Title" in str(err):
-                        try:
-                            titleLength += 200
-                            cursor.execute(
-                                f"ALTER TABLE publications MODIFY COLUMN Title VARCHAR({titleLength});")
-                            connection.commit()
-                        except:
-                            continue
 
-                    elif "Abstract" in str(err):
+                if "Data too long" in str(err):
+                    if "Fields_Of_Study" in str(err):
+                        fieldsOfStudyLength += 100
                         try:
-                            abstractLength += 500
-                            cursor.execute(
-                                f"ALTER TABLE publications MODIFY COLUMN Abstract VARCHAR({abstractLength});")
+                            query = f"ALTER TABLE scopus_authors MODIFY COLUMN Fields_Of_Study VARCHAR({fieldsOfStudyLength});"
+                            cursor.execute(query)
                             connection.commit()
                         except:
-                            continue
+                            pass
 
-                    elif "Keywords" in str(err):
+                    if "Affiliations" in str(err):
+                        affiliationsLength += 100
+                        if affiliationsLength >= MAX_COLUMN_SIZE:
+                            affiliations = affiliations[:1500]
+                            affiliationsLength = 1500
                         try:
-                            keywordsLength += 200
-                            cursor.execute(
-                                f"ALTER TABLE publications MODIFY COLUMN Keywords VARCHAR({keywordsLength});")
+                            query = f"ALTER TABLE scopus_authors MODIFY COLUMN Affiliations VARCHAR({affiliationsLength});"
+                            cursor.execute(query)
                             connection.commit()
                         except:
-                            continue
-
-                    elif "Fields" in str(err):
-                        try:
-                            fieldsLength += 200
-                            cursor.execute(
-                                f"ALTER TABLE publications MODIFY COLUMN Fields VARCHAR({fieldsLength});")
-                            connection.commit()
-                        except:
-                            continue
+                            pass
                 else:
-                    print(str(err))
-                    print(query)
                     break
-    except:
-        continue
+
+        query = f"INSERT INTO scopus_publications_authors VALUES('{scopusPublicationsIds[doi]}','{scopusAuthorsIds[scopusId]}');"
+        cursor.execute(query)
+        connection.commit()
 
 
-# # ******************** AUTHORS METADATA ******************** #
-# print('\nRetrieving authors data:')
-# AuthorsID = {}
+# getting organizations metadata
+print("Retrieving organizations metadata ...")
+for doi in tqdm(uniqueDois):
 
-# for doi in tqdm(DOIs):
+    authors = AbstractRetrieval(doi).authors
 
-#     authors = AbstractRetrieval(doi).authors
+    for author in authors:
 
-#     for author in authors:
-#         try:
-#             affilHistory = []
-#             authorInfo = AuthorRetrieval(author[0])
+        affiliations = getAffiliationsIds(author[4])
+        if (affiliations != "-") & (author[0] in uniqueAuthorsScopusIds):
+            for affil in affiliations:
 
-#             identifier = str(uuid.uuid4())
-#             authorScopusID = str(authorInfo.identifier)
-#             orcidId = str(authorInfo.orcid)
-#             firstName = str(authorInfo.given_name)
-#             lastName = str(authorInfo.surname)
-#             indexedName = str(authorInfo.indexed_name)
-#             subjectedAreas = ', '.join(str(sub[0]).lower()
-#                                        for sub in authorInfo.subject_areas)
-#             hIndex = str(authorInfo.h_index)
-#             itemCitations = str(authorInfo.citation_count)
-#             authorsCitations = str(authorInfo.cited_by_count)
-#             documentsCount = str(authorInfo.document_count)
+                affilInfo = AffiliationRetrieval(affil)
 
-#             AuthorsID[authorScopusID] = identifier
+                id = str(uuid.uuid4())
+                scopusId = affilInfo.identifier
+                name = replaceSingleQuote(affilInfo.affiliation_name)
+                type1, type2 = getAffiliationTypes(affilInfo)
+                address = replaceSingleQuote(affilInfo.address)
+                city = replaceSingleQuote(affilInfo.city)
+                country = replaceSingleQuote(affilInfo.country)
 
-#             for affil in AuthorRetrieval(authorScopusID).affiliation_history:
-#                 if (affil[1] == None) & (affil[5] not in affilHistory):
-#                     affilHistory.append(affil[5])
-#                 elif (f"{affil[5]} - {affil[6]}" not in affilHistory):
-#                     affilHistory.append(affil[5] + ' - ' + affil[6])
-#                     affilHistory.append(affil[6])
+                while True:
+                    try:
+                        query = f"INSERT INTO scopus_organizations VALUES('{id}','{scopusId}','{name}','{type1}',\
+                            '{type2}','{address}','{city}','{country}');"
+                        cursor.execute(query)
+                        connection.commit()
+                        scopusAffiliationsIds[scopusId] = id
+                        break
 
-#             affilHistoryStr = ','.join(affilHistory).replace("\'", f"\\\'")
+                    except Exception as err:
+                        if "Duplicate entry" not in str(err):
+                            print(str(err))
 
-#             subjAreasLength = 1600
-#             affilHistoryLength = 500
-#             while True:
-#                 try:
-#                     query = f"INSERT INTO authors VALUES ('{identifier}', '{authorScopusID}', '{orcidId}', '{firstName}', \
-#                     '{lastName}', '{affilHistoryStr}', {hIndex}, '{subjectedAreas}', {itemCitations});"
-#                     cursor.execute(query)
-#                     connection.commit()
-#                     break
+                            if "Data too long" in str(err):
+                                if "Name" in str(err):
+                                    affilNameLength += 100
+                                    try:
+                                        query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Name VARCHAR({affilNameLength});"
+                                        cursor.execute(query)
+                                        connection.commit()
+                                    except:
+                                        pass
 
-#                 except Exception as err:
-#                     if "Duplicate entry" in str(err):
-#                         break
-#                     elif "Data too long" in str(err):
-#                         print(str(err))
-#                         if "Affiliation_History" in str(err):
-#                             try:
-#                                 affilHistoryLength += 200
-#                                 cursor.execute(
-#                                     f"ALTER TABLE authors MODIFY COLUMN Affiliation_History VARCHAR({affilHistoryLength});"
-#                                 )
-#                                 connection.commit()
-#                             except:
-#                                 pass
+                                elif "Address" in str(err):
+                                    affilAddressLength += 100
+                                    try:
+                                        query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Address VARCHAR({affilAddressLength});"
+                                        cursor.execute(query)
+                                        connection.commit()
+                                    except:
+                                        pass
 
-#                         elif "Subjected_Areas" in str(err):
-#                             try:
-#                                 subjAreasLength += 200
-#                                 cursor.execute(
-#                                     f"ALTER TABLE authors MODIFY COLUMN Subjected_Areas VARCHAR({subjAreasLength});"
-#                                 )
-#                                 connection.commit()
-#                             except:
-#                                 pass
-#                     else:
-#                         print(str(err))
-#                         print(query)
-#                         break
-#         except:
-#             continue
+                                elif "City" in str(err):
+                                    affilCityLength += 100
+                                    try:
+                                        query = f"ALTER TABLE scopus_organizations MODIFY COLUMN City VARCHAR({affilCityLength});"
+                                        cursor.execute(query)
+                                        connection.commit()
+                                    except:
+                                        pass
 
-# # **************** ORGANIZATIONS METADATA **************** #
-# print('\nRetrieving organizations data:')
-# orgID = []
-# cityTemp = []
-# cityDist = []
-# type1Temp = []
-# type2Temp = []
-# type1Dist = []
-# type2Dist = []
+                                elif "Name" in str(err):
+                                    affilCountryLength += 100
+                                    try:
+                                        query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Country VARCHAR({affilCountryLength});"
+                                        cursor.execute(query)
+                                        connection.commit()
+                                    except:
+                                        pass
+                        else:
+                            break
 
-# orgsID = {}
+                query = f"INSERT INTO scopus_publications_organizations VALUES('{scopusPublicationsIds[doi]}', \
+                    '{scopusAffiliationsIds[scopusId]}');"
+                cursor.execute(query)
+                connection.commit()
 
-# for doi in tqdm(DOIs):
-
-#     paperOrgs = AbstractRetrieval(doi).affiliation
-
-#     for org in paperOrgs:
-
-#         try:
-#             orgInfo = AffiliationRetrieval(org[0])
-#             identifier = str(uuid.uuid4())
-#             orgScopusID = str(orgInfo.identifier)
-#             name = str(org[1])
-#             city = str(orgInfo.city)
-#             state = str(orgInfo.state)
-#             country = str(orgInfo.country)
-#             address = str(orgInfo.address)
-#             postalCode = str(orgInfo.postal_code)
-
-#             if orgInfo.org_type == 'univ':
-#                 type1 = 'Academic'
-#                 type2 = 'University - College'
-#             elif orgInfo.org_type == 'coll':
-#                 type1 = 'Academic'
-#                 type2 = 'University - College'
-#             elif orgInfo.org_type == 'sch':
-#                 type1 = 'Academic'
-#                 type2 = 'School'
-#             elif orgInfo.org_type == 'res':
-#                 type1 = 'Academic'
-#                 type2 = 'Research Institute'
-#             elif orgInfo.org_type == 'gov':
-#                 type1 = 'Government'
-#                 type2 = ' '
-#             elif orgInfo.org_type == 'assn':
-#                 type1 = 'Association'
-#                 type2 = ' '
-#             elif orgInfo.org_type == 'corp':
-#                 type1 = 'Business'
-#                 type2 = ' '
-#             elif orgInfo.org_type == 'non':
-#                 type1 = 'Non-profit'
-#                 type2 = ' '
-#             elif ('university' in name.lower()) | ('universiti' in name.lower()) | \
-#                 ('universidade' in name.lower()) | ('universidad' in name.lower()) | \
-#                 ('college' in name.lower()) | ('universität' in name.lower()) | \
-#                 ('department' in name.lower()) | ('dept.' in name.lower()) | \
-#                     ('uniwersytet' in name.lower()) | ('dipartimento' in name.lower()):
-#                 type1 = 'Academic'
-#                 type2 = 'University - College'
-#             elif ('academy' in name.lower()) | ('academic' in name.lower()):
-#                 type1 = 'Academic'
-#                 type2 = 'Academy'
-#             elif ('school' in name.lower()) | ('faculty' in name.lower()):
-#                 type1 = 'Academic'
-#                 type2 = 'School'
-#             elif ('research' in name.lower()) | ('researchers' in name.lower()):
-#                 type1 = 'Academic'
-#                 type2 = 'Research Institute'
-#             elif ('inc.' in name.lower()) | ('inc' in name.lower()) | \
-#                     ('ltd.' in name.lower()) | ('ltd' in name.lower()):
-#                 type1 = 'Business'
-#                 type2 = ' '
-#             elif ('association' in name.lower()):
-#                 type1 = 'Association'
-#                 type2 = ' '
-#             elif ('non-profit' in name.lower()):
-#                 type1 = 'Non-profit'
-#                 type2 = ' '
-#             elif ('government' in name.lower()) | ('public' in name.lower()) | \
-#                 ('state' in name.lower()) | ('national' in name.lower()) | \
-#                 ('federal' in name.lower()) | ('royal' in name.lower()) | \
-#                     ('federate' in name.lower()) | ('confederate' in name.lower()):
-#                 type1 = 'Government'
-#                 type2 = ' '
-#             elif ('international' in name.lower()) | ('intergovernmental' in name.lower()):
-#                 type1 = 'International'
-#                 type2 = ' '
-#             else:
-#                 type1 = 'Other'
-#                 type2 = ' '
-
-#             orgsID[orgScopusID] = identifier
-
-#             type1Temp.append(type1)
-#             type2Temp.append(type2)
-#             cityTemp.append(city)
-
-#             query = f"INSERT INTO organizations VALUES ('{identifier}', '{orgScopusID}', '{name}', \
-#             '{type1}', '{type2}', '{address}', '{city}', '{country}');"
-#             cursor.execute(query)
-#             connection.commit()
-
-#         except Exception as err:
-#             if "Duplicate entry" not in str(err):
-#                 print(str(err))
-#                 print(query)
-#             continue
-
-#     type1Dist.append(type1Temp)
-#     type2Dist.append(type2Temp)
-#     cityDist.append(cityTemp)
-
-#     cityTemp = []
-#     type1Temp = []
-#     type2Temp = []
-#     parentOrgs = []
+                query = f"INSERT INTO scopus_authors_organizations VALUES('{scopusAuthorsIds[author[0]]}', \
+                    '{scopusAffiliationsIds[scopusId]}',{yearPublished});"
+                cursor.execute(query)
+                connection.commit()
 
 
-# # ************** PUBLICATIONS & AUTHORS ************** #
-# print('\nMatching papers with authors:')
-# for doi in tqdm(DOIs):
+# updating ids maps
+with open("Populating Database\DBs Populators\IdsMaps\PublicationsIds.json","w") as f:
+    json.dump(scopusPublicationsIds, f, indent=4)
 
-#     authors = AbstractRetrieval(doi).authors
+with open("Populating Database\DBs Populators\IdsMaps\AuthorsIds.json","w") as f:
+    json.dump(scopusAuthorsIds, f, indent=4)
 
-#     for author in authors:
-#         authorID = AuthorsID[str(AuthorRetrieval(author[0]).identifier)]
-#         try:
-#             query = f"INSERT INTO publications_authors VALUES ('{doi}', '{authorID}');"
-#             cursor.execute(query)
-#             connection.commit()
-#         except Exception as err:
-#             if "Cannot add or update a child row" not in str(err):
-#                 print(str(err))
-#                 print(query)
-#             continue
+with open("Populating Database\DBs Populators\IdsMaps\AffiliationsIds.json","w") as f:
+    json.dump(scopusAffiliationsIds, f, indent=4)
 
-
-# # ***************** PUBLICATIONS & ORGANIZATIONS ***************** #
-# print('\nMatching papers with organizations:')
-# for doi in tqdm(DOIs):
-
-#     pubOrgs = [str(org[0])
-#                for org in AbstractRetrieval(doi).affiliation]
-
-#     authors = AbstractRetrieval(doi).authors
-
-#     for org in pubOrgs:
-#         orgID = orgsID[org]
-#         try:
-#             query = f"INSERT INTO publications_organizations VALUES ('{doi}', '{orgID}');"
-#             cursor.execute(query)
-#             connection.commit()
-#         except Exception as err:
-#             if "Cannot add or update a child row" not in str(err):
-#                 print(str(err))
-#                 print(query)
-#             continue
-
-#     tempOrgs = []
-
-
-# # **************** AUTHORS & ORGANIZATIONS **************** #
-# print('\nMatching authors with organizations:')
-# for doi in tqdm(DOIs):
-
-#     for author in AbstractRetrieval(doi).authors:
-
-#         authorID = AuthorsID[str(AuthorRetrieval(author[0]).identifier)]
-
-#         if author[4] != None:
-#             affil = author[4].split(';')
-#             for org in affil:
-#                 orgID = orgsID[org]
-#                 try:
-#                     query = f"INSERT INTO authors_organizations VALUES ('{authorID}', '{orgID}');"
-#                     cursor.execute(query)
-#                     connection.commit()
-#                 except Exception as err:
-#                     if "Cannot add or update a child row" not in str(err):
-#                         print(str(err))
-#                         print(query)
-#                     continue
-
-
-# # ******************** DISTANCES ******************** #
-# print('\nCalculating geographical distances per publication:')
-# distTemp = []
-# distances = []
-# cityCoord = []
-
-# orgTypeDict = {'Academic': 0,
-#                'Government': 1,
-#                'Business': 2,
-#                'International': 3,
-#                'Non-profit': 4,
-#                'Association': 5}
-
-# orgDistMap = [[1, 3, 5, 4, 3],
-#               [3, 1, 5, 3, 4],
-#               [5, 5, 1, 5, 5],
-#               [4, 3, 5, 1, 4],
-#               [3, 4, 5, 4, 1]]
-
-# for k in tqdm(range(len(DOIs))):
-
-#     try:
-#         geolocator = Nominatim(user_agent='PersonalProject')
-#         if len(cityDist[k]) == 1:
-#             minGeoDist = str(0)
-#             maxGeoDist = str(0)
-#             avgGeoDist = str(0)
-#             minOrgDist = str(1)
-#             maxOrgDist = str(1)
-#             avgOrgDist = str(1)
-
-#         else:
-#             for city in cityDist[k]:
-#                 location = geolocator.geocode(city)
-#                 cityCoord.append((location.latitude, location.longitude))
-
-#             combos = list(combinations(cityCoord, 2))
-
-#             for combo in combos:
-#                 distances.append(
-#                     distance(combo[0][0], combo[0][1], combo[1][0], combo[1][1]))
-
-#             minGeoDist = str(min(distances))
-#             maxGeoDist = str(max(distances))
-#             avgGeoDist = str(mean(distances))
-
-#             if 'Other' not in type1Dist[k]:
-#                 for i in range(len(type1Dist[k])-1):
-#                     for j in range(i+1, len(type1Dist[k])):
-#                         index1 = orgTypeDict[type1Dist[k][i]]
-#                         index2 = orgTypeDict[type1Dist[k][j]]
-#                         dist = orgDistMap[index1][index2]
-#                         distTemp.append(dist)
-
-#                 minOrgDist = str(min(distTemp))
-#                 maxOrgDist = str(max(distTemp))
-#                 avgOrgDist = str(mean(distTemp))
-
-#             else:
-#                 minOrgDist = str(0)
-#                 maxOrgDist = str(0)
-#                 avgOrgDist = str(0)
-
-#         query = 'INSERT INTO distances VALUES (\'' + DOIs[k] + '\', ' + citationsCount[k] + ', ' \
-#             + minGeoDist + ', ' + maxGeoDist + ', ' + avgGeoDist + ', ' + minOrgDist + ', ' + \
-#             maxOrgDist + ', ' + avgOrgDist + ');'
-
-#         cursor.execute(query)
-#         connection.commit()
-
-#         distTemp = []
-#         distances = []
-#         cityCoord = []
-
-#     except Exception as err:
-#         print(str(err))
-#         continue
-
-
-# *** CLOSING CONNECTION *** #
+# closing connection to MySQL DB
 cursor.close()
 connection.close()

@@ -1,5 +1,5 @@
 {
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "editor.fontWeight": "normal",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[python]": {
