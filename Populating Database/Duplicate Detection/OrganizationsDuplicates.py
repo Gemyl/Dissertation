@@ -6,13 +6,14 @@ from getpass import getpass
 # Colors
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
+BLUE = "\033[1;34m"
 
 # Reset color to default
 RESET = "\033[0m"
 
-def getMostRecentProfile(first_date, second_date):
+def getMostRecentProfile(first_date, seconnectiond_date):
     """Return the most recent date between two dates."""
-    return max(first_date, second_date, key=lambda x: x[::-1])
+    return max(first_date, seconnectiond_date, key=lambda x: x[::-1])
 
 
 # Get password from user input
@@ -29,8 +30,8 @@ removedIds = []
 removedNames = []
 remainingNames = []
 
-# Connect to MySQL database
-con = connector.connect(
+# connectionnect to MySQL database
+connection = connector.connect(
     host='localhost',
     port='3306',
     user='root',
@@ -40,7 +41,7 @@ con = connector.connect(
 )
 
 # Create cursor object to execute queries
-cursor = con.cursor()
+cursor = connection.cursor()
 
 # Retrieve organization data from database
 query = 'SELECT Name FROM scopus_organizations ORDER BY Name;'
@@ -71,16 +72,15 @@ for i in range(len(names)-1):
         if (((fuzz.ratio(names[i], names[j]) > 85) | (names[i] in names[j]) | (names[j] in names[i])) &
             (cities[i] == cities[j])):
             first_date = AffiliationRetrieval(int(scopusIds[i])).date_created
-            second_date = AffiliationRetrieval(int(scopusIds[j])).date_created
+            seconnectiond_date = AffiliationRetrieval(int(scopusIds[j])).date_created
 
             # Keep the organization with the most recent profile
-            if getMostRecentProfile(first_date, second_date) == first_date:
-                if names[i] not in removedNames:
-                    removedIds.append(ids[j])
-                    removedNames.append(names[j])
-                    remainingNames.append(names[i])
-            else:
-                if names[j] not in removedNames:
+            if ((getMostRecentProfile(first_date, seconnectiond_date) == first_date) & (ids[i] not in removedIds)):
+                removedIds.append(ids[j])
+                removedNames.append(names[j])
+                remainingNames.append(names[i])
+                
+            elif (names[j] not in removedNames):
                     removedIds.append(ids[i])
                     removedNames.append(names[i])
                     remainingNames.append(names[j])
@@ -88,25 +88,15 @@ for i in range(len(names)-1):
             break
 
 # Print out the rejected and remaining organization variants
-for i in range(len(removedNames)):
-    print(f'----------------\n{GREEN}Remained variant: {remainingNames[i]}{RESET} \n{RED}Rejected variant: {removedNames[i]}{RESET} \n----------------')
+if(len(removedNames) == 0):
+    print(f"{BLUE}No duplicates detected.")
+else:
+    for i in range(len(removedNames)):
+        print(f'----------------\n'
+            f'{GREEN}Remained variant: {remainingNames[i]}{RESET}\n'
+            f'{RED}Rejected variant: {removedNames[i]}{RESET}\n'
+            f'----------------')
 
-# Uncomment the following code to delete rejected organizations from the database
-# for id in removed_id:
-#     query = 'DELETE FROM authors_organizations WHERE Organization_ID = \'' + \
-#         str(id) + '\';'
-#     cursor.execute(query)
-
-#     query = 'DELETE FROM publications_organizations WHERE Organization_ID = \'' + \
-#         str(id) + '\';'
-#     cursor.execute(query)
-
-#     query = 'DELETE FROM organizations WHERE ID = \'' + str(id) + '\';'
-#     cursor.execute(query)
-
-# Commit changes to the database
-con.commit()
-
-# Close the cursor and database connection
+# Close the cursor and database connectionnection
 cursor.close()
-con.close()
+connection.close()
