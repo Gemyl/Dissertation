@@ -6,7 +6,21 @@ import mysql.connector as connector
 import json
 import uuid
 
+# functions
+def getSafeAttribute(obj, attribute, attributeType):
+    try:
+        if isinstance(obj, dict):
+            value = obj.get(attribute)
+        else:
+            value = getattr(obj, attribute)
+    except (AttributeError, KeyError):
+        if attributeType == "number":
+            value = 999999
+        else:
+            value = "-"
+    return value
 
+        
 def buildKeywordsQuery(keywords):
     keywords = keywords.split(', ')
     keywordsList = '('
@@ -40,13 +54,12 @@ def getColumnLength(column, table, cursor):
             return resultSet[0][0]
         else:
             return 100
-
+        
     except:
         return 100
 
 
-def replaceSingleQuote(string):
-
+def getSqlSyntax(string):
     if string != None:
         return string.replace("\'", " ")
     else:
@@ -54,129 +67,186 @@ def replaceSingleQuote(string):
 
 
 def removeCommonWords(abstract, commonWords):
-
     abstractList = abstract.split(" ")
     abstractString = " ".join(
         [word for word in abstractList if word.lower() not in commonWords])
     return abstractString
 
 
-def getMaximumCitationsCount(citationsCount, doi):
-
-    maxCitations = citationsCount
-    plumxCitations = PlumXMetrics(doi, id_type='doi').citation
-
-    if plumxCitations != None:
-        plumxCitations = max([citation[1] for citation in plumxCitations])
-        maxCitations = max(maxCitations, plumxCitations)
-
-    return maxCitations
-
-
-def getAbstract(abstract, description):
-
-    if abstract != None:
-        return replaceSingleQuote(abstract)
-    elif description != None:
-        return replaceSingleQuote(description)
-    else:
-        return "-"
-
-
-def getKeywords(keywords):
-
-    if keywords != None:
-        return replaceSingleQuote(", ".join([keyword for keyword in keywords]))
-    else:
-        return "-"
-
-
-def getFields(fields):
-
-    if fields != None:
-        return replaceSingleQuote(", ".join([field[0].lower() for field in fields]))
-    else:
-        return "-"
-
-
-def getAffiliations(affiliations):
-
-    if (affiliations == None):
-        return "-"
-
-    affilHistory = []
-    for affil in affiliations:
-        if ((affil.preferred_name not in affilHistory) & (affil.preferred_name != None)):
-            if (affil.parent == None):
-                affilHistory.append(affil.preferred_name)
-            else:
-                affilHistory.append(affil.preferred_name +
-                                    ' - ' + affil.parent_preferred_name)
-                affilHistory.append(affil.parent_preferred_name)
-
-    affilHistoryStr = ', '.join(affilHistory).replace("\'", " ")
-
-    return replaceSingleQuote(affilHistoryStr)
-
-
 def getAffiliationsIds(affiliations):
-
     if affiliations != None:
         return [affil for affil in affiliations.split(";")]
     else:
         return "-"
 
 
-def getAffiliationTypes(affiliationObj):
+# classes
+class Publication:
+    def __init__(self, publicationInfo, year, doi):
+        self.id = str(uuid.uuid4())
+        self.doi = doi
+        self.year = year
+        self.title = getSqlSyntax(
+            getSafeAttribute(publicationInfo, 'title', 'string')
+        )
+        self.journal = getSafeAttribute(publicationInfo, 'publicationName', 'string')
+        self.abstract = getSqlSyntax(
+            Publication.getAbstract(
+                getSafeAttribute(publicationInfo, 'abstract', 'string'),
+                getSafeAttribute(publicationInfo, 'description', 'string')
+            )
+        )
+        self.keywords = Publication.getKeywords(
+            getSafeAttribute(publicationInfo, 'authkeywords', 'string')
+        )
+        self.fields = Publication.getFields(
+            getSafeAttribute(publicationInfo, 'subject_areas', 'string')
+        )
+        self.citationsCount = Publication.getMaximumCitationsCount(
+            getSafeAttribute(publicationInfo, 'citedby_count', 'number'),
+            doi
+        )
+        self.authorsNumber = Publication.getAuthorsNumber(
+            getSafeAttribute(publicationInfo, 'authors', 'list')
+        )
+        self.affiliationsNumber = Publication.getAffiliationsNumber(
+            getSafeAttribute(publicationInfo, 'affiliation', 'list')
+        )
 
-    if (affiliationObj.org_type == 'univ') | (affiliationObj.org_type == 'coll') | \
-            (len([univ for univ in university if univ in affiliationObj.affiliation_name.lower()]) > 0):
-        type1 = 'Academic'
-        type2 = 'University - College'
+    def getAbstract(abstract, description):
+        if abstract != None:
+            return getSqlSyntax(abstract)
+        elif description != None:
+            return getSqlSyntax(description)
+        else:
+            return "-"
+        
+    def getKeywords(keywords):
+        if keywords != None:
+            return getSqlSyntax(", ".join([keyword for keyword in keywords]))
+        else:
+            return "-"
+    
+    def getFields(fields):
+        if fields != None:
+            return getSqlSyntax(", ".join([field[0].lower() for field in fields]))
+        else:
+            return "-"
+    
+    def getMaximumCitationsCount(citationsCount, doi):
+        maxCitations = citationsCount
+        plumxCitations = PlumXMetrics(doi, id_type='doi').citation
 
-    elif (affiliationObj.org_type == 'sch') | \
-            (len([sch for sch in school if sch in affiliationObj.affiliation_name.lower()]) > 0):
-        type1 = 'Academic'
-        type2 = 'School'
+        if plumxCitations != None:
+            plumxCitations = max([citation[1] for citation in plumxCitations])
+            maxCitations = max(maxCitations, plumxCitations)
 
-    elif (affiliationObj.org_type == 'res') | \
-            (len([acad for acad in academy if acad in affiliationObj.affiliation_name.lower()]) > 0):
-        type1 = 'Academic'
-        type2 = 'Research Institute'
+        return maxCitations
+    
+    def getAuthorsNumber(authors):
+        if ((authors == "-") | (authors == None)):
+            return 0
+        
+        return len(authors)
+    
+    def getAffiliationsNumber(affiliations):
+        if ((affiliations == "-") | (affiliations == None)):
+            return 0
 
-    elif (affiliationObj.org_type == 'gov') | \
-            (len([gov for gov in government if gov in affiliationObj.affiliation_name.lower()]) > 0):
-        type1 = 'Government'
-        type2 = ' '
+        return len(affiliations)
+    
 
-    elif (affiliationObj.org_type == 'assn') | \
-            (len([assn for assn in association if assn in affiliationObj.affiliation_name.lower()]) > 0):
-        type1 = 'Association'
-        type2 = ' '
+class Author:
+    def __init__(self,authorInfo):
+        self.id = str(uuid.uuid4())
+        self.scopusId = getSafeAttribute(authorInfo, 'identifier', 'string')
+        self.orcidId = getSafeAttribute(authorInfo, 'orcid', 'string')
+        self.firstName = getSafeAttribute(authorInfo, 'given_name', 'string')
+        self.lastName = getSafeAttribute(authorInfo, 'surname', 'string')
+        self.hIndex = getSafeAttribute(authorInfo, 'h_index', 'number')
+        self.fieldsOfStudy = Author.getFields(getSafeAttribute(authorInfo, 'subject_areas', 'string'))
+        self.citationsCount = getSafeAttribute(authorInfo, 'cited_by_count', 'number')
+        self.affiliations = Author.getAffiliations(getSafeAttribute(authorInfo, 'affiliation_history', 'string'))
 
-    elif (affiliationObj.org_type == 'corp') | \
-            (len([bus for bus in bussiness if bus in affiliationObj.affiliation_name.lower()]) > 0):
-        type1 = 'Business'
-        type2 = ' '
+    def getAffiliations(affiliations):
+        if ((affiliations == "-") | (affiliations == None)):
+            return "-"
 
-    elif (affiliationObj.org_type == 'non') | \
-            (len([np for np in nonProfit if np in affiliationObj.affiliation_name.lower()]) > 0):
-        type1 = 'Non-profit'
-        type2 = ' '
+        affilHistory = []
+        for affil in affiliations:
+            if ((affil.preferred_name not in affilHistory) & (affil.preferred_name != None)):
+                if (affil.parent == None):
+                    affilHistory.append(affil.preferred_name)
+                else:
+                    affilHistory.append(affil.preferred_name + ' - ' + affil.parent_preferred_name)
+                    affilHistory.append(affil.parent_preferred_name)
 
-    else:
-        type1 = "Other"
-        type2 = "Other"
+        affilHistoryStr = ', '.join(affilHistory).replace("\'", " ")
+        return getSqlSyntax(affilHistoryStr)
+    
+    def getFields(fields):
+        if (fields == "-") | (fields == None):
+            return "-"
+        
+        return getSqlSyntax(", ".join([field[0].lower() for field in fields]))
+        
 
-    return type1, type2
+class Organization:
+    def __init__(self, organizationInfo):
+        self.id = str(uuid.uuid4())
+        self.scopusId = getSafeAttribute(organizationInfo, 'identifier', 'string')
+        self.name = getSqlSyntax(
+            getSafeAttribute(organizationInfo, 'affiliation_name', 'string')
+        )
+        self.type1, self.type2 = Organization.getAffiliationTypes(organizationInfo)
+        self.address = getSafeAttribute(organizationInfo, 'address', 'string')
+        self.city = getSafeAttribute(organizationInfo, 'city', 'string')
+        self.country = getSafeAttribute(organizationInfo, 'country', 'string')
 
+    def getAffiliationTypes(affiliationObj):
+        type = getSafeAttribute(affiliationObj, 'org_type', 'string')
+        name = getSafeAttribute(affiliationObj, 'affiliation_name', 'string')
 
-def countAffiliations(affiliations):
+        if (type == 'univ') | (type == 'coll') | \
+                (len([univ for univ in university if univ in name.lower()]) > 0):
+            type1 = 'Academic'
+            type2 = 'University - College'
 
-    if (affiliations == None):
-        return 0
+        elif (type == 'sch') | \
+                (len([sch for sch in school if sch in name.lower()]) > 0):
+            type1 = 'Academic'
+            type2 = 'School'
 
-    return len(affiliations)
+        elif (type == 'res') | \
+                (len([acad for acad in academy if acad in name.lower()]) > 0):
+            type1 = 'Academic'
+            type2 = 'Research Institute'
+
+        elif (type == 'gov') | \
+                (len([gov for gov in government if gov in name.lower()]) > 0):
+            type1 = 'Government'
+            type2 = ' '
+
+        elif (type == 'assn') | \
+                (len([assn for assn in association if assn in name.lower()]) > 0):
+            type1 = 'Association'
+            type2 = ' '
+
+        elif (type == 'corp') | \
+                (len([bus for bus in bussiness if bus in name.lower()]) > 0):
+            type1 = 'Business'
+            type2 = ' '
+
+        elif (type == 'non') | \
+                (len([np for np in nonProfit if np in name.lower()]) > 0):
+            type1 = 'Non-profit'
+            type2 = ' '
+
+        else:
+            type1 = "Other"
+            type2 = "Other"
+
+        return type1, type2
 
 
 # terminal colors
@@ -193,8 +263,7 @@ research = ['research', 'researchers']
 bussiness = ['inc', 'ltd', 'corporation']
 association = ['association']
 nonProfit = ['non-profit']
-government = ['government', 'gov', 'public', 'state',
-              'national', 'federal', 'federate', 'confederate', 'royal']
+government = ['government', 'gov', 'public', 'state', 'national', 'federal', 'federate', 'confederate', 'royal']
 international = ['international']
 
 # list of common words in order to be removed from abstracts
@@ -203,10 +272,9 @@ commonWords = ['a', 'an', 'the', 'and', 'or', 'but', 'if', 'of', 'at', 'by', 'fo
                'i', 'you', 'he', 'she', 'it', 'we', 'they', 'is', 'are', 'was', 'were', 'has', 'had',
                'will', 'be', 'not', 'would', 'should', 'before', 'few', 'many', 'much', 'so', 'furthermore']
 
-
 # search parameters
-keywords = 'artificial intelligence, machine learning, learning algorithm, deep learning, pattern recognition'
 yearPublished = '2022'
+keywords = 'artificial intelligence, machine learning, learning algorithm, deep learning, pattern recognition'
 fields = ['AGRI', 'ARTS', 'BIOC', 'BUSI', 'CENG', 'CHEM', 'COMP',
           'DECI', 'DENT', 'EART', 'ECON', 'ENER', 'ENGI', 'ENVI',
           'HEAL', 'IMMU', 'MATE', 'MATH', 'MEDI', 'NEUR', 'NURS',
@@ -263,7 +331,7 @@ affiliationsNumber = []
 
 # matching Scopus IDs with UUIDs
 with open("IdentifiersMapping\PublicationsIds.json", "r") as f:
-    scopusPublicationsIds = json.load(f)
+ publicationsScopusIds = json.load(f)
 
 with open("IdentifiersMapping\AuthorsIds.json", "r") as f:
     scopusAuthorsIds = json.load(f)
@@ -318,25 +386,14 @@ for doi in tqdm(dois):
 
     try:
         publicationInfo = AbstractRetrieval(doi, view="FULL")
-
-        id = str(uuid.uuid4())
-        year = yearPublished
-        title = replaceSingleQuote(publicationInfo.title)
-        journal = replaceSingleQuote(publicationInfo.publicationName)
-        abstract = getAbstract(publicationInfo.abstract,
-                               publicationInfo.description)
-        abstract = removeCommonWords(abstract, commonWords)
-        keywords = getKeywords(publicationInfo.authkeywords)
-        fields = getFields(publicationInfo.subject_areas)
-        citationsCount = getMaximumCitationsCount(
-            publicationInfo.citedby_count, doi)
-        authorsNumber = len(publicationInfo.authors)
-        affiliationsNumber = countAffiliations(publicationInfo.affiliation)
+        publication = Publication(publicationInfo, yearPublished, doi)
+        publication.abstract = removeCommonWords(publication.abstract, commonWords)
 
         while True:
             try:
-                query = f"INSERT INTO scopus_publications VALUES('{id}','{doi}','{year}','{title}','{journal}','{abstract}','{keywords}',\
-                    '{fields}',{citationsCount},{authorsNumber},{affiliationsNumber});"
+                query = f"INSERT INTO scopus_publications VALUES('{publication.id}','{publication.doi}','{publication.year}','{publication.title}',\
+                    '{publication.journal}','{publication.abstract}','{publication.keywords}','{publication.fields}',{publication.citationsCount},\
+                    {publication.authorsNumber},{publication.affiliationsNumber});"
                 cursor.execute(query)
                 connection.commit()
                 errorCode = 0
@@ -403,7 +460,7 @@ for doi in tqdm(dois):
                                 pass
 
                     else:
-                        print(f"{BLUE}Authors Metadatata Retrieving Error Info:{RESET}\n"
+                        print(f"{BLUE}Authors Metadatata Internal Error Info:{RESET}\n"
                               f"DOI: {doi}\n"
                               f"Error: {str(err)}")
                         break
@@ -413,13 +470,13 @@ for doi in tqdm(dois):
                     break
 
         if (errorCode == 0):
-            filteredDois.append(doi)
-            scopusPublicationsIds[doi] = id
+            filteredDois.append(publication.doi)
+            publicationsScopusIds[publication.doi] = publication.id
             with open("IdentifiersMapping\PublicationsIds.json", "w") as f:
-                json.dump(scopusPublicationsIds, f, indent=4)
+                json.dump(publicationsScopusIds, f, indent=4)
 
     except Exception as err:
-        print(f"{BLUE}Publications Metadatata Retrieving Error Info:{RESET}\n"
+        print(f"{BLUE}Publications Metadatata External Error Info:{RESET}\n"
               f"DOI: {doi}\n"
               f"Error: {str(err)}")
 
@@ -431,29 +488,18 @@ for doi in tqdm(filteredDois):
         authors = AbstractRetrieval(doi).authors
 
         for author in authors:
-
             authorInfo = AuthorRetrieval(author[0])
-            id = str(uuid.uuid4())
-            authorScopusId = authorInfo.identifier
-            orcidId = authorInfo.orcid
-            firstName = replaceSingleQuote(authorInfo.given_name)
-            lastName = replaceSingleQuote(authorInfo.surname)
-            hIndex = authorInfo.h_index
-            fieldsOfStudy = replaceSingleQuote(
-                getFields(authorInfo.subject_areas))
-            authorCitationsCount = authorInfo.cited_by_count
-            affiliations = replaceSingleQuote(
-                getAffiliations(authorInfo.affiliation_history))
+            author = Author(authorInfo)
 
             while True:
                 try:
-                    query = f"INSERT INTO scopus_authors VALUES('{id}','{authorScopusId}','{orcidId}','{firstName}','{lastName}',\
-                        '{fieldsOfStudy}','{affiliations}',{hIndex},{authorCitationsCount});"
+                    query = f"INSERT INTO scopus_authors VALUES('{author.id}','{author.scopusId}','{author.orcidId}','{author.firstName}',\
+                        '{author.lastName}','{author.fieldsOfStudy}','{author.affiliations}',{author.hIndex},{author.citationsCount});"
                     cursor.execute(query)
                     connection.commit()
 
-                    filteredAuthorsScopusIds.append(authorScopusId)
-                    scopusAuthorsIds[authorScopusId] = id
+                    filteredAuthorsScopusIds.append(author.scopusId)
+                    scopusAuthorsIds[author.scopusId] = author.id
                     with open("IdentifiersMapping\AuthorsIds.json", "w") as f:
                         json.dump(scopusAuthorsIds, f, indent=4)
 
@@ -491,7 +537,9 @@ for doi in tqdm(filteredDois):
                                     pass
 
                         else:
-                            print(f"{doi} - {authorScopusId}: {str(err)}")
+                            print(f"{BLUE}Authors Metadatata Internal Error Info:{RESET}\n"
+                                f"DOI: {doi}\n"
+                                f"Error: {str(err)}")
                             break
 
                     else:
@@ -499,12 +547,12 @@ for doi in tqdm(filteredDois):
                         break
 
             if (errorCode in [0, 1]):
-                query = f"INSERT INTO scopus_publications_authors VALUES('{scopusPublicationsIds[doi]}','{scopusAuthorsIds[authorScopusId]}');"
+                query = f"INSERT INTO scopus_publications_authors VALUES('{publicationsScopusIds[doi]}','{scopusAuthorsIds[author.scopusId]}');"
                 cursor.execute(query)
                 connection.commit()
 
     except Exception as err:
-        print(f"{BLUE}Authors Metadatata Retrieving Error Info:{RESET}\n"
+        print(f"{BLUE}Authors Metadatata External Error Info:{RESET}\n"
               f"DOI: {doi}\n"
               f"Error: {str(err)}")
 
@@ -517,35 +565,26 @@ for doi in tqdm(filteredDois):
         authors = AbstractRetrieval(doi).authors
 
         for author in authors:
-
             affiliations = getAffiliationsIds(author[4])
+
             if (affiliations != "-"):
                 authorId = AuthorRetrieval(author[0]).identifier
+
                 if (authorId in filteredAuthorsScopusIds):
                     for affil in affiliations:
-
-                        affilInfo = AffiliationRetrieval(
-                            int(affil), view="STANDARD")
-
-                        id = str(uuid.uuid4())
-                        affiliationScopusId = affilInfo.identifier
-                        name = replaceSingleQuote(affilInfo.affiliation_name)
-                        type1, type2 = getAffiliationTypes(affilInfo)
-                        address = replaceSingleQuote(affilInfo.address)
-                        city = replaceSingleQuote(affilInfo.city)
-                        country = replaceSingleQuote(affilInfo.country)
-
+                        affiliationInfo = AffiliationRetrieval(int(affil), view="STANDARD")
+                        organization = Organization(affiliationInfo)
+                        
                         while True:
                             try:
-                                query = f"INSERT INTO scopus_organizations VALUES('{id}','{affiliationScopusId}','{name}','{type1}',\
-                                    '{type2}','{address}','{city}','{country}');"
+                                query = f"INSERT INTO scopus_organizations VALUES('{organization.id}','{organization.scopusId}','{organization.name}',\
+                                    '{organization.type1}','{organization.type2}','{organization.address}','{organization.city}','{organization.country}');"
                                 cursor.execute(query)
                                 connection.commit()
 
-                                scopusAffiliationsIds[affiliationScopusId] = id
+                                scopusAffiliationsIds[organization.scopusId] = organization.id
                                 with open("IdentifiersMapping\AffiliationsIds.json", "w") as f:
-                                    json.dump(
-                                        scopusAffiliationsIds, f, indent=4)
+                                    json.dump(scopusAffiliationsIds, f, indent=4)
 
                                 errorCode = 0
                                 break
@@ -603,31 +642,31 @@ for doi in tqdm(filteredDois):
 
                         if (errorCode in [0, 1]):
                             try:
-                                query = f"INSERT INTO scopus_publications_organizations VALUES('{scopusPublicationsIds[doi]}', \
-                                    '{scopusAffiliationsIds[affiliationScopusId]}');"
+                                query = f"INSERT INTO scopus_publications_organizations VALUES('{publicationsScopusIds[doi]}', \
+                                    '{scopusAffiliationsIds[organization.scopusId]}');"
                                 cursor.execute(query)
                                 connection.commit()
 
                             except Exception as err:
                                 if ("Duplicate entry" not in str(err)):
-                                    print(f"{BLUE}Organizations Metadatata Retrieving Error Info:{RESET}\n"
+                                    print(f"{BLUE}Organizations Metadatata Internal Error Info:{RESET}\n"
                                           f"DOI: {doi}\n"
                                           f"Error: {str(err)}")
 
                             try:
                                 query = f"INSERT INTO scopus_authors_organizations VALUES('{scopusAuthorsIds[authorId]}', \
-                                    '{scopusAffiliationsIds[affiliationScopusId]}',{yearPublished});"
+                                    '{scopusAffiliationsIds[organization.scopusId]}',{yearPublished});"
                                 cursor.execute(query)
                                 connection.commit()
 
                             except Exception as err:
                                 if ("Duplicate entry" not in str(err)):
-                                    print(f"{BLUE}Organizations Metadatata Retrieving Error Info:{RESET}\n"
+                                    print(f"{BLUE}Organizations Metadatata Internal Error Info:{RESET}\n"
                                           f"DOI: {doi}\n"
                                           f"Error: {str(err)}")
 
     except Exception as err:
-        print(f"{BLUE}Organizations Metadatata Retrieving Error Info:{RESET}\n"
+        print(f"{BLUE}Organizations Metadatata External Error Info:{RESET}\n"
               f"DOI: {doi}\n"
               f"Error: {str(err)}")
 

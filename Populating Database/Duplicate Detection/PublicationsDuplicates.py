@@ -91,6 +91,8 @@ for i in range(len(ids)-1):
                 removedIds.append(ids[i])
                 removedTitles.append(titles[i])
                 remainingTitles.append(titles[j])
+        else:
+            break
 
 # Printing results
 if len(removedTitles) == 0:
