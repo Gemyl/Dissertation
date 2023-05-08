@@ -11,13 +11,23 @@ def getSafeAttribute(obj, attribute, attributeType):
     try:
         if isinstance(obj, dict):
             value = obj.get(attribute)
+            if((value == None) & (attributeType == "number")):
+               value = 999999
+            elif (obj.get(attribute) == None):
+                value = "-"
         else:
             value = getattr(obj, attribute)
+            if((value == None) & (attributeType == "number")):
+               value = 999999
+            elif (value == None):
+                value = "-"
+
     except (AttributeError, KeyError):
         if attributeType == "number":
             value = 999999
         else:
             value = "-"
+    
     return value
 
         
@@ -59,7 +69,7 @@ def getColumnLength(column, table, cursor):
         return 100
 
 
-def getSqlSyntax(string):
+def applySqlSyntax(string):
     if string != None:
         return string.replace("\'", " ")
     else:
@@ -86,50 +96,40 @@ class Publication:
         self.id = str(uuid.uuid4())
         self.doi = doi
         self.year = year
-        self.title = getSqlSyntax(
-            getSafeAttribute(publicationInfo, 'title', 'string')
-        )
-        self.journal = getSafeAttribute(publicationInfo, 'publicationName', 'string')
-        self.abstract = getSqlSyntax(
+        self.title = applySqlSyntax(getSafeAttribute(publicationInfo, 'title', 'string'))
+        self.journal = applySqlSyntax(getSafeAttribute(publicationInfo, 'publicationName', 'string'))
+        self.abstract = applySqlSyntax(
             Publication.getAbstract(
                 getSafeAttribute(publicationInfo, 'abstract', 'string'),
                 getSafeAttribute(publicationInfo, 'description', 'string')
             )
         )
-        self.keywords = Publication.getKeywords(
-            getSafeAttribute(publicationInfo, 'authkeywords', 'string')
-        )
-        self.fields = Publication.getFields(
-            getSafeAttribute(publicationInfo, 'subject_areas', 'string')
-        )
+        self.keywords = applySqlSyntax(Publication.getKeywords(getSafeAttribute(publicationInfo, 'authkeywords', 'string')))
+        self.fields = applySqlSyntax(Publication.getFields(getSafeAttribute(publicationInfo, 'subject_areas', 'string')))
         self.citationsCount = Publication.getMaximumCitationsCount(
             getSafeAttribute(publicationInfo, 'citedby_count', 'number'),
             doi
         )
-        self.authorsNumber = Publication.getAuthorsNumber(
-            getSafeAttribute(publicationInfo, 'authors', 'list')
-        )
-        self.affiliationsNumber = Publication.getAffiliationsNumber(
-            getSafeAttribute(publicationInfo, 'affiliation', 'list')
-        )
+        self.authorsNumber = Publication.getAuthorsNumber(getSafeAttribute(publicationInfo, 'authors', 'list'))
+        self.affiliationsNumber = Publication.getAffiliationsNumber(getSafeAttribute(publicationInfo, 'affiliation', 'list'))
 
     def getAbstract(abstract, description):
         if abstract != None:
-            return getSqlSyntax(abstract)
+            return applySqlSyntax(abstract)
         elif description != None:
-            return getSqlSyntax(description)
+            return applySqlSyntax(description)
         else:
             return "-"
         
     def getKeywords(keywords):
         if keywords != None:
-            return getSqlSyntax(", ".join([keyword for keyword in keywords]))
+            return applySqlSyntax(", ".join([keyword for keyword in keywords]))
         else:
             return "-"
     
     def getFields(fields):
         if fields != None:
-            return getSqlSyntax(", ".join([field[0].lower() for field in fields]))
+            return applySqlSyntax(", ".join([field[0].lower() for field in fields]))
         else:
             return "-"
     
@@ -138,8 +138,11 @@ class Publication:
         plumxCitations = PlumXMetrics(doi, id_type='doi').citation
 
         if plumxCitations != None:
-            plumxCitations = max([citation[1] for citation in plumxCitations])
-            maxCitations = max(maxCitations, plumxCitations)
+            if maxCitations != 999999:
+                plumxCitations = max([citation[1] for citation in plumxCitations])
+                maxCitations = max(maxCitations, plumxCitations)
+            else:
+                maxCitations = max([citation[1] for citation in plumxCitations])
 
         return maxCitations
     
@@ -161,19 +164,19 @@ class Author:
         self.id = str(uuid.uuid4())
         self.scopusId = getSafeAttribute(authorInfo, 'identifier', 'string')
         self.orcidId = getSafeAttribute(authorInfo, 'orcid', 'string')
-        self.firstName = getSafeAttribute(authorInfo, 'given_name', 'string')
-        self.lastName = getSafeAttribute(authorInfo, 'surname', 'string')
+        self.firstName = applySqlSyntax(getSafeAttribute(authorInfo, 'given_name', 'string'))
+        self.lastName = applySqlSyntax(getSafeAttribute(authorInfo, 'surname', 'string'))
         self.hIndex = getSafeAttribute(authorInfo, 'h_index', 'number')
-        self.fieldsOfStudy = Author.getFields(getSafeAttribute(authorInfo, 'subject_areas', 'string'))
+        self.fieldsOfStudy = applySqlSyntax(Author.getFields(getSafeAttribute(authorInfo, 'subject_areas', 'string')))
         self.citationsCount = getSafeAttribute(authorInfo, 'cited_by_count', 'number')
-        self.affiliations = Author.getAffiliations(getSafeAttribute(authorInfo, 'affiliation_history', 'string'))
+        self.affiliations = applySqlSyntax(Author.getAffiliations(getSafeAttribute(authorInfo, 'affiliation_history', 'string')))
 
-    def getAffiliations(affiliations):
-        if ((affiliations == "-") | (affiliations == None)):
+    def getAffiliations(affiliationsInput):
+        if ((affiliationsInput == "-") | (affiliationsInput == None)):
             return "-"
 
         affilHistory = []
-        for affil in affiliations:
+        for affil in affiliationsInput:
             if ((affil.preferred_name not in affilHistory) & (affil.preferred_name != None)):
                 if (affil.parent == None):
                     affilHistory.append(affil.preferred_name)
@@ -182,26 +185,24 @@ class Author:
                     affilHistory.append(affil.parent_preferred_name)
 
         affilHistoryStr = ', '.join(affilHistory).replace("\'", " ")
-        return getSqlSyntax(affilHistoryStr)
+        return applySqlSyntax(affilHistoryStr)
     
     def getFields(fields):
         if (fields == "-") | (fields == None):
             return "-"
         
-        return getSqlSyntax(", ".join([field[0].lower() for field in fields]))
+        return applySqlSyntax(", ".join([field[0].lower() for field in fields]))
         
 
 class Organization:
     def __init__(self, organizationInfo):
         self.id = str(uuid.uuid4())
         self.scopusId = getSafeAttribute(organizationInfo, 'identifier', 'string')
-        self.name = getSqlSyntax(
-            getSafeAttribute(organizationInfo, 'affiliation_name', 'string')
-        )
+        self.name = applySqlSyntax(getSafeAttribute(organizationInfo, 'affiliation_name', 'string'))
         self.type1, self.type2 = Organization.getAffiliationTypes(organizationInfo)
-        self.address = getSafeAttribute(organizationInfo, 'address', 'string')
-        self.city = getSafeAttribute(organizationInfo, 'city', 'string')
-        self.country = getSafeAttribute(organizationInfo, 'country', 'string')
+        self.address = applySqlSyntax(getSafeAttribute(organizationInfo, 'address', 'string'))
+        self.city = applySqlSyntax(getSafeAttribute(organizationInfo, 'city', 'string'))
+        self.country = applySqlSyntax(getSafeAttribute(organizationInfo, 'country', 'string'))
 
     def getAffiliationTypes(affiliationObj):
         type = getSafeAttribute(affiliationObj, 'org_type', 'string')
@@ -331,7 +332,7 @@ affiliationsNumber = []
 
 # matching Scopus IDs with UUIDs
 with open("IdentifiersMapping\PublicationsIds.json", "r") as f:
- publicationsScopusIds = json.load(f)
+    publicationsScopusIds = json.load(f)
 
 with open("IdentifiersMapping\AuthorsIds.json", "r") as f:
     scopusAuthorsIds = json.load(f)
@@ -347,6 +348,7 @@ for field in tqdm(fields):
     while True:
         start = f"&start={startIndex}"
         currentField = f"&subj={field}"
+        
         # building GET query
         query = 'query=' + scope + terms + date + start + \
             count + sort + currentField + scopusAPIKey + view
@@ -386,14 +388,14 @@ for doi in tqdm(dois):
 
     try:
         publicationInfo = AbstractRetrieval(doi, view="FULL")
-        publication = Publication(publicationInfo, yearPublished, doi)
-        publication.abstract = removeCommonWords(publication.abstract, commonWords)
+        publicationObj = Publication(publicationInfo, yearPublished, doi)
+        publicationObj.abstract = removeCommonWords(publicationObj.abstract, commonWords)
 
         while True:
             try:
-                query = f"INSERT INTO scopus_publications VALUES('{publication.id}','{publication.doi}','{publication.year}','{publication.title}',\
-                    '{publication.journal}','{publication.abstract}','{publication.keywords}','{publication.fields}',{publication.citationsCount},\
-                    {publication.authorsNumber},{publication.affiliationsNumber});"
+                query = f"INSERT INTO scopus_publications VALUES('{publicationObj.id}','{publicationObj.doi}','{publicationObj.year}','{publicationObj.title}',\
+                    '{publicationObj.journal}','{publicationObj.abstract}','{publicationObj.keywords}','{publicationObj.fields}',{publicationObj.citationsCount},\
+                    {publicationObj.authorsNumber},{publicationObj.affiliationsNumber});"
                 cursor.execute(query)
                 connection.commit()
                 errorCode = 0
@@ -429,7 +431,7 @@ for doi in tqdm(dois):
                         elif "Abstract" in str(err):
                             abstractLength += 10
                             if abstractLength >= MAX_COLUMN_SIZE:
-                                abstract = abstract[:MAX_COLUMN_SIZE]
+                                publicationObj.abstract = publicationObj.abstract[:MAX_COLUMN_SIZE]
                                 abstractLength = MAX_COLUMN_SIZE
                             try:
                                 query = f"ALTER TABLE scopus_publications MODIFY COLUMN Abstract VARCHAR({abstractLength});"
@@ -450,7 +452,7 @@ for doi in tqdm(dois):
                         elif "Fields" in str(err):
                             fieldsLength += 10
                             if fieldsLength >= MAX_COLUMN_SIZE:
-                                fields = fields[:MAX_COLUMN_SIZE]
+                                publicationObj.fields = publicationObj.fields[:MAX_COLUMN_SIZE]
                                 fieldsLength = MAX_COLUMN_SIZE
                             try:
                                 query = f"ALTER TABLE scopus_publications MODIFY COLUMN Fields VARCHAR({fieldsLength});"
@@ -460,7 +462,7 @@ for doi in tqdm(dois):
                                 pass
 
                     else:
-                        print(f"{BLUE}Authors Metadatata Internal Error Info:{RESET}\n"
+                        print(f"{BLUE}Publication Metadatata Inserting Error Info:{RESET}\n"
                               f"DOI: {doi}\n"
                               f"Error: {str(err)}")
                         break
@@ -470,13 +472,13 @@ for doi in tqdm(dois):
                     break
 
         if (errorCode == 0):
-            filteredDois.append(publication.doi)
-            publicationsScopusIds[publication.doi] = publication.id
+            filteredDois.append(publicationObj.doi)
+            publicationsScopusIds[publicationObj.doi] = publicationObj.id
             with open("IdentifiersMapping\PublicationsIds.json", "w") as f:
                 json.dump(publicationsScopusIds, f, indent=4)
 
     except Exception as err:
-        print(f"{BLUE}Publications Metadatata External Error Info:{RESET}\n"
+        print(f"{BLUE}Publication Metadatata Retrieving Error Info:{RESET}\n"
               f"DOI: {doi}\n"
               f"Error: {str(err)}")
 
@@ -489,17 +491,17 @@ for doi in tqdm(filteredDois):
 
         for author in authors:
             authorInfo = AuthorRetrieval(author[0])
-            author = Author(authorInfo)
+            authorObj = Author(authorInfo)
 
             while True:
                 try:
-                    query = f"INSERT INTO scopus_authors VALUES('{author.id}','{author.scopusId}','{author.orcidId}','{author.firstName}',\
-                        '{author.lastName}','{author.fieldsOfStudy}','{author.affiliations}',{author.hIndex},{author.citationsCount});"
+                    query = f"INSERT INTO scopus_authors VALUES('{authorObj.id}','{authorObj.scopusId}','{authorObj.orcidId}','{authorObj.firstName}',\
+                        '{authorObj.lastName}','{authorObj.fieldsOfStudy}','{authorObj.affiliations}',{authorObj.hIndex},{authorObj.citationsCount});"
                     cursor.execute(query)
                     connection.commit()
 
-                    filteredAuthorsScopusIds.append(author.scopusId)
-                    scopusAuthorsIds[author.scopusId] = author.id
+                    filteredAuthorsScopusIds.append(authorObj.scopusId)
+                    scopusAuthorsIds[authorObj.scopusId] = authorObj.id
                     with open("IdentifiersMapping\AuthorsIds.json", "w") as f:
                         json.dump(scopusAuthorsIds, f, indent=4)
 
@@ -514,7 +516,7 @@ for doi in tqdm(filteredDois):
                             if "Fields_Of_Study" in str(err):
                                 fieldsOfStudyLength += 10
                                 if fieldsOfStudyLength >= MAX_COLUMN_SIZE:
-                                    fieldsOfStudy = fieldsOfStudy[:MAX_COLUMN_SIZE]
+                                    authorObj.fieldsOfStudy = authorObj.fieldsOfStudy[:MAX_COLUMN_SIZE]
                                     fieldsOfStudyLength = MAX_COLUMN_SIZE
                                 try:
                                     query = f"ALTER TABLE scopus_authors MODIFY COLUMN Fields_Of_Study VARCHAR({fieldsOfStudyLength});"
@@ -524,10 +526,9 @@ for doi in tqdm(filteredDois):
                                     pass
 
                             if "Affiliations" in str(err):
-                                print(affiliationsLength)
                                 affiliationsLength += 100
                                 if affiliationsLength >= MAX_COLUMN_SIZE:
-                                    affiliations = affiliations[:MAX_COLUMN_SIZE]
+                                    authorObj.affiliations = authorObj.affiliations[:MAX_COLUMN_SIZE]
                                     affiliationsLength = MAX_COLUMN_SIZE
                                 try:
                                     query = f"ALTER TABLE scopus_authors MODIFY COLUMN Affiliations VARCHAR({affiliationsLength});"
@@ -537,8 +538,9 @@ for doi in tqdm(filteredDois):
                                     pass
 
                         else:
-                            print(f"{BLUE}Authors Metadatata Internal Error Info:{RESET}\n"
+                            print(f"{BLUE}Author Metadatata Inserting Error Info:{RESET}\n"
                                 f"DOI: {doi}\n"
+                                f"Author Scopus ID: {authorObj.scopusId}\n"
                                 f"Error: {str(err)}")
                             break
 
@@ -547,14 +549,15 @@ for doi in tqdm(filteredDois):
                         break
 
             if (errorCode in [0, 1]):
-                query = f"INSERT INTO scopus_publications_authors VALUES('{publicationsScopusIds[doi]}','{scopusAuthorsIds[author.scopusId]}');"
+                query = f"INSERT INTO scopus_publications_authors VALUES('{publicationsScopusIds[doi]}','{scopusAuthorsIds[authorObj.scopusId]}');"
                 cursor.execute(query)
                 connection.commit()
 
     except Exception as err:
-        print(f"{BLUE}Authors Metadatata External Error Info:{RESET}\n"
-              f"DOI: {doi}\n"
-              f"Error: {str(err)}")
+        print(f"{BLUE}Author Metadatata Retrieving Error Info:{RESET}\n"
+            f"DOI: {doi}\n"
+            f"Author Scopus ID: {authorObj.scopusId}\n"
+            f"Error: {str(err)}")
 
 
 # getting organizations metadata
@@ -573,16 +576,16 @@ for doi in tqdm(filteredDois):
                 if (authorId in filteredAuthorsScopusIds):
                     for affil in affiliations:
                         affiliationInfo = AffiliationRetrieval(int(affil), view="STANDARD")
-                        organization = Organization(affiliationInfo)
+                        organizationObj = Organization(affiliationInfo)
                         
                         while True:
                             try:
-                                query = f"INSERT INTO scopus_organizations VALUES('{organization.id}','{organization.scopusId}','{organization.name}',\
-                                    '{organization.type1}','{organization.type2}','{organization.address}','{organization.city}','{organization.country}');"
+                                query = f"INSERT INTO scopus_organizations VALUES('{organizationObj.id}','{organizationObj.scopusId}','{organizationObj.name}',\
+                                    '{organizationObj.type1}','{organizationObj.type2}','{organizationObj.address}','{organizationObj.city}','{organizationObj.country}');"
                                 cursor.execute(query)
                                 connection.commit()
 
-                                scopusAffiliationsIds[organization.scopusId] = organization.id
+                                scopusAffiliationsIds[organizationObj.scopusId] = organizationObj.id
                                 with open("IdentifiersMapping\AffiliationsIds.json", "w") as f:
                                     json.dump(scopusAffiliationsIds, f, indent=4)
 
@@ -631,9 +634,10 @@ for doi in tqdm(filteredDois):
                                                 pass
 
                                     else:
-                                        print(f"{BLUE}Authors Metadatata Retrieving Error Info:{RESET}\n"
-                                              f"DOI: {doi}\n"
-                                              f"Error: {str(err)}")
+                                        print(f"{BLUE}Affiliation Metadatata Inserting Error Info:{RESET}\n"
+                                            f"DOI: {doi}\n"
+                                            f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+                                            f"Error: {str(err)}")
                                         break
 
                                 else:
@@ -643,32 +647,35 @@ for doi in tqdm(filteredDois):
                         if (errorCode in [0, 1]):
                             try:
                                 query = f"INSERT INTO scopus_publications_organizations VALUES('{publicationsScopusIds[doi]}', \
-                                    '{scopusAffiliationsIds[organization.scopusId]}');"
+                                    '{scopusAffiliationsIds[organizationObj.scopusId]}');"
                                 cursor.execute(query)
                                 connection.commit()
 
                             except Exception as err:
-                                if ("Duplicate entry" not in str(err)):
-                                    print(f"{BLUE}Organizations Metadatata Internal Error Info:{RESET}\n"
-                                          f"DOI: {doi}\n"
-                                          f"Error: {str(err)}")
+                                if "Duplicate entry" not in str(err):
+                                    print(f"{BLUE}Affiliation Metadatata Inserting Error Info:{RESET}\n"
+                                        f"DOI: {doi}\n"
+                                        f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+                                        f"Error: {str(err)}")
 
                             try:
                                 query = f"INSERT INTO scopus_authors_organizations VALUES('{scopusAuthorsIds[authorId]}', \
-                                    '{scopusAffiliationsIds[organization.scopusId]}',{yearPublished});"
+                                    '{scopusAffiliationsIds[organizationObj.scopusId]}',{yearPublished});"
                                 cursor.execute(query)
                                 connection.commit()
 
                             except Exception as err:
-                                if ("Duplicate entry" not in str(err)):
-                                    print(f"{BLUE}Organizations Metadatata Internal Error Info:{RESET}\n"
-                                          f"DOI: {doi}\n"
-                                          f"Error: {str(err)}")
+                                if "Duplicate entry" not in str(err):
+                                    print(f"{BLUE}Affiliation Metadatata Inserting Error Info:{RESET}\n"
+                                        f"DOI: {doi}\n"
+                                        f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+                                        f"Error: {str(err)}")
 
     except Exception as err:
-        print(f"{BLUE}Organizations Metadatata External Error Info:{RESET}\n"
-              f"DOI: {doi}\n"
-              f"Error: {str(err)}")
+        print(f"{BLUE}Affiliation Metadatata Retrieving Error Info:{RESET}\n"
+            f"DOI: {doi}\n"
+            f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+            f"Error: {str(err)}")
 
 # closing connection to MySQL DB
 cursor.close()

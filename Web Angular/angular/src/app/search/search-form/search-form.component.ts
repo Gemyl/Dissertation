@@ -1,5 +1,6 @@
 import { Component, ViewChildren, QueryList} from "@angular/core";
 import { NgForm } from "@angular/forms";
+import { HttpClient } from "@angular/common/http";
 
 @Component({
   selector: 'app-search-form',
@@ -10,7 +11,9 @@ export class SearchFormComponent {
   @ViewChildren('dynamicInputs') dynamicInputs!: QueryList<any>;
   keywordSets: any[] = [];
 
-  constructor(){}
+  constructor(
+    private http: HttpClient
+  ){}
 
   options = [
     {name:"Agricultural and Biological Sciences", selected: false},
@@ -54,7 +57,9 @@ export class SearchFormComponent {
   }
 
   onSubmit(form:NgForm){
-    console.log(form.value);
+    this.http.get("http://127.0.0.1:5000/search", {params:form.value}).subscribe(reponse => {
+      console.log(reponse);
+    });
     form.resetForm();
     this.dynamicInputs.forEach(input=>this.removeSet(input));
   }

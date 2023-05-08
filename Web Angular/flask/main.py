@@ -1,5 +1,14 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
+import mysql.connector as connector
+
+connection = connector.connect(host='localhost',
+                               port='3306',
+                               user='root',
+                               password='gemyl',
+                               database='scopus',
+                               auth_plugin='mysql_native_password')
+cursor = connection.cursor()
 
 app = Flask(__name__)
 CORS(app)
@@ -13,43 +22,49 @@ def root():
 @app.route('/search', methods=['GET', 'POST'])
 def search():
 
-    data = request.get_json()
+    keywords = [value for key, value in request.args.items() if "keyword" in key.lower()]
+    booleans = [value for key, value in request.args.items() if "boolean" in key.lower()]
+    year1 = request.args.get("years1")
+    year2 = request.args.get("years2")
+    subjects = [key.lower() for key, value in request.args.items() if value == 'true']
 
-    basicQuery = 'SELECT publications.DOI, publications.Year, publications.Citations_Count, ' + \
-        'publications.Keywords, publications.Fields, authors.First_Name, authors.Last_Name, ' + \
-        'authors.Subjected_Areas, authors.Citations_Count, organizations.Name, ' + \
-        'organizations.Type_1, organizations.Type_2, organizations.City, organizations.Country ' + \
-        'FROM ((((publications_authors ' + \
-        'INNER JOIN publications ON publications_authors.DOI = publications.DOI) ' + \
-        'INNER JOIN authors ON publications_authors.Author_ID = authors.ID) ' + \
-        'INNER JOIN authors_organizations ON authors.ID = authors_organizations.Author_ID) ' + \
-        'INNER JOIN organizations ON authors_organizations.Organization_ID = organizations.ID)\n'
+    basicQuery = f'SELECT scopus_publications.DOI, scopus_publications.Year, scopus_publications.Citations_Count, ' + \
+        'scopus_publications.Keywords, scopus_publications.Fields, scopus_authors.First_Name, scopus_authors.Last_Name, ' + \
+        'scopus_authors.Fields_Of_Study, scopus_authors.Citations_Count, scopus_organizations.Name, ' + \
+        'scopus_organizations.Type_1, scopus_organizations.Type_2, scopus_organizations.City, scopus_organizations.Country ' + \
+        'FROM ((((scopus_publications_authors ' + \
+        'INNER JOIN scopus_publications ON scopus_publications_authors.Publication_ID = scopus_publications.ID) ' + \
+        'INNER JOIN scopus_authors ON scopus_publications_authors.Author_ID = scopus_authors.ID) ' + \
+        'INNER JOIN scopus_authors_organizations ON scopus_authors.ID = scopus_authors_organizations.Author_ID) ' + \
+        'INNER JOIN scopus_organizations ON scopus_authors_organizations.Organization_ID = scopus_organizations.ID)\n'
 
     conditionQuery = 'WHERE\n'
+    for i in range(len(keywords)):
+        if (i == 0):
+            tempQuery = f'`Keywords` LIKE \'%{keywords[i].lower()}%\'\n'
+            conditionQuery = conditionQuery + tempQuery
+        else:
+            tempQuery = f'{booleans[i-1]} `Keywords` LIKE \'%{keywords[i].lower()}%\'\n'
 
-    for key in data.keys():
-        if ("keyword" in key) & (data[key] != None):
-            tempQuery = f'`Keywords` LIKE \'%{data[key].lower()}%\'\n'
-            conditionQuery = conditionQuery + tempQuery
-        elif ("boolean" in key) & (data[key] != None):
-            tempQuery = data[key] + ' '
-            conditionQuery = conditionQuery + tempQuery
-        elif key == "years1":
-            tempQuery = f'AND `Year` >= {data[key]}\n'
-            conditionQuery = conditionQuery + tempQuery
-        elif key == "years2":
-            tempQuery = f'AND `Year` <= {data[key]}\n'
-            conditionQuery = conditionQuery + tempQuery
-        elif data[key] == True:
-            tempQuery = f'AND `Fields` LIKE \'%{key.lower()}%\'\n'
-            conditionQuery = conditionQuery + tempQuery
+    conditionQuery = conditionQuery + f'AND scopus_publications.Year >= {year1}\n'
+    conditionQuery = conditionQuery + f'AND scopus_publications.Year <= {year2}\n'
+
+    for subj in subjects:
+        tempQuery = f'AND `Fields` LIKE \'%{subj}%\'\n'
+        conditionQuery = conditionQuery + tempQuery
 
     query = basicQuery + conditionQuery
     query = query[:-1] + ';'
+    
+    result = []
+    cursor.execute(query)
+    for row in cursor:
+        result.append({
+            "doi":row[0],
+            "citations":row[1]
+        })
 
-    print(query)
-
-    return '200'
+    return jsonify(result)
 
 
 if __name__ == '__main__':
