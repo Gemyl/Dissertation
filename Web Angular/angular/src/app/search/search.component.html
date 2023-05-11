@@ -2,11 +2,10 @@
     <head>
     </head>
     <body>
-        <app-search-form></app-search-form>
-        <!-- <div id="search-form-container" class="container">
-            <form #searchForm="ngForm" (ngSubmit)="onSubmit(searchForm, searchForm.value)">
-                <div class="form-row">
-                    <div class="form-column">
+        <div class="form-container" *ngIf="!dataLoaded">
+            <form #searchForm="ngForm" (ngSubmit)="onSubmit(searchForm)">
+                <div class="row">
+                    <div class="column">
                         <p>Keywords</p>
                         <section id="keywords-section"> 
                             <input type="text" name="keyword" placeholder="Enter Keyword" size="25" ngModel><br>                       
@@ -22,7 +21,7 @@
                             <button class="fa fa-plus" type="button" (click)="addSet()"></button>
                         </section>
                     </div>
-                    <div class="form-column">
+                    <div class="column">
                         <p>Years Range</p>
                         <input type = "text" name = "years1" placeholder = "Enter First Year" size = "20"
                         style="margin-right: 10px;" ngModel>
@@ -35,10 +34,44 @@
                                 <label>{{option.name}}</label>
                             </div>
                         </section><br><br>
-                        <button type = "submit"> Submit </button>
+                        <div class="button-container">
+                            <button class="btn" type="submit"> Submit </button>
+                        </div>
                     </div>
                 </div>            
             </form>
-        </div> -->
+        </div>
+        <ng-container *ngIf="dataLoaded">
+            <div class="table-container">
+                <div style="display: flex; justify-content: center;">
+                    <label style="font-weight: lighter; font-size: large;">No Data</label>
+                </div>
+                <table mat-table [dataSource]="data">
+                <ng-container matColumnDef="doi">
+                    <th mat-header-cell *matHeaderCellDef>DOI</th>
+                    <td mat-cell *matCellDef="let d">{{d.doi}}</td>
+                </ng-container>
+                <ng-container matColumnDef="citations">
+                    <th mat-header-cell *matHeaderCellDef>Citations</th>
+                    <td mat-cell *matCellDef="let d">{{d.citations}}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let myRowData; columns: displayedColumns"></tr>
+                </table>
+                <div style="display: flex; justify-content: center;">
+                    <mat-paginator 
+                        #paginator
+                        [length]="data.length" 
+                        [pageSize]="pageSize" 
+                        [pageIndex]="pageIndex"
+                        [pageSizeOptions]="pageSizeOptions">
+                    </mat-paginator>
+                </div>
+                <div class="button-container" style="margin: 15px;">
+                    <button #exportButton class="btn btn-secondary" type="button" (click)="exportAsExcel()">
+                    <i class="fas fa-file-excel" style="color: white;"></i> Export As Excel</button>
+                </div>
+            </div>
+        </ng-container>
     </body>
 </html>

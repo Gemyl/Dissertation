@@ -61,7 +61,7 @@ def search():
     for row in cursor:
         result.append({
             "doi":row[0],
-            "citations":row[1]
+            "citations":row[2]
         })
 
     return jsonify(result)

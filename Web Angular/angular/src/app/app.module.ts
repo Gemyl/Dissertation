@@ -16,15 +16,18 @@ import { SearchComponent } from './search/search.component';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { SearchFormComponent } from './search/search-form/search-form.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableModule } from '@angular/material/table';
+import { GridModule } from '@progress/kendo-angular-grid';
+
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    SearchComponent,
-    SearchFormComponent
+    SearchComponent
   ],
   imports: [
     BrowserModule,
@@ -43,7 +46,11 @@ import { ReactiveFormsModule } from '@angular/forms';
     RouterModule.forRoot(
       [{path: 'dashboard', component: SearchComponent}],
       {onSameUrlNavigation: 'reload'}
-      )
+      ),
+    DateInputsModule,
+    MatTableModule,
+    MatPaginatorModule,
+    GridModule
   ],
   providers: [],
   bootstrap: [AppComponent],
