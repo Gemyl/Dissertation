@@ -21,13 +21,15 @@ import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { GridModule } from '@progress/kendo-angular-grid';
+import { MetadataTableComponent } from './search/metadata-table/metadata-table.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    SearchComponent
+    SearchComponent,
+    MetadataTableComponent
   ],
   imports: [
     BrowserModule,

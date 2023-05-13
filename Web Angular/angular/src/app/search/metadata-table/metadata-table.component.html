@@ -1,0 +1,32 @@
+
+    <div class="table-container">
+        <div class="button-container" style="margin: 15px;">
+            <button class="export-button" type="button" (click)="exportToExcel()">
+            <i class="fas fa-file-excel"></i> Export Excel</button>
+            <button class="export-button" style="margin-left: 10px;" type="button" (click)="exportToCsv()">
+            <i class="fas fa-file-csv"></i> Export Csv</button>
+            <button class="reset-button" style="margin-left: 10px;" type="button" (click)="newSearch()">
+            <i class="fas fa-sync"></i> New Search</button>
+        </div>
+        <table mat-table [dataSource]="dataSource">
+        <ng-container matColumnDef="doi">
+            <th mat-header-cell *matHeaderCellDef>DOI</th>
+            <td mat-cell *matCellDef="let d">{{d.doi}}</td>
+        </ng-container>
+        <ng-container matColumnDef="citations">
+            <th mat-header-cell *matHeaderCellDef>Citations</th>
+            <td mat-cell *matCellDef="let d">{{d.citations}}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let myRowData; columns: displayedColumns"></tr>
+        </table>
+        <div style="display: flex; justify-content: center;">
+            <mat-paginator 
+                #paginator
+                [length]="length" 
+                [pageSize]="pageSize" 
+                [pageIndex]="pageIndex"
+                [pageSizeOptions]="pageSizeOptions">
+            </mat-paginator>
+        </div>
+    </div>

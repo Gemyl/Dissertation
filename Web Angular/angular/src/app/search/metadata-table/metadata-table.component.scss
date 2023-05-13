@@ -1,0 +1,38 @@
+.container {
+    display: flex;
+    justify-content: center;
+}
+
+.table-container {
+    @extend .container;
+    flex-direction: column;
+    width: 1200px;
+    height: 650px;
+    overflow: auto;
+    background-color: #fff;
+    box-shadow: 0px 0px 10px 2px #6b6b6b;
+    border-radius: 0%;
+    margin-bottom: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.button-container {
+    display: flex;
+    justify-content: left;
+    margin: 0;
+}
+
+.export-button {
+    height: 30px;
+    border-radius: 10%;
+    color: white;
+    background-color: black;
+}
+
+.reset-button {
+    height: 30px;
+    border-radius: 10%;
+    color: black;
+    background-color: rgb(211, 211, 211);
+}

@@ -41,37 +41,8 @@
                 </div>            
             </form>
         </div>
-        <ng-container *ngIf="dataLoaded">
-            <div class="table-container">
-                <div style="display: flex; justify-content: center;">
-                    <label style="font-weight: lighter; font-size: large;">No Data</label>
-                </div>
-                <table mat-table [dataSource]="data">
-                <ng-container matColumnDef="doi">
-                    <th mat-header-cell *matHeaderCellDef>DOI</th>
-                    <td mat-cell *matCellDef="let d">{{d.doi}}</td>
-                </ng-container>
-                <ng-container matColumnDef="citations">
-                    <th mat-header-cell *matHeaderCellDef>Citations</th>
-                    <td mat-cell *matCellDef="let d">{{d.citations}}</td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let myRowData; columns: displayedColumns"></tr>
-                </table>
-                <div style="display: flex; justify-content: center;">
-                    <mat-paginator 
-                        #paginator
-                        [length]="data.length" 
-                        [pageSize]="pageSize" 
-                        [pageIndex]="pageIndex"
-                        [pageSizeOptions]="pageSizeOptions">
-                    </mat-paginator>
-                </div>
-                <div class="button-container" style="margin: 15px;">
-                    <button #exportButton class="btn btn-secondary" type="button" (click)="exportAsExcel()">
-                    <i class="fas fa-file-excel" style="color: white;"></i> Export As Excel</button>
-                </div>
-            </div>
-        </ng-container>
+        <div class="component-container" *ngIf="dataLoaded">
+            <app-metadata-table [tableData]="data" (reset)="onReset($event)"></app-metadata-table>
+        </div>
     </body>
 </html>
