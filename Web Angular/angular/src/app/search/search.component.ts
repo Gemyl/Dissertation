@@ -1,5 +1,5 @@
 import { Component, ViewChildren, QueryList, ViewChild, AfterViewInit } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { NgForm } from "@angular/forms";
 
 @Component({
@@ -12,6 +12,11 @@ export class SearchComponent {
   public keywordSets: any[] = [];
   public data = <any>[];
   public dataLoaded = false;
+  year1: string;
+  year2: string;
+  keywords = <any>[];
+  booleans = <any>[];
+  fields = <any>[];
   options = [
     { name: "Agricultural and Biological Sciences", selected: false },
     { name: "Arts and Humanities", selected: false },
@@ -58,13 +63,43 @@ export class SearchComponent {
   }
 
   onSubmit(form: NgForm) {
+    let formData = form.value;
+    Object.keys(formData).forEach(key => {
+      if (key.includes('keyword')) {
+        this.keywords.push(formData[key]);
+      }
+      else if (key.includes('boolean')) {
+        this.booleans.push(formData[key]);
+      }
+      else if (key.includes('year1')) {
+        this.year1 = formData[key];
+      }
+      else if (key.includes('year2')) {
+        this.year2 = formData[key];
+      }
+      else if (formData[key] == true) {
+        this.fields.push(key)
+      }
+    });
+    
+    let parameters = new HttpParams();
+    parameters = parameters
+    .set('keywords',this.keywords)
+    .set('booleans', this.booleans)
+    .set('year1', this.year1)
+    .set('year2', this.year2)
+    .set('fields', this.fields)
+
     this.http
-      .get("http://127.0.0.1:5000/search", { params: form.value })
+      .get("http://127.0.0.1:5000/search", { params: parameters })
       .subscribe(response => {
         this.data = response;
       });
     this.dataLoaded = true;
     form.resetForm();
+    this.keywords = [];
+    this.booleans = [];
+    this.fields = [];
     this.dynamicInputs.forEach(input => this.removeSet(input));
   }
 

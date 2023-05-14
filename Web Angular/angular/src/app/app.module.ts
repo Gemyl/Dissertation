@@ -22,7 +22,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { GridModule } from '@progress/kendo-angular-grid';
 import { MetadataTableComponent } from './search/metadata-table/metadata-table.component';
-
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [
@@ -52,7 +52,8 @@ import { MetadataTableComponent } from './search/metadata-table/metadata-table.c
     DateInputsModule,
     MatTableModule,
     MatPaginatorModule,
-    GridModule
+    GridModule,
+    MatTooltipModule
   ],
   providers: [],
   bootstrap: [AppComponent],

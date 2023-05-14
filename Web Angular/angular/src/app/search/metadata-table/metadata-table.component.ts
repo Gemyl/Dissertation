@@ -1,6 +1,7 @@
 import { Component, ViewChild, Input, Output, AfterViewInit, EventEmitter } from '@angular/core';
 import { MatTableDataSource } from "@angular/material/table";
 import { MatPaginator } from "@angular/material/paginator";
+import { MatTooltipModule } from '@angular/material/tooltip';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -19,11 +20,13 @@ export class MetadataTableComponent implements AfterViewInit {
       this.dataSource.paginator = this.paginator;
   };
   public dataSource: any;
-  displayedColumns: string[] = ['doi', 'citations'];
+  displayedColumns: string[] = ['doi', 'year', 'citations-count',
+                                'first-name', 'last-name', 'author-citations-count',
+                                'organization-name', 'type1', 'type2', 'city', 'country'];
   length: number;
   pageSize = 10;
   pageIndex = 0;
-  pageSizeOptions = [5, 10, 25, 50 , 100];
+  pageSizeOptions = [5, 10];
 
   ngOnInit() {
   }

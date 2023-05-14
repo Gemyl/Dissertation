@@ -1,8 +1,13 @@
+body {
+    display: flex;
+    justify-content: first baseline;
+    flex-direction: column;
+}
+
 .home-page-logo {
-    display: block;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 3%;
+    margin-top: 5%;
     height: 175px;
     width: 540px;
 }
@@ -10,9 +15,10 @@
 .cards-section {
     display: flex;
     flex-wrap: wrap;
-    margin: 30px auto 0;
     width: 70%;
     justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .card-header {
