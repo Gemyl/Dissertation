@@ -1,19 +1,15 @@
 body {
     display: flex;
     justify-content:center;
-    overflow: hidden;
+    align-items: center;
 }
 
 .component-container {
     @extend body;
-    margin-top: auto;
-    margin-bottom: auto;
-    box-shadow: 0px 0px 10px 2px #6b6b6b;;
 }
 
 .form-container {
     @extend .component-container;
-    margin-left: 40px;
     height: 600px;
     width: 900px;
     background-color: #fff;
@@ -43,6 +39,10 @@ button[type=submit] {
     background-color: #000;
     border-radius: 15%;
     width: 75px;
+}
+
+button[type=submit]:hover {
+    background-color: #4d4d4d;
 }
 
 input, select {

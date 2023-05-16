@@ -73,7 +73,7 @@ def search():
             "publicationFields":row[4],
             "authorFirstName":row[5],
             "authorLastName":row[6],
-            "authorfieldsOfStudy":row[7],
+            "authorFieldsOfStudy":row[7],
             "authorCitationsCount":row[8],
             "organizationName":row[9],
             "organizationType1":row[10],
