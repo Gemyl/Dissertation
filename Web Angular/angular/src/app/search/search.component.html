@@ -41,8 +41,6 @@
                 </div>            
             </form>
         </div>
-        <div class="component-container" *ngIf="dataLoaded">
-            <app-metadata-table [tableData]="data" (reset)="onReset($event)"></app-metadata-table>
-        </div>
+        <app-metadata-table [tableData]="data" (reset)="onReset($event)" *ngIf="dataLoaded"></app-metadata-table>
     </body>
 </html>

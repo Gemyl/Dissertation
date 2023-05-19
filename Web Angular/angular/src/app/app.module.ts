@@ -23,13 +23,20 @@ import { MatTableModule } from '@angular/material/table';
 import { GridModule } from '@progress/kendo-angular-grid';
 import { MetadataTableComponent } from './search/metadata-table/metadata-table.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSortModule } from '@angular/material/sort';
+import { DuplicatesDetectionScreenComponent } from './search/duplicates-detection-screen/duplicates-detection-screen.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     SearchComponent,
-    MetadataTableComponent
+    MetadataTableComponent,
+    DuplicatesDetectionScreenComponent
   ],
   imports: [
     BrowserModule,
@@ -46,16 +53,26 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     FormsModule,
     ReactiveFormsModule,
     RouterModule.forRoot(
-      [{path: 'dashboard', component: SearchComponent}],
-      {onSameUrlNavigation: 'reload'}
-      ),
+      [{ path: 'dashboard', component: SearchComponent }],
+      { onSameUrlNavigation: 'reload' }
+    ),
     DateInputsModule,
     MatTableModule,
     MatPaginatorModule,
     GridModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSortModule,
+    MatDialogModule
   ],
-  providers: [],
+  exports: [
+    MatFormFieldModule,
+    MatInputModule
+  ],
+  providers: [
+    MatDialog
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule { }

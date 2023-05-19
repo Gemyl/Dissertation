@@ -1,41 +1,48 @@
+th {
+    color: white;
+    background-color: black !important;
+}
+
 .container {
     display: flex;
     justify-content: space-between;
-    align-items: first baseline;
-    gap: 20px;
+    flex-direction: row;
+    gap: 10px;
+    width: 1500px;
+    margin-top: 50px;
 }
 
 .table-container {
     display: flex;
     justify-content: first baseline;
     flex-direction: column;
-    width: 1400px;
-    height: 680px;
     overflow: auto;
     background-color: #fff;
     box-shadow: 0px 0px 10px 2px #6b6b6b;
-    border-radius: 0%;
+    margin-top: auto;
     margin-bottom: auto;
-    margin-left: auto;
-    margin-right: auto;
+    width: 1300px;
+}
+
+.filter-container {
+    margin-top: auto;
+    padding-bottom: 10px;
 }
 
 .button-container {
     display: flex;
-    justify-content: center;
+    justify-content: left;
     flex-direction: column;
-    margin-top: 0;
+    gap: 20px;
 }
 
 .action-button {
-    height: 75px;
-    width: 75px;
     background-color: white;
-    box-shadow: 0px 0px 10px 2px #6b6b6b;
     color: black;
     border-width: 1px;
     border-style: solid;
-    border-radius: 10%;
+    border-color: black;
+    height: 40px;
 }
 
 .action-button:hover {
@@ -46,6 +53,29 @@
     width: 100px;
 }
 
+.sidenav-container {
+    width: 350px;
+    height: 680px;
+    background-color: white;
+    border-color: black;
+}
+
+.expand-button-container {
+    display: flex;
+    width: 30px;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.toolbar-container {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    padding: 10px;
+    border: none;
+    overflow: hidden;
+}
+
 /* width */
 ::-webkit-scrollbar {
     width: 15px;
@@ -53,17 +83,17 @@
 
 /* Track */
 ::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 5px grey; 
+    box-shadow: inset 0 0 5px grey;
     border-radius: 10px;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: rgb(0, 0, 0); 
+    background: rgb(0, 0, 0);
     border-radius: 10px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: #4d4d4d; 
+    background: #4d4d4d;
 }
