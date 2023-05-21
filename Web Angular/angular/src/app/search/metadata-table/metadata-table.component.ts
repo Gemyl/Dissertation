@@ -20,6 +20,7 @@ export class MetadataTableComponent {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sorting: MatSort;
   @Output() reset: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Input() variants: any;
   @Input() set tableData(data: any) {
     this.length = data.length;
     this.dataSource = new MatTableDataSource(data);
@@ -29,7 +30,7 @@ export class MetadataTableComponent {
   };
   public dataSource: any;
   displayedColumns: string[] = [
-    'publicationDoi', 'publicationYear', 'publicationCitationsCount', 'publicationKeywords', 'publicationFields',
+    'publicationDoi', 'publicationTitle', 'publicationYear', 'publicationCitationsCount', 'publicationKeywords', 'publicationFields',
     'authorFirstName', 'authorLastName', 'authorFieldsOfStudy', 'authorCitationsCount',
     'organizationName', 'organizationType1', 'organizationType2', 'organizationCity', 'organizationCountry'
   ];
@@ -39,6 +40,7 @@ export class MetadataTableComponent {
   pageIndex = 0;
   headers = {
     publicationDoi: "DOI",
+    publicationTitle: "Title",
     publicationYear: "Year",
     publicationCitationsCount: "Citations Count",
     publicationKeywords: "Keywords",

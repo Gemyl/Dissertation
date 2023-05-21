@@ -1,0 +1,41 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 800px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.close-button {
+    width: 40px;
+    height: 30px;
+    vertical-align: center;
+    border: none;
+    background-color: white;
+}
+
+.close-button:hover {
+    background-color: #e1e1e1;
+}
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    gap: 50px;
+}
+
+.menu-item-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}

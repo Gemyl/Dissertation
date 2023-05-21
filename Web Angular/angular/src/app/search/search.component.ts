@@ -7,10 +7,12 @@ import { NgForm } from "@angular/forms";
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss']
 })
+
 export class SearchComponent {
   @ViewChildren('dynamicInputs') dynamicInputs!: QueryList<any>;
   public keywordSets: any[] = [];
   public data = <any>[];
+  public variants = <any>[];
   public dataLoaded = false;
   year1: string;
   year2: string;
@@ -92,9 +94,11 @@ export class SearchComponent {
 
     this.http
       .get("http://127.0.0.1:5000/search", { params: parameters })
-      .subscribe(response => {
-        this.data = response;
+      .subscribe((response: any) => {
+        this.data = response['data'];
+        this.variants = response['variants'];
       });
+
     this.dataLoaded = true;
     form.resetForm();
     this.keywords = [];

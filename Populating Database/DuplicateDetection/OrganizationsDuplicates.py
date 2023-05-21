@@ -26,7 +26,8 @@ scopusIds = []
 cities = []
 
 # Initialize lists to store rejected organization data
-removedIds = []
+variants1Ids = []
+variants2Ids = []
 removedNames = []
 remainingNames = []
 
@@ -75,15 +76,17 @@ for i in range(len(names)-1):
             seconnectiond_date = AffiliationRetrieval(int(scopusIds[j])).date_created
 
             # Keep the organization with the most recent profile
-            if ((getMostRecentProfile(first_date, seconnectiond_date) == first_date) & (ids[i] not in removedIds)):
-                removedIds.append(ids[j])
+            if ((getMostRecentProfile(first_date, seconnectiond_date) == first_date) & (ids[i] not in variants2Ids)):
+                variants1Ids.append(ids[i])
+                variants2Ids.append(ids[j])
                 removedNames.append(names[j])
                 remainingNames.append(names[i])
                 
-            elif (names[j] not in removedNames):
-                    removedIds.append(ids[i])
-                    removedNames.append(names[i])
-                    remainingNames.append(names[j])
+            elif (ids[j] not in variants2Ids):
+                variants1Ids.append(ids[j])
+                variants2Ids.append(ids[i])
+                removedNames.append(names[i])
+                remainingNames.append(names[j])
         else:
             break
 
@@ -96,6 +99,13 @@ else:
             f'{GREEN}Remained variant: {remainingNames[i]}{RESET}\n'
             f'{RED}Rejected variant: {removedNames[i]}{RESET}\n'
             f'----------------')
+        
+        try:
+            query = f"INSERT INTO scopus_organizations_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
+            cursor.execute(query)
+            connection.commit()
+        except:
+            pass
 
 # Close the cursor and database connectionnection
 cursor.close()

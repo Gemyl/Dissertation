@@ -22,7 +22,8 @@ affiliationHistory = []
 citationsCount = []
 
 # Lists for concetrating removed and remaining variants
-removedIds = []
+variants1Ids = []
+variants2Ids = []
 removedNames = []
 remainingNames = []
 
@@ -82,19 +83,24 @@ for i in range(len(ids) - 1):
             ((orcidIds[i] is not None) & (orcidIds[j] is not None) & (orcidIds[i] == orcidIds[j])) |
             (fuzz.ratio(subjectedAreas[i], subjectedAreas[j]) > 90) & (fuzz.ratio(affiliationHistory[i], affiliationHistory[j]) > 90)):
 
-            if ((citationsCount[i] > citationsCount[j]) & (ids[i] not in removedIds)):
-                removedIds.append(ids[j])
+            if ((citationsCount[i] > citationsCount[j]) & (ids[i] not in variants2Ids)):
+                variants1Ids.append(ids[i])
+                variants2Ids.append(ids[j])
                 removedNames.append(f"{firstNames[j]} {lastNames[j]}")
                 remainingNames.append(f"{firstNames[i]} {lastNames[i]}")
 
-            elif (ids[j] not in removedIds):
-                removedIds.append(ids[i])
+            elif (ids[j] not in variants2Ids):
+                variants1Ids.append(ids[j])
+                variants2Ids.append(ids[i])
                 removedNames.append(f"{firstNames[i]} {lastNames[i]}")
                 remainingNames.append(f"{firstNames[j]} {lastNames[j]}")
         else:
             break
 
 # Printing results
+print(len(removedNames))
+print(len(variants1Ids))
+print(len(variants2Ids))
 if (len(removedNames) == 0):
     print(f"{BLUE}No duplicates detected.")
 else:
@@ -103,6 +109,12 @@ else:
             f'{GREEN}Remained variant: {remainingNames[i]}{RESET}\n'
             f'{RED}Rejected variant: {removedNames[i]}{RESET}\n'
             f'------------------')
+        try:
+            query = f"INSERT INTO scopus_authors_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
+            cursor.execute(query)
+            connection.commit()
+        except:
+            pass
 
 # Closing conneciton with database
 cursor.close()

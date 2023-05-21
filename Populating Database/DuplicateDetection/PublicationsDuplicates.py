@@ -19,7 +19,8 @@ keywords = []
 fields = []
 citationsCount = []
 
-removedIds = []
+variants1Ids = []
+variants2Ids = []
 removedTitles = []
 remainingTitles =[]
 
@@ -82,13 +83,15 @@ for i in range(len(ids)-1):
             firstPublicationCitations = citationsCount[i]
             seconnectiondPublicationCitations = citationsCount[j]
 
-            if ((firstPublicationCitations > seconnectiondPublicationCitations) & (ids[i] not in removedIds)):
-                removedIds.append(ids[j])
+            if ((firstPublicationCitations > seconnectiondPublicationCitations) & (ids[i] not in variants2Ids)):
+                variants1Ids.append(ids[i])
+                variants2Ids.append(ids[j])
                 removedTitles.append(titles[j])
                 remainingTitles.append(titles[i])
 
-            elif (ids[j] not in removedIds):
-                removedIds.append(ids[i])
+            elif (ids[j] not in variants2Ids):
+                variants1Ids.append(ids[j])
+                variants2Ids.append(ids[i])
                 removedTitles.append(titles[i])
                 remainingTitles.append(titles[j])
         else:
@@ -103,6 +106,13 @@ else:
             f'{GREEN}Remained variant: {remainingTitles[i]}{RESET}.\n'
             f'{RED}Rejected variant: {removedTitles[i]}{RESET}.\n'
             f'------------------')
+        
+        try:
+            query = f"INSERT INTO scopus_publications_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
+            cursor.execute(query)
+            connection.commit()
+        except:
+            pass
     
 cursor.close()
 connection.close()

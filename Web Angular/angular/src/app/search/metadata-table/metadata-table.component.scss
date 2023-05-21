@@ -1,15 +1,11 @@
-th {
-    color: white;
-    background-color: black !important;
-}
-
 .container {
     display: flex;
     justify-content: space-between;
     flex-direction: row;
+    margin-top: 50px;
+    padding-bottom: 50px;
     gap: 10px;
     width: 1500px;
-    margin-top: 50px;
 }
 
 .table-container {
@@ -19,9 +15,31 @@ th {
     overflow: auto;
     background-color: #fff;
     box-shadow: 0px 0px 10px 2px #6b6b6b;
-    margin-top: auto;
-    margin-bottom: auto;
     width: 1300px;
+}
+
+.sidenav-container {
+    width: 350px;
+    height: 680px;
+    background-color: white;
+    border-color: black;
+}
+
+.expand-button-container {
+    display: flex;
+    width: 30px;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.toolbar-container {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    padding: 10px;
+    border: none;
+    overflow: hidden;
+    background-color: #d7d7d7;
 }
 
 .filter-container {
@@ -53,27 +71,9 @@ th {
     width: 100px;
 }
 
-.sidenav-container {
-    width: 350px;
-    height: 680px;
-    background-color: white;
-    border-color: black;
-}
-
-.expand-button-container {
-    display: flex;
-    width: 30px;
-    align-items: flex-start;
-    justify-content: flex-start;
-}
-
-.toolbar-container {
-    display: flex;
-    justify-content: space-between;
-    flex-direction: column;
-    padding: 10px;
-    border: none;
-    overflow: hidden;
+th {
+    color: white;
+    background-color: black !important;
 }
 
 /* width */
