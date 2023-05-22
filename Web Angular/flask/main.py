@@ -95,32 +95,32 @@ def search():
 
     # checking got publications duplicates
     publicationsVariants = {
-        "variants1":[],
-        "variants2":[]
+        "originals":[],
+        "duplicates":[]
     }
     query = "SELECT * FROM scopus_publications_variants;"
     cursor.execute(query)
     fetchedData = cursor.fetchall()
     for pubVar in fetchedData:
-        var1Id = pubVar[0]
-        var2Id = pubVar[1]
+        originalId = pubVar[0]
+        duplicateId = pubVar[1]
 
-        if ((var1Id in publicationsIds) & (var2Id in publicationsIds)):
+        if ((originalId in publicationsIds) & (duplicateId in publicationsIds)):
             subQuery = f"SELECT scopus_publications.Id, scopus_publications.Title, scopus_publications.Citations_Count FROM scopus_publications \
-            WHERE ID = '{var1Id}';"
+            WHERE ID = '{originalId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
-            publicationsVariants["variants1"].append({
+            publicationsVariants["originals"].append({
                 "id":variantData[0],
                 "title":variantData[1],
                 "citationsCount":variantData[2]
             })
 
             subQuery = f"SELECT scopus_publications.Id, scopus_publications.Title, scopus_publications.Citations_Count FROM scopus_publications \
-            WHERE ID = '{var2Id}';"
+            WHERE ID = '{duplicateId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
-            publicationsVariants["variants2"].append({
+            publicationsVariants["duplicates"].append({
                 "id":variantData[0],
                 "title":variantData[1],
                 "citationsCount":variantData[2]
@@ -128,19 +128,19 @@ def search():
 
     # checking for authors duplicates
     authorsVariants = {
-        "variants1":[],
-        "variants2":[]
+        "original":[],
+        "duplicates":[]
     }
     query = "SELECT * FROM scopus_authors_variants;"
     cursor.execute(query)
     fetchedData = cursor.fetchall()
     for authVar in fetchedData:
-        var1Id = authVar[0]
-        var2Id = authVar[1]
+        originalId = authVar[0]
+        duplicateId = authVar[1]
 
-        if ((var1Id in authorsIds) & (var2Id in authorsIds)):
+        if ((originalId in authorsIds) & (duplicateId in authorsIds)):
             subQuery = f"SELECT scopus_authors.Id, scopus_authors.First_Name, scopus_authors.Last_Name, scopus_authors.hIndex, scopus_authors.Citations_Count FROM scopus_authors \
-            WHERE ID = '{var1Id}';"
+            WHERE ID = '{originalId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
             authorsVariants["variants1"].append({
@@ -152,7 +152,7 @@ def search():
             })
 
             subQuery = f"SELECT scopus_authors.Id, scopus_authors.First_Name, scopus_authors.Last_Name, scopus_authors.hIndex, scopus_authors.Citations_Count FROM scopus_authors \
-            WHERE ID = '{var2Id}';"
+            WHERE ID = '{duplicateId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
             authorsVariants["variants2"].append({
@@ -165,19 +165,19 @@ def search():
 
     # checking for organizations duplicates
     organizationsVariants = {
-        "variants1":[],
-        "variants2":[]
+        "original":[],
+        "duplicates":[]
     }
     query = "SELECT * FROM scopus_organizations_variants;"
     cursor.execute(query)
     fetchedData = cursor.fetchall()
     for orgVar in fetchedData:
-        var1Id = orgVar[0]
-        var2Id = orgVar[1]
+        originalId = orgVar[0]
+        duplicateId = orgVar[1]
 
-        if ((var1Id in organizationsIds) & (var2Id in organizationsIds)):
+        if ((originalId in organizationsIds) & (duplicateId in organizationsIds)):
             subQuery = f"SELECT scopus_organizations.Id, scopus_organizations.Name FROM scopus_organizations \
-            WHERE ID = '{var1Id}';"
+            WHERE ID = '{originalId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
             organizationsVariants["variants1"].append({
@@ -186,7 +186,7 @@ def search():
             })
 
             subQuery = f"SELECT scopus_organizations.Id, scopus_organizations.Name FROM scopus_organizations \
-            WHERE ID = '{var2Id}';"
+            WHERE ID = '{duplicateId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
             organizationsVariants["variants2"].append({
@@ -195,9 +195,9 @@ def search():
             })
 
     variants = {
-        "publicationVariants":publicationsVariants,
-        "authorVariants":authorsVariants,
-        "organizationVariants":organizationsVariants
+        "publicationsVariants":publicationsVariants,
+        "authorsVariants":authorsVariants,
+        "organizationsVariants":organizationsVariants
     }
 
     result = {

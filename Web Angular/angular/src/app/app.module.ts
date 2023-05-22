@@ -29,6 +29,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { DuplicatesDetectionScreenComponent } from './search/duplicates-detection-screen/duplicates-detection-screen.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatDialog } from '@angular/material/dialog';
+import { SearchService } from './search/search-service/search.service';
 
 @NgModule({
   declarations: [
@@ -71,7 +72,8 @@ import { MatDialog } from '@angular/material/dialog';
     MatInputModule
   ],
   providers: [
-    MatDialog
+    MatDialog,
+    SearchService
   ],
   bootstrap: [AppComponent],
 })

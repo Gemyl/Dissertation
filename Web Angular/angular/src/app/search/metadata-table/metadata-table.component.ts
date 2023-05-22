@@ -10,6 +10,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DuplicatesDetectionScreenComponent } from '../duplicates-detection-screen/duplicates-detection-screen.component';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { SearchService } from '../search-service/search.service';
 
 @Component({
   selector: 'app-metadata-table',
@@ -57,13 +58,23 @@ export class MetadataTableComponent {
   }
 
   constructor(
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    public _searchService: SearchService
   ) { }
 
   openDialog() {
-    this.dialog.open(DuplicatesDetectionScreenComponent)
+    this.dialog.open(DuplicatesDetectionScreenComponent ,{
+      data: [this.dataSource.data, this.variants]
+    })
   }
-  ngOnInit() { }
+  
+  ngOnInit() {
+    this._searchService.getTableData().subscribe(data => {
+      if (data.length != 0) {
+        this.dataSource.data = data;
+      }
+    });
+   }
 
   changeFiller() {
     if (this.showFiller) {

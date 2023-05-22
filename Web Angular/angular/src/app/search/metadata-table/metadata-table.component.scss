@@ -76,6 +76,22 @@ th {
     background-color: black !important;
 }
 
+.beaming-button {
+    animation: beamEffect 3s infinite;
+}
+
+@keyframes beamEffect {
+    0% {
+        color: #ff0000; /* Initial intense color */
+    }
+    50% {
+        color: #ff8800; /* Intermediate color */
+    }
+    100% {
+        color: #ff0000; /* Back to intense color */
+    }
+}
+
 /* width */
 ::-webkit-scrollbar {
     width: 15px;
