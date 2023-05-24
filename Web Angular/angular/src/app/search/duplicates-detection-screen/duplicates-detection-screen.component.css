@@ -4,6 +4,7 @@
     justify-content: center;
     align-items: center;
     width: 1000px;
+    padding-bottom: 40px;
 }
 
 .header {
@@ -30,7 +31,6 @@
     flex-direction: column;
     justify-content: space-between;
     padding-top: 30px;
-    padding-bottom: 40px;
     gap: 50px;
 }
 
@@ -58,6 +58,16 @@
 }
 
 .action-button:hover {
+    background-color: #b6b6b6;
+}
+
+.submit-button {
+    margin-top: 20px;
+    color: white;
+    background-color: black;
+}
+
+.submit-button:hover {
     background-color: #b6b6b6;
 }
 

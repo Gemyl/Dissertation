@@ -24,16 +24,16 @@
         <div class="table-container">
             <table mat-table [dataSource]="originalPublications" style="width: 300px;">
                 <ng-container matColumnDef="title">
-                    <th mat-header-cell *matHeaderCellDef>Title</th>
+                    <th mat-header-cell *matHeaderCellDef>Variant 1</th>
                     <td mat-cell *matCellDef="let d" matTooltip="{{d.title}}">{{d.title | slice:0:25}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="citationsCount">
-                    <th mat-header-cell *matHeaderCellDef>Citations</th>
+                    <th mat-header-cell *matHeaderCellDef></th>
                     <td mat-cell *matCellDef="let d">{{d.citationsCount}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
-                    <th mat-header-cell *matHeaderCellDef>Select</th>
-                    <td mat0cell *matCellDef="let d"><input type="checkbox"></td>
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat0cell *matCellDef="let d"><input type="checkbox" (change)="changePublicationsVariantsList(d.id)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="publicationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: publicationsTableColumns"></tr>
@@ -42,20 +42,21 @@
         <div class="table-container" style="margin-left: 20px;">
             <table mat-table [dataSource]="duplicatesPublications" style="width: 300px;">
                 <ng-container matColumnDef="title">
-                    <th mat-header-cell *matHeaderCellDef>Title</th>
+                    <th mat-header-cell *matHeaderCellDef>Variant 2</th>
                     <td mat-cell *matCellDef="let d" matTooltip="{{d.title}}">{{d.title | slice:0:25}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="citationsCount">
-                    <th mat-header-cell *matHeaderCellDef>Citations</th>
+                    <th mat-header-cell *matHeaderCellDef></th>
                     <td mat-cell *matCellDef="let d">{{d.citationsCount}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
-                    <th mat-header-cell *matHeaderCellDef>Select</th>
-                    <td mat0cell *matCellDef="let d"><input type="checkbox"></td>
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat0cell *matCellDef="let d"><input type="checkbox" (change)="changePublicationsVariantsList(d.id)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="publicationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: publicationsTableColumns"></tr>
             </table>
         </div>
     </div>
+    <button class="btn btn-rounded submit-button" type="button" (click)="clearDuplicates()" *ngIf="publicationsOption">Clear Duplicates</button>
 </div>

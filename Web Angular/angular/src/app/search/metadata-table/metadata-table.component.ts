@@ -22,6 +22,7 @@ export class MetadataTableComponent {
   @ViewChild(MatSort) sorting: MatSort;
   @Output() reset: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Input() variants: any;
+  @Input() hasDuplicates: boolean;
   @Input() set tableData(data: any) {
     this.length = data.length;
     this.dataSource = new MatTableDataSource(data);

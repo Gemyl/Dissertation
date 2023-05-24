@@ -30,6 +30,7 @@
     width: 30px;
     align-items: flex-start;
     justify-content: flex-start;
+    flex-direction: column;
 }
 
 .toolbar-container {
@@ -76,8 +77,12 @@ th {
     background-color: black !important;
 }
 
-.beaming-button {
+.alert-icon {
     animation: beamEffect 3s infinite;
+    background-color: white;
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
 }
 
 @keyframes beamEffect {

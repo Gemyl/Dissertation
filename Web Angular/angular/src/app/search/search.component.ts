@@ -14,6 +14,7 @@ export class SearchComponent {
   public data = <any>[];
   public variants = <any>[];
   public dataLoaded = false;
+  public duplicatesFlag: boolean;
   year1: string;
   year2: string;
   keywords = <any>[];
@@ -97,6 +98,13 @@ export class SearchComponent {
       .subscribe((response: any) => {
         this.data = response['data'];
         this.variants = response['variants'];
+
+        if (this.variants.publicationsVariants.duplicates.length != 0) {
+          this.duplicatesFlag = true;
+        }
+        else {
+          this.duplicatesFlag = false;
+        }
       });
 
     this.dataLoaded = true;

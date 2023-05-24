@@ -20,6 +20,8 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
   public originalPublications: any;
   public duplicatesPublications: any;
   public publicationsTableColumns = ["title", "citationsCount", "checkbox"]
+  public publicationsToRemove: string[] = [];
+
   constructor(
     public dialogRef: MatDialogRef<DuplicatesDetectionScreenComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -41,11 +43,11 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  clearDuplicates() {
-    let referenceValue = this.data[1].publicationsVariants.originals[0].id;
-    let filteredData = this.data[0].filter((d:any) => d.publicationId === referenceValue);
-    this._searchService.setTableData(filteredData);
-  }
+  // clearDuplicates() {
+  //   let referenceValue = this.data[1].publicationsVariants.originals[0].id;
+  //   let filteredData = this.data[0].filter((d:any) => d.publicationId === referenceValue);
+  //   this._searchService.setTableData(filteredData);
+  // }
 
   selectMode(option:string) {
     if (option === "publications") {
@@ -63,5 +65,25 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
       this.authorsOption = false;
       this.organizationsOption = true;
     }
+  }
+
+  changePublicationsVariantsList(publicationId:string) {
+    debugger;
+    let index = this.publicationsToRemove.indexOf(publicationId);
+    if (index > 0) {
+      this.publicationsToRemove.splice(index,1);
+    }
+    else {
+      this.publicationsToRemove.push(publicationId);
+    }
+  }
+
+  clearDuplicates() {
+    debugger;
+    let filteredData = this.data[0];
+    for(let i = 0; i < this.publicationsToRemove.length; i++) {
+      filteredData = filteredData.filter((x:any) => x.publicationId != this.publicationsToRemove[i]); 
+    }
+    this._searchService.setTableData(filteredData);
   }
 }
