@@ -31,7 +31,7 @@ def search():
 
     basicQuery = f'SELECT scopus_publications.ID, scopus_publications.DOI, scopus_publications.Title, scopus_publications.Year, scopus_publications.Citations_Count, \n' + \
         'scopus_publications.Keywords, scopus_publications.Fields, scopus_authors.ID, scopus_authors.First_Name, scopus_authors.Last_Name, \n' + \
-        'scopus_authors.Fields_Of_Study, scopus_authors.Citations_Count, scopus_organizations.ID, scopus_organizations.Name, \n' + \
+        'scopus_authors.Fields_Of_Study, scopus_authors.Citations_Count, scopus_authors.hIndex, scopus_organizations.ID, scopus_organizations.Name, \n' + \
         'scopus_organizations.Type_1, scopus_organizations.Type_2, scopus_organizations.City, scopus_organizations.Country \n' + \
         'FROM ((((scopus_publications_authors \n' + \
         'INNER JOIN scopus_publications ON scopus_publications_authors.Publication_ID = scopus_publications.ID) \n' + \
@@ -71,7 +71,7 @@ def search():
     for row in metadata:
         publicationsIds.append(row[0])
         authorsIds.append(row[7])
-        organizationsIds.append(row[12])
+        organizationsIds.append(row[13])
         data.append({
             "publicationId":row[0],
             "publicationDoi":row[1],
@@ -85,12 +85,13 @@ def search():
             "authorLastName":row[9],
             "authorFieldsOfStudy":row[10],
             "authorCitationsCount":row[11],
-            "organizationId":row[12],
-            "organizationName":row[13],
-            "organizationType1":row[14],
-            "organizationType2":row[15],
-            "organizationCity":row[16],
-            "organizationCountry":row[17]
+            "authorhIndex":row[12],
+            "organizationId":row[13],
+            "organizationName":row[14],
+            "organizationType1":row[15],
+            "organizationType2":row[16],
+            "organizationCity":row[17],
+            "organizationCountry":row[18]
         })
 
     # checking got publications duplicates
@@ -128,7 +129,7 @@ def search():
 
     # checking for authors duplicates
     authorsVariants = {
-        "original":[],
+        "originals":[],
         "duplicates":[]
     }
     query = "SELECT * FROM scopus_authors_variants;"
@@ -143,7 +144,7 @@ def search():
             WHERE ID = '{originalId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
-            authorsVariants["variants1"].append({
+            authorsVariants["originals"].append({
                 "id":variantData[0],
                 "firstName":variantData[1],
                 "lastName":variantData[2],
@@ -155,7 +156,7 @@ def search():
             WHERE ID = '{duplicateId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
-            authorsVariants["variants2"].append({
+            authorsVariants["duplicates"].append({
                 "id":variantData[0],
                 "firstName":variantData[1],
                 "lastName":variantData[2],
@@ -165,7 +166,7 @@ def search():
 
     # checking for organizations duplicates
     organizationsVariants = {
-        "original":[],
+        "originals":[],
         "duplicates":[]
     }
     query = "SELECT * FROM scopus_organizations_variants;"
@@ -180,7 +181,7 @@ def search():
             WHERE ID = '{originalId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
-            organizationsVariants["variants1"].append({
+            organizationsVariants["originals"].append({
                 "id":variantData[0],
                 "name":variantData[1]
             })
@@ -189,7 +190,7 @@ def search():
             WHERE ID = '{duplicateId}';"
             cursor.execute(subQuery)
             variantData = cursor.fetchall()[0]
-            organizationsVariants["variants2"].append({
+            organizationsVariants["duplicates"].append({
                 "id":variantData[0],
                 "name":variantData[1]
             })

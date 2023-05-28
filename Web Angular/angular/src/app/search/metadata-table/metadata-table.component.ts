@@ -33,7 +33,7 @@ export class MetadataTableComponent {
   public dataSource: any;
   displayedColumns: string[] = [
     'publicationDoi', 'publicationTitle', 'publicationYear', 'publicationCitationsCount', 'publicationKeywords', 'publicationFields',
-    'authorFirstName', 'authorLastName', 'authorFieldsOfStudy', 'authorCitationsCount',
+    'authorFirstName', 'authorLastName', 'authorFieldsOfStudy', 'authorCitationsCount', 'authorhIndex',
     'organizationName', 'organizationType1', 'organizationType2', 'organizationCity', 'organizationCountry'
   ];
   showFiller = false;
@@ -64,9 +64,13 @@ export class MetadataTableComponent {
   ) { }
 
   openDialog() {
-    this.dialog.open(DuplicatesDetectionScreenComponent ,{
+    const dialogRef = this.dialog.open(DuplicatesDetectionScreenComponent ,{
       data: [this.dataSource.data, this.variants]
     })
+
+    dialogRef.afterClosed().subscribe((result:any) => {
+      this.hasDuplicates = result;
+    });
   }
   
   ngOnInit() {

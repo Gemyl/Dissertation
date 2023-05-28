@@ -99,7 +99,9 @@ export class SearchComponent {
         this.data = response['data'];
         this.variants = response['variants'];
 
-        if (this.variants.publicationsVariants.duplicates.length != 0) {
+        if (this.variants.publicationsVariants.duplicates.length > 0 || 
+          this.variants.authorsVariants.duplicates.length > 0 || 
+          this.variants.organizationsVariants.duplicates.length > 0) {
           this.duplicatesFlag = true;
         }
         else {

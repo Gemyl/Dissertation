@@ -41,6 +41,10 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>References</th>
             <td mat-cell *matCellDef="let d">{{d.authorCitationsCount}}</td>
         </ng-container>
+        <ng-container matColumnDef="authorhIndex">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>hIndex</th>
+            <td mat-cell *matCellDef="let d">{{d.authorhIndex}}</td>
+        </ng-container>
         <ng-container matColumnDef="organizationName">
             <th mat-header-cell *matHeaderCellDef>Organization</th>
             <td mat-cell *matCellDef="let d" matTooltip="{{d.organizationName}}">{{d.organizationName | slice:0:15}}...</td>

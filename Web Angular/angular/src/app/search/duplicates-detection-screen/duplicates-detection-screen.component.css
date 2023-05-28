@@ -73,9 +73,10 @@
 
 .table-container {
     width: 450px;
-    border: black;
-    border-style: solid;
-    border-width: 1px;
+    display: flex;
+    flex-direction: column;
+    justify-content: column;
+    align-items: center;
 }
 
 .duplicates-tables-container {
@@ -93,4 +94,11 @@ input[type=checkbox] {
 th {
     color: white;
     background-color: black !important;
+}
+
+.column-label {
+    font-size: 2em;
+    font-weight: lighter;
+    color: black;
+    padding-bottom: 20px;
 }
