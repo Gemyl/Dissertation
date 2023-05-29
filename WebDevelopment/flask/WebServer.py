@@ -1,15 +1,8 @@
+from DataFactory.ConnectToMySQL import connect
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from collections import OrderedDict
-import mysql.connector as connector
 
-connection = connector.connect(host='localhost',
-                               port='3306',
-                               user='root',
-                               password='gemyl',
-                               database='scopus',
-                               auth_plugin='mysql_native_password')
-cursor = connection.cursor()
+connection, cursor = connect()
 
 app = Flask(__name__)
 CORS(app)
