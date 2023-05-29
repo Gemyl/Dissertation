@@ -1,254 +1,11 @@
-from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval, PlumXMetrics
+from DataFactory.PreprocessingMethods import getColumnLength, buildKeywordsQuery, removeCommonWords, getAffiliationsIds
+from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
+from DataFactory.EntitiesClasses import Publication, Author, Organization
+from DataFactory.InputData import getKeywords, getYear, getFields, getCommonWords
 from requests import get
 from tqdm import tqdm
-from getpass import getpass
-import mysql.connector as connector
+from DataFactory.ConnectToMySQL import connect
 import json
-import uuid
-
-# functions
-def getSafeAttribute(obj, attribute, attributeType):
-    try:
-        if isinstance(obj, dict):
-            value = obj.get(attribute)
-            if((value == None) & (attributeType == "number")):
-               value = 999999
-            elif (obj.get(attribute) == None):
-                value = "-"
-        else:
-            value = getattr(obj, attribute)
-            if((value == None) & (attributeType == "number")):
-               value = 999999
-            elif (value == None):
-                value = "-"
-
-    except (AttributeError, KeyError):
-        if attributeType == "number":
-            value = 999999
-        else:
-            value = "-"
-    
-    return value
-
-        
-def buildKeywordsQuery(keywords):
-    keywords = keywords.split(', ')
-    keywordsList = '('
-    for i in range(len(keywords)):
-        if i == len(keywords)-1:
-            keywordsList = keywordsList + '{' + keywords[i] + '}'
-        else:
-            keywordsList = keywordsList + '{' + keywords[i] + '} ' + 'OR '
-
-    keywordsList = keywordsList + ')'
-    keywords = keywordsList
-    return keywords
-
-
-def getStringFromList(list):
-    if list != None:
-        string = ', '.join([str(i).lower() for i in list])
-    else:
-        string = ' '
-    return string
-
-
-def getColumnLength(column, table, cursor):
-
-    try:
-        query = f"SELECT MAX(LENGTH({column})) FROM {table};"
-        cursor.execute(query)
-        resultSet = cursor.fetchall()
-
-        if resultSet[0][0] != None:
-            return resultSet[0][0]
-        else:
-            return 100
-        
-    except:
-        return 100
-
-
-def applySqlSyntax(string):
-    if string != None:
-        return string.replace("\'", " ")
-    else:
-        return "-"
-
-
-def removeCommonWords(abstract, commonWords):
-    abstractList = abstract.split(" ")
-    abstractString = " ".join(
-        [word for word in abstractList if word.lower() not in commonWords])
-    return abstractString
-
-
-def getAffiliationsIds(affiliations):
-    if affiliations != None:
-        return [affil for affil in affiliations.split(";")]
-    else:
-        return "-"
-
-
-# classes
-class Publication:
-    def __init__(self, publicationInfo, year, doi):
-        self.id = str(uuid.uuid4())
-        self.doi = doi
-        self.year = year
-        self.title = applySqlSyntax(getSafeAttribute(publicationInfo, 'title', 'string'))
-        self.journal = applySqlSyntax(getSafeAttribute(publicationInfo, 'publicationName', 'string'))
-        self.abstract = applySqlSyntax(
-            Publication.getAbstract(
-                getSafeAttribute(publicationInfo, 'abstract', 'string'),
-                getSafeAttribute(publicationInfo, 'description', 'string')
-            )
-        )
-        self.keywords = applySqlSyntax(Publication.getKeywords(getSafeAttribute(publicationInfo, 'authkeywords', 'string')))
-        self.fields = applySqlSyntax(Publication.getFields(getSafeAttribute(publicationInfo, 'subject_areas', 'string')))
-        self.citationsCount = Publication.getMaximumCitationsCount(
-            getSafeAttribute(publicationInfo, 'citedby_count', 'number'),
-            doi
-        )
-        self.authorsNumber = Publication.getAuthorsNumber(getSafeAttribute(publicationInfo, 'authors', 'list'))
-        self.affiliationsNumber = Publication.getAffiliationsNumber(getSafeAttribute(publicationInfo, 'affiliation', 'list'))
-
-    def getAbstract(abstract, description):
-        if abstract != None:
-            return applySqlSyntax(abstract)
-        elif description != None:
-            return applySqlSyntax(description)
-        else:
-            return "-"
-        
-    def getKeywords(keywords):
-        if keywords != None:
-            return applySqlSyntax(", ".join([keyword for keyword in keywords]))
-        else:
-            return "-"
-    
-    def getFields(fields):
-        if fields != None:
-            return applySqlSyntax(", ".join([field[0].lower() for field in fields]))
-        else:
-            return "-"
-    
-    def getMaximumCitationsCount(citationsCount, doi):
-        maxCitations = citationsCount
-        plumxCitations = PlumXMetrics(doi, id_type='doi').citation
-
-        if plumxCitations != None:
-            if maxCitations != 999999:
-                plumxCitations = max([citation[1] for citation in plumxCitations])
-                maxCitations = max(maxCitations, plumxCitations)
-            else:
-                maxCitations = max([citation[1] for citation in plumxCitations])
-
-        return maxCitations
-    
-    def getAuthorsNumber(authors):
-        if ((authors == "-") | (authors == None)):
-            return 0
-        
-        return len(authors)
-    
-    def getAffiliationsNumber(affiliations):
-        if ((affiliations == "-") | (affiliations == None)):
-            return 0
-
-        return len(affiliations)
-    
-
-class Author:
-    def __init__(self,authorInfo):
-        self.id = str(uuid.uuid4())
-        self.scopusId = getSafeAttribute(authorInfo, 'identifier', 'string')
-        self.orcidId = getSafeAttribute(authorInfo, 'orcid', 'string')
-        self.firstName = applySqlSyntax(getSafeAttribute(authorInfo, 'given_name', 'string'))
-        self.lastName = applySqlSyntax(getSafeAttribute(authorInfo, 'surname', 'string'))
-        self.hIndex = getSafeAttribute(authorInfo, 'h_index', 'number')
-        self.fieldsOfStudy = applySqlSyntax(Author.getFields(getSafeAttribute(authorInfo, 'subject_areas', 'string')))
-        self.citationsCount = getSafeAttribute(authorInfo, 'cited_by_count', 'number')
-        self.affiliations = applySqlSyntax(Author.getAffiliations(getSafeAttribute(authorInfo, 'affiliation_history', 'string')))
-
-    def getAffiliations(affiliationsInput):
-        if ((affiliationsInput == "-") | (affiliationsInput == None)):
-            return "-"
-
-        affilHistory = []
-        for affil in affiliationsInput:
-            if ((affil.preferred_name not in affilHistory) & (affil.preferred_name != None)):
-                if (affil.parent == None):
-                    affilHistory.append(affil.preferred_name)
-                else:
-                    affilHistory.append(affil.preferred_name + ' - ' + affil.parent_preferred_name)
-                    affilHistory.append(affil.parent_preferred_name)
-
-        affilHistoryStr = ', '.join(affilHistory).replace("\'", " ")
-        return applySqlSyntax(affilHistoryStr)
-    
-    def getFields(fields):
-        if (fields == "-") | (fields == None):
-            return "-"
-        
-        return applySqlSyntax(", ".join([field[0].lower() for field in fields]))
-        
-
-class Organization:
-    def __init__(self, organizationInfo):
-        self.id = str(uuid.uuid4())
-        self.scopusId = getSafeAttribute(organizationInfo, 'identifier', 'string')
-        self.name = applySqlSyntax(getSafeAttribute(organizationInfo, 'affiliation_name', 'string'))
-        self.type1, self.type2 = Organization.getAffiliationTypes(organizationInfo)
-        self.address = applySqlSyntax(getSafeAttribute(organizationInfo, 'address', 'string'))
-        self.city = applySqlSyntax(getSafeAttribute(organizationInfo, 'city', 'string'))
-        self.country = applySqlSyntax(getSafeAttribute(organizationInfo, 'country', 'string'))
-
-    def getAffiliationTypes(affiliationObj):
-        type = getSafeAttribute(affiliationObj, 'org_type', 'string')
-        name = getSafeAttribute(affiliationObj, 'affiliation_name', 'string')
-
-        if (type == 'univ') | (type == 'coll') | \
-                (len([univ for univ in university if univ in name.lower()]) > 0):
-            type1 = 'Academic'
-            type2 = 'University - College'
-
-        elif (type == 'sch') | \
-                (len([sch for sch in school if sch in name.lower()]) > 0):
-            type1 = 'Academic'
-            type2 = 'School'
-
-        elif (type == 'res') | \
-                (len([acad for acad in academy if acad in name.lower()]) > 0):
-            type1 = 'Academic'
-            type2 = 'Research Institute'
-
-        elif (type == 'gov') | \
-                (len([gov for gov in government if gov in name.lower()]) > 0):
-            type1 = 'Government'
-            type2 = ' '
-
-        elif (type == 'assn') | \
-                (len([assn for assn in association if assn in name.lower()]) > 0):
-            type1 = 'Association'
-            type2 = ' '
-
-        elif (type == 'corp') | \
-                (len([bus for bus in bussiness if bus in name.lower()]) > 0):
-            type1 = 'Business'
-            type2 = ' '
-
-        elif (type == 'non') | \
-                (len([np for np in nonProfit if np in name.lower()]) > 0):
-            type1 = 'Non-profit'
-            type2 = ' '
-
-        else:
-            type1 = "Other"
-            type2 = "Other"
-
-        return type1, type2
-
 
 # terminal colors
 RED = "\033[1;31m"
@@ -256,72 +13,8 @@ GREEN = "\033[1;32m"
 BLUE = "\033[1;34m"
 RESET = "\033[0m"
 
-# string affiliation type identifiers
-university = ['university', 'college', 'departement']
-academy = ['academy', 'academic', 'academia']
-school = ['school', 'faculty']
-research = ['research', 'researchers']
-bussiness = ['inc', 'ltd', 'corporation']
-association = ['association']
-nonProfit = ['non-profit']
-government = ['government', 'gov', 'public', 'state', 'national', 'federal', 'federate', 'confederate', 'royal']
-international = ['international']
-
-# list of common words in order to be removed from abstracts
-commonWords = ['a', 'an', 'the', 'and', 'or', 'but', 'if', 'of', 'at', 'by', 'for', 'with', 'about',
-               'to', 'from', 'in', 'on', 'up', 'out', 'as', 'into', 'through', 'over', 'after', 'under',
-               'i', 'you', 'he', 'she', 'it', 'we', 'they', 'is', 'are', 'was', 'were', 'has', 'had',
-               'will', 'be', 'not', 'would', 'should', 'before', 'few', 'many', 'much', 'so', 'furthermore']
-
-# search parameters
-yearPublished = '2021'
-keywords = 'artificial intelligence, machine learning, learning algorithm, deep learning, pattern recognition'
-keywords = 'artificial intelligence'
-fields = ['AGRI', 'ARTS', 'BIOC', 'BUSI', 'CENG', 'CHEM', 'COMP',
-          'DECI', 'DENT', 'EART', 'ECON', 'ENER', 'ENGI', 'ENVI',
-          'HEAL', 'IMMU', 'MATE', 'MATH', 'MEDI', 'NEUR', 'NURS',
-          'PHAR', 'PHYS', 'PSYC', 'SOCI', 'VETE', 'MULT']
-
-# password for MySQL DB
-password = getpass('Password: ')
-
-# establishing connection to database
-connection = connector.connect(host='localhost',
-                               port='3306',
-                               user='root',
-                               password=password,
-                               database="scopus",
-                               auth_plugin='mysql_native_password')
-cursor = connection.cursor()
-
 # upper limit for columns size
 MAX_COLUMN_SIZE = 5000
-
-# getting columns size
-doiLength = getColumnLength('DOI', 'scopus_publications', cursor)
-titleLength = getColumnLength('Title', 'scopus_publications', cursor)
-journalLength = getColumnLength('Title', 'scopus_publications', cursor)
-abstractLength = getColumnLength('Abstract', 'scopus_publications', cursor)
-keywordsLength = getColumnLength('Keywords', 'scopus_publications', cursor)
-fieldsLength = getColumnLength('Fields', 'scopus_publications', cursor)
-fieldsOfStudyLength = getColumnLength('Fields_Of_Study', 'scopus_authors', cursor)
-affiliationsLength = getColumnLength('Affiliations', 'scopus_authors', cursor)
-affilNameLength = getColumnLength('Name', 'scopus_organizations', cursor)
-affilAddressLength = getColumnLength('Address', 'scopus_piblications', cursor)
-affilCityLength = getColumnLength('City', 'scopus_organizations', cursor)
-affilCountryLength = getColumnLength('Country', 'scopus_organizations', cursor)
-
-# query parameters
-count = '&count=25'
-term1 = '( {python} )'
-term2 = buildKeywordsQuery(keywords)
-terms = f'( {term1} AND {term2} )'
-scope = 'TITLE-ABS-KEY'
-view = '&view=standard'
-sort = '&sort=citedby_count'
-date = '&date=' + str(yearPublished)
-scopusAPIKey = '&apiKey=5bc8ae0729290b95cd0bd58b92e9af41'
-scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
 
 # declaration of lists
 dois = []
@@ -340,6 +33,41 @@ with open("IdentifiersMapping\AuthorsIds.json", "r") as f:
 
 with open("IdentifiersMapping\AffiliationsIds.json", "r") as f:
     scopusAffiliationsIds = json.load(f)
+
+# establishing connection to database
+connection, cursor = connect()
+
+# getting columns size
+doiLength = getColumnLength('DOI', 'scopus_publications', cursor)
+titleLength = getColumnLength('Title', 'scopus_publications', cursor)
+journalLength = getColumnLength('Title', 'scopus_publications', cursor)
+abstractLength = getColumnLength('Abstract', 'scopus_publications', cursor)
+keywordsLength = getColumnLength('Keywords', 'scopus_publications', cursor)
+fieldsLength = getColumnLength('Fields', 'scopus_publications', cursor)
+fieldsOfStudyLength = getColumnLength('Fields_Of_Study', 'scopus_authors', cursor)
+affiliationsLength = getColumnLength('Affiliations', 'scopus_authors', cursor)
+affilNameLength = getColumnLength('Name', 'scopus_organizations', cursor)
+affilAddressLength = getColumnLength('Address', 'scopus_piblications', cursor)
+affilCityLength = getColumnLength('City', 'scopus_organizations', cursor)
+affilCountryLength = getColumnLength('Country', 'scopus_organizations', cursor)
+
+# input data
+keywords = getKeywords()
+yearPublished = getYear()
+fields = getFields()
+commonWords = getCommonWords()
+
+# query parameters
+count = '&count=25'
+term1 = '( {python} )'
+term2 = buildKeywordsQuery(keywords)
+terms = f'( {term1} AND {term2} )'
+scope = 'TITLE-ABS-KEY'
+view = '&view=standard'
+sort = '&sort=citedby_count'
+date = '&date=' + str(yearPublished)
+scopusAPIKey = '&apiKey=5bc8ae0729290b95cd0bd58b92e9af41'
+scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
 
 # retrieving publications DOIs
 print("Retrieving DOIs ...")
