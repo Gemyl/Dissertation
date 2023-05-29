@@ -30,6 +30,7 @@ import { DuplicatesDetectionScreenComponent } from './search/duplicates-detectio
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { SearchService } from './search/search-service/search.service';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [
@@ -65,7 +66,8 @@ import { SearchService } from './search/search-service/search.service';
     MatFormFieldModule,
     MatInputModule,
     MatSortModule,
-    MatDialogModule
+    MatDialogModule,
+    MatCheckboxModule
   ],
   exports: [
     MatFormFieldModule,

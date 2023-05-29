@@ -4,6 +4,7 @@ import { SearchService } from '../search-service/search.service';
 import { MatTableDataSource } from "@angular/material/table";
 import { MatPaginator } from "@angular/material/paginator";
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CheckBoxModule } from '@progress/kendo-angular-treeview/checkbox/checkbox.module';
 
 @Component({
   selector: 'app-duplicates-detection-screen',
@@ -17,41 +18,47 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
   public publicationsOption: boolean;
   public authorsOption: boolean;
   public organizationsOption: boolean;
-  public originalPublications: any;
-  public originalAuthors: any;
-  public originalOrganizations: any;
-  public duplicatesPublications: any;
-  public duplicatesAuthors: any;
-  public duplicatesOrganizations: any;
+  public primaryPublications: any;
+  public primaryAuthors: any;
+  public primaryOrganizations: any;
+  public secondaryPublications: any;
+  public secondaryAuthors: any;
+  public secondaryOrganizations: any;
   public publicationsTableColumns = ["title", "citationsCount", "checkbox"]
   public authorsTableColumns = ["name", "citationsCount", "hIndex", "checkbox"]
   public organizationsTableColumns = ["name", "checkbox"]
-  public publicationsToRemove: string[] = [];
+  public publicationsToBeRemoved: string[] = [];
   public authorsToBeReplaced: string[] = [];
   public authorsToReplace: string[] = [];
   public organizationsToBeReplaced: string[] = [];
   public organizationsToReplace: string[] = [];
   public dialogResult: boolean = true;
+  public primaryPublicationsSelected: boolean = false;
+  public secondaryPublicationsSelected: boolean = false;
+  public primaryAuthorsSelected: boolean = false;
+  public secondaryAuthorsSelected: boolean = false;
+  public primaryOrganizationsSelected: boolean = false;
+  public secondaryOrganizationsSelected: boolean = false;
 
   constructor(
     public dialogRef: MatDialogRef<DuplicatesDetectionScreenComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private _searchService: SearchService
   ) { 
-    this.originalPublications = new MatTableDataSource(this.data[1].publicationsVariants.originals);
-    this.duplicatesPublications = new MatTableDataSource(this.data[1].publicationsVariants.duplicates);
-    this.originalPublications.data = this.data[1].publicationsVariants.originals;
-    this.duplicatesPublications.data = this.data[1].publicationsVariants.duplicates;
+    this.primaryPublications = new MatTableDataSource(this.data[1].publicationsVariants.originals);
+    this.secondaryPublications = new MatTableDataSource(this.data[1].publicationsVariants.duplicates);
+    this.primaryPublications.data = this.data[1].publicationsVariants.originals;
+    this.secondaryPublications.data = this.data[1].publicationsVariants.duplicates;
 
-    this.originalAuthors = new MatTableDataSource(this.data[1].authorsVariants.originals);
-    this.duplicatesAuthors = new MatTableDataSource(this.data[1].authorsVariants.duplicates);
-    this.originalAuthors.data = this.data[1].authorsVariants.originals;
-    this.duplicatesAuthors.data = this.data[1].authorsVariants.duplicates;
+    this.primaryAuthors = new MatTableDataSource(this.data[1].authorsVariants.originals);
+    this.secondaryAuthors = new MatTableDataSource(this.data[1].authorsVariants.duplicates);
+    this.primaryAuthors.data = this.data[1].authorsVariants.originals;
+    this.secondaryAuthors.data = this.data[1].authorsVariants.duplicates;
 
-    this.originalOrganizations = new MatTableDataSource(this.data[1].organizationsVariants.originals);
-    this.duplicatesOrganizations = new MatTableDataSource(this.data[1].organizationsVariants.duplicates);
-    this.originalOrganizations.data = this.data[1].organizationsVariants.originals;
-    this.duplicatesOrganizations.data = this.data[1].organizationsVariants.duplicates;
+    this.primaryOrganizations = new MatTableDataSource(this.data[1].organizationsVariants.originals);
+    this.secondaryOrganizations = new MatTableDataSource(this.data[1].organizationsVariants.duplicates);
+    this.primaryOrganizations.data = this.data[1].organizationsVariants.originals;
+    this.secondaryOrganizations.data = this.data[1].organizationsVariants.duplicates;
   }
 
   ngOnInit(): void {
@@ -92,25 +99,109 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
     }
   }
 
+  selectColumn(entityType:string, isEntityPrimary:boolean) {
+    if (entityType === "publication") {
+      if (isEntityPrimary) {
+        if (this.primaryPublicationsSelected) {
+          this.primaryPublicationsSelected = false;
+          this.publicationsToBeRemoved = [];
+        }
+        else {
+          this.primaryPublicationsSelected = true;
+          for (let i = 0; i < this.primaryPublications.data.length; i++) {
+            this.updatePublicationsVariantsList(this.primaryPublications.data[i].id);
+          }
+        }
+      }
+      else {
+        if (this.secondaryPublicationsSelected) {
+          this.secondaryPublicationsSelected = false;
+          this.publicationsToBeRemoved = [];
+        }
+        else {
+          this.secondaryPublicationsSelected = true;
+          for (let i = 0; i < this.secondaryPublications.data.length; i++) {
+            this.updatePublicationsVariantsList(this.secondaryPublications.data[i].id);
+          }
+        }
+      }
+    }
+
+    else if (entityType === "author") {
+      if (isEntityPrimary) {
+        if (this.primaryAuthorsSelected) {
+          this.primaryAuthorsSelected = false;
+          this.authorsToBeReplaced = [];
+        }
+        else {
+          this.primaryAuthorsSelected = true;
+          for (let i = 0; i < this.primaryAuthors.data.length; i++) {
+            this.updateAuthorsVariantsList(this.primaryAuthors.data[i]);
+          }
+        }
+      }
+      else {
+        if (this.secondaryAuthorsSelected) {
+          this.secondaryAuthorsSelected = false;
+          this.authorsToBeReplaced = [];
+        }
+        else {
+          this.secondaryAuthorsSelected = true;
+          for (let i = 0; i < this.secondaryAuthors.data.length; i++) {
+            this.updateAuthorsVariantsList(this.secondaryAuthors.data[i]);
+          }
+        }
+      }
+    }
+
+    else if (entityType === "organization") {
+      if (isEntityPrimary) {
+        if (this.primaryOrganizationsSelected) {
+          this.primaryOrganizationsSelected = false;
+          this.organizationsToBeReplaced = [];
+        }
+        else {
+          this.primaryOrganizationsSelected = true;
+          for (let i = 0; i < this.primaryOrganizations.data.length; i++) {
+            this.updateOrganizationsVariantsList(this.primaryOrganizations.data[i]);
+          }
+        }
+      }
+      else {
+        if (this.secondaryOrganizationsSelected) {
+          this.secondaryOrganizationsSelected = false;
+          this.organizationsToBeReplaced = [];
+        }
+        else {
+          this.secondaryOrganizationsSelected = true;
+          for (let i = 0; i < this.secondaryOrganizations.data.length; i++) {
+            this.updateOrganizationsVariantsList(this.secondaryOrganizations.data[i]);
+          }
+        }
+      }
+    }
+  }
+
   updatePublicationsVariantsList(publicationId:string) {
-    let index = this.publicationsToRemove.indexOf(publicationId);
+    let index = this.publicationsToBeRemoved.indexOf(publicationId);
     if (index >= 0) {
-      this.publicationsToRemove.splice(index,1);
+      this.publicationsToBeRemoved.splice(index,1);
     }
     else {
-      this.publicationsToRemove.push(publicationId);
+      this.publicationsToBeRemoved.push(publicationId);
     }
+    console.log(this.publicationsToBeRemoved);
   }
 
   clearPublicationsDuplicates() {
     let filteredData = this.data[0];
 
-    for(let i = 0; i < this.publicationsToRemove.length; i++) {
-      let removedItem = this.data[1].publicationsVariants.duplicates.find((x:any) => x.id != this.publicationsToRemove[i]);
+    for(let i = 0; i < this.publicationsToBeRemoved.length; i++) {
+      let removedItem = this.data[1].publicationsVariants.duplicates.find((x:any) => x.id != this.publicationsToBeRemoved[i]);
       let index = this.data[1].publicationsVariants.duplicates.indexOf(removedItem);
       this.data[1].publicationsVariants.originals.splice(index,1);
       this.data[1].publicationsVariants.duplicates.splice(index,1);
-      filteredData = filteredData.filter((x:any) => x.publicationId != this.publicationsToRemove[i]); 
+      filteredData = filteredData.filter((x:any) => x.publicationId != this.publicationsToBeRemoved[i]); 
     }
     this._searchService.setTableData(filteredData);
     this.publicationsVariantsNumber = this.data[1].publicationsVariants.duplicates.length;
@@ -124,13 +215,13 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
       this.authorsToReplace.splice(index,1);
     }
     else {
-      index = this.originalAuthors.data.indexOf(author);
+      index = this.primaryAuthors.data.indexOf(author);
       if (index >= 0) {
-        this.authorsToReplace.push(this.duplicatesAuthors.data[index].id);
+        this.authorsToReplace.push(this.secondaryAuthors.data[index].id);
       }
       else {
-        index = this.duplicatesAuthors.data.indexOf(author);
-        this.authorsToReplace.push(this.originalAuthors.data[index].id);
+        index = this.secondaryAuthors.data.indexOf(author);
+        this.authorsToReplace.push(this.primaryAuthors.data[index].id);
       }
       this.authorsToBeReplaced.push(author.id);
     }
@@ -169,13 +260,13 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
       this.organizationsToReplace.splice(index,1);
     }
     else {
-      index = this.originalOrganizations.data.indexOf(organization);
+      index = this.primaryOrganizations.data.indexOf(organization);
       if (index >= 0) {
-        this.organizationsToReplace.push(this.duplicatesAuthors.data[index].id);
+        this.organizationsToReplace.push(this.secondaryAuthors.data[index].id);
       }
       else {
-        index = this.duplicatesOrganizations.data.indexOf(organization);
-        this.organizationsToReplace.push(this.originalOrganizations.data[index].id);
+        index = this.secondaryOrganizations.data.indexOf(organization);
+        this.organizationsToReplace.push(this.primaryOrganizations.data[index].id);
       }
       this.organizationsToBeReplaced.push(organization.id);
     }

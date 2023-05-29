@@ -15,7 +15,7 @@
             <i class="fas fa-user" style="font-size: 4em;"> <span style="font-size: 1em;"> {{authorsVariantsNumber}}</span></i>
             <button type="button" class="btn btn-rounded action-button" (click)="selectMode('authors')">Manage Authors Duplicates</button>
         </div>
-        <div class="menu-items">
+        <div class="menu-items" style="padding-bottom: 30px;">
             <i class="fas fa-building" style="font-size: 4em;"> <span style="font-size: 1em;"> {{organizationsVariantsNumber}}</span></i>
             <button type="button" class="btn btn-rounded action-button" (click)="selectMode('organizations')">Manage Organizations Duplicates</button>
         </div>
@@ -23,7 +23,7 @@
     <div class="duplicates-tables-container" *ngIf="publicationsOption">
         <div class="table-container">
             <label class="column-label">Primary Variants</label>
-            <table mat-table [dataSource]="originalPublications" style="width: 300px;">
+            <table mat-table [dataSource]="primaryPublications" style="width: 300px;">
                 <ng-container matColumnDef="title">
                     <th mat-header-cell *matHeaderCellDef>Title</th>
                     <td mat-cell *matCellDef="let d" matTooltip="{{d.title}}">{{d.title | slice:0:25}}</td>  
@@ -33,8 +33,8 @@
                     <td mat-cell *matCellDef="let d">{{d.citationsCount}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
-                    <th mat-header-cell *matHeaderCellDef></th>
-                    <td mat0cell *matCellDef="let d"><input type="checkbox" (change)="updatePublicationsVariantsList(d.id)"></td>
+                    <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('publication', true)"></th>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="primaryPublicationsSelected" (change)="updatePublicationsVariantsList(d.id)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="publicationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: publicationsTableColumns"></tr>
@@ -42,7 +42,7 @@
         </div>
         <div class="table-container" style="margin-left: 20px;">
             <label class="column-label">Secondary Variants</label>
-            <table mat-table [dataSource]="duplicatesPublications" style="width: 300px;">
+            <table mat-table [dataSource]="secondaryPublications" style="width: 300px;">
                 <ng-container matColumnDef="title">
                     <th mat-header-cell *matHeaderCellDef>Title</th>
                     <td mat-cell *matCellDef="let d" matTooltip="{{d.title}}">{{d.title | slice:0:25}}</td>  
@@ -52,20 +52,23 @@
                     <td mat-cell *matCellDef="let d">{{d.citationsCount}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
-                    <th mat-header-cell *matHeaderCellDef></th>
-                    <td mat0cell *matCellDef="let d"><input type="checkbox" (change)="updatePublicationsVariantsList(d.id)"></td>
+                    <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('publication', false)"></th>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="secondaryPublicationsSelected" (change)="updatePublicationsVariantsList(d.id)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="publicationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: publicationsTableColumns"></tr>
             </table>
         </div>
     </div>
-    <button class="btn btn-rounded submit-button" type="button" (click)="clearPublicationsDuplicates()" *ngIf="publicationsOption">Clear Duplicates</button>
+    <div class="button-container" *ngIf="publicationsOption">
+        <button class="btn btn-rounded action-button" type="button" (click)="selectMode('reset')" style="margin-left: 700px;">Go Back</button>
+        <button class="btn btn-rounded submit-button" type="button" (click)="clearPublicationsDuplicates()">Clear Duplicates</button>
+    </div>
 
     <div class="duplicates-tables-container" *ngIf="authorsOption">
         <div class="table-container">
             <label class="column-label">Primary Variants</label>
-            <table mat-table [dataSource]="originalAuthors" style="width: 300px;">
+            <table mat-table [dataSource]="primaryAuthors" style="width: 300px;">
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef>Name</th>
                     <td mat-cell *matCellDef="let d" matTooltip="{{d.firstName + ' ' + d.lastName}}">{{d.firstName + ' ' +d.lastName | slice:0:25}}</td>  
@@ -79,8 +82,8 @@
                     <td mat-cell *matCellDef="let d">{{d.hIndex}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
-                    <th mat-header-cell *matHeaderCellDef></th>
-                    <td mat0cell *matCellDef="let d"><input type="checkbox" (change)="updateAuthorsVariantsList(d)"></td>
+                    <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('author', true)"></th>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="primaryAuthorsSelected" (change)="updateAuthorsVariantsList(d)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="authorsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: authorsTableColumns"></tr>
@@ -88,7 +91,7 @@
         </div>
         <div class="table-container">
             <label class="column-label">Secondary Variants</label>
-            <table mat-table [dataSource]="duplicatesAuthors" style="width: 300px;">
+            <table mat-table [dataSource]="secondaryAuthors" style="width: 300px;">
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef>Name</th>
                     <td mat-cell *matCellDef="let d" matTooltip="{{d.firstName + ' ' + d.lastName}}">{{d.firstName + ' ' +d.lastName | slice:0:25}}</td>  
@@ -102,27 +105,30 @@
                     <td mat-cell *matCellDef="let d">{{d.hIndex}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
-                    <th mat-header-cell *matHeaderCellDef></th>
-                    <td mat0cell *matCellDef="let d"><input type="checkbox" (change)="updateAuthorsVariantsList(d)"></td>
+                    <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('author', false)"></th>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="secondaryAuthorsSelected" (change)="updateAuthorsVariantsList(d)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="authorsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: authorsTableColumns"></tr>
             </table>
         </div>
     </div>
-    <button class="btn btn-rounded submit-button" type="button" (click)="clearAuthorsDuplicates()" *ngIf="authorsOption">Clear Duplicates</button>
+    <div class="button-container" *ngIf="authorsOption">
+        <button class="btn btn-rounded action-button" type="button" (click)="selectMode('reset')" style="margin-left: 700px;">Go Back</button>
+        <button class="btn btn-rounded submit-button" type="button" (click)="clearAuthorsDuplicates()">Clear Duplicates</button>
+    </div>
 
     <div class="duplicates-tables-container" *ngIf="organizationsOption">
         <div class="table-container">
             <label class="column-label">Primary Variants</label>
-            <table mat-table [dataSource]="originalOrganizations" style="width: 300px;">
+            <table mat-table [dataSource]="primaryOrganizations" style="width: 300px;">
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef>Name</th>
                     <td mat-cell *matCellDef="let d" matTooltip="{{d.name}}">{{d.name | slice:0:25}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
-                    <th mat-header-cell *matHeaderCellDef></th>
-                    <td mat0cell *matCellDef="let d"><input type="checkbox" (change)="updateOrganizationsVariantsList(d)"></td>
+                    <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('organization', true)"></th>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="primaryOrganizationsSelected" (change)="updateOrganizationsVariantsList(d)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="organizationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: organizationsTableColumns"></tr>
@@ -130,19 +136,22 @@
         </div>
         <div class="table-container">
             <label class="column-label">Secondary Variants</label>
-            <table mat-table [dataSource]="duplicatesOrganizations" style="width: 300px;">
+            <table mat-table [dataSource]="secondaryOrganizations" style="width: 300px;">
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef>Name</th>
                     <td mat-cell *matCellDef="let d" matTooltip="{{d.name}}">{{d.name | slice:0:25}}</td>  
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
-                    <th mat-header-cell *matHeaderCellDef></th>
-                    <td mat0cell *matCellDef="let d"><input type="checkbox" (change)="updateOrganizationsVariantsList(d)"></td>
+                    <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('organization', false)"></th>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="secondaryOrganizationsSelected" (change)="updateOrganizationsVariantsList(d)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="organizationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: organizationsTableColumns"></tr>
             </table>
         </div>
     </div>
-    <button class="btn btn-rounded submit-button" type="button" (click)="clearOrganizationsDuplicates()" *ngIf="organizationsOption">Clear Duplicates</button>
+    <div class="button-container" *ngIf="organizationsOption">
+        <button class="btn btn-rounded action-button" type="button" (click)="selectMode('reset')" style="margin-left: 700px;" >Go Back</button>
+        <button class="btn btn-rounded submit-button" type="button" (click)="clearOrganizationsDuplicates()">Clear Duplicates</button>
+    </div>
 </div>
