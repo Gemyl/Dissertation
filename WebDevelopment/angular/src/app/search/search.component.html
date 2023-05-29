@@ -1,0 +1,46 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <div class="form-container" *ngIf="!dataLoaded">
+            <form #searchForm="ngForm" (ngSubmit)="onSubmit(searchForm)">
+                <div class="row">
+                    <div class="column">
+                        <p>Keywords</p>
+                        <section id="keywords-section"> 
+                            <input type="text" name="keyword" placeholder="Enter Keyword" size="25" ngModel><br>                       
+                            <div #dynamicInputs *ngFor="let set of keywordSets; let i = index">
+                                <select name="boolean{{i}}" style="margin-top: 5px" ngModel="AND">
+                                    <option>AND</option>
+                                    <option>OR</option>
+                                    <option>AND NOT</option>
+                                </select><br>
+                                <input type="text" name="keyword{{i}}" placeholder="Enter Keyword" size="25" ngModel>
+                                <button class="fa fa-trash" (click)="removeSet(i)"></button><br>
+                            </div>
+                            <button class="fa fa-plus" type="button" (click)="addSet()"></button>
+                        </section>
+                    </div>
+                    <div class="column">
+                        <p>Years Range</p>
+                        <input type = "text" name = "year1" placeholder = "Enter First Year" size = "20"
+                        style="margin-right: 10px;" ngModel>
+                        <input type = "text" name = "year2" placeholder = "Enter Last Year" size = "20"
+                        ngModel><br><br>
+                        <p>Scientific Fields</p>
+                        <section id="fields-section">
+                            <div *ngFor="let option of options">
+                                <input type="checkbox" [name]="option.name" [(ngModel)]="option.selected">
+                                <label>{{option.name}}</label>
+                            </div>
+                        </section><br><br>
+                        <div class="button-container">
+                            <button class="btn" type="submit">Submit</button>
+                        </div>
+                    </div>
+                </div>            
+            </form>
+        </div>
+        <app-metadata-table [tableData]="data" [variants]="variants" [hasDuplicates]="duplicatesFlag" (reset)="onReset($event)" *ngIf="dataLoaded"></app-metadata-table>
+    </body>
+</html>

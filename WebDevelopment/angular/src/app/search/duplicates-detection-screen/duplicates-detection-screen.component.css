@@ -1,0 +1,123 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 1000px;
+    padding-bottom: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.close-button {
+    width: 40px;
+    height: 30px;
+    vertical-align: center;
+    border: none;
+    background-color: white;
+}
+
+.close-button:hover {
+    background-color: #e1e1e1;
+}
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-top: 30px;
+    gap: 50px;
+}
+
+.menu-items-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.menu-items {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.action-button {
+    background-color: rgb(255, 255, 255);
+    color: black;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+    height: 40px;
+}
+
+.action-button:hover {
+    background-color: #b6b6b6;
+}
+
+.submit-button {
+    color: white;
+    background-color: black;
+    height: 40px;
+}
+
+.submit-button:hover {
+    background-color: #b6b6b6;
+}
+
+.table-container {
+    width: 450px;
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: column;
+    align-items: center;
+}
+
+.duplicates-tables-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+th {
+    color: white;
+    background-color: black !important;
+}
+
+td {
+    align-items: center;
+}
+
+.column-label {
+    font-size: 2em;
+    font-weight: lighter;
+    color: black;
+    padding-bottom: 20px;
+}
+
+.header-checkbox {
+    accent-color: white;
+    width: 15px;
+    height: 15px;
+}
+
+.cell-checkbox {
+    accent-color: black;
+}
