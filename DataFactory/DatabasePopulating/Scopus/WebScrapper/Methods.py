@@ -1,4 +1,4 @@
-from DataFactory.PreprocessingMethods import buildKeywordsQuery
+from Preprocessing.Methods import buildKeywordsQuery
 from requests import get
 from tqdm import tqdm
 import json

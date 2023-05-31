@@ -1,10 +1,12 @@
-from DataFactory.DuplicatesDetection import detectPublicationsDuplicates, detectAuthorsDuplicates, detectOrganizationsDuplicates
-from DataFactory.PreprocessingMethods import getColumnLength, removeCommonWords, getAffiliationsIds
+from Preprocessing.Methods import getColumnLength, removeCommonWords, getAffiliationsIds
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
-from DataFactory.EntitiesClasses import Publication, Author, Organization
-from DataFactory.InputData import getKeywords, getYear, getFields, getCommonWords
-from DataFactory.ConnectToMySQL import connect
-from ScopusScrapper import getMetadata
+from Entities.Classes import Publication, Author, Organization
+from InputData.Items import getKeywords, getYear, getFields, getCommonWords
+from DuplicatesDetection.PublicationsDuplicates import detectPublicationsDuplicates
+from DuplicatesDetection.AuthorsDuplicates import detectAuthorsDuplicates
+from DuplicatesDetection.OrganizationsDuplicates import detectOrganizationsDuplicates
+from ConnectToMySQL.Connector import connect
+from WebScrapper.Methods import getMetadata
 from tqdm import tqdm
 import json
 
@@ -219,7 +221,6 @@ for doi in tqdm(filteredDois):
                         else:
                             print(f"{BLUE}Author Metadatata Inserting Error Info:{RESET}\n"
                                 f"DOI: {doi}\n"
-                                f"Author Scopus ID: {authorObj.scopusId}\n"
                                 f"Error: {str(err)}")
                             break
 
@@ -235,7 +236,6 @@ for doi in tqdm(filteredDois):
     except Exception as err:
         print(f"{BLUE}Author Metadatata Retrieving Error Info:{RESET}\n"
             f"DOI: {doi}\n"
-            f"Author Scopus ID: {authorObj.scopusId}\n"
             f"Error: {str(err)}")
 
 
@@ -250,7 +250,7 @@ for doi in tqdm(filteredDois):
             affiliations = getAffiliationsIds(author[4])
 
             if (affiliations != "-"):
-                authorId = AuthorRetrieval(author[0]).identifier
+                authorId = str(AuthorRetrieval(author[0]).identifier)
 
                 if (authorId in filteredAuthorsScopusIds):
                     for affil in affiliations:

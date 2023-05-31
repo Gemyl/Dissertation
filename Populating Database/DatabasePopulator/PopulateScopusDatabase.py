@@ -162,7 +162,7 @@ class Publication:
 class Author:
     def __init__(self,authorInfo):
         self.id = str(uuid.uuid4())
-        self.scopusId = getSafeAttribute(authorInfo, 'identifier', 'string')
+        self.scopusId = str(getSafeAttribute(authorInfo, 'identifier', 'string'))
         self.orcidId = getSafeAttribute(authorInfo, 'orcid', 'string')
         self.firstName = applySqlSyntax(getSafeAttribute(authorInfo, 'given_name', 'string'))
         self.lastName = applySqlSyntax(getSafeAttribute(authorInfo, 'surname', 'string'))
@@ -197,7 +197,7 @@ class Author:
 class Organization:
     def __init__(self, organizationInfo):
         self.id = str(uuid.uuid4())
-        self.scopusId = getSafeAttribute(organizationInfo, 'identifier', 'string')
+        self.scopusId = str(getSafeAttribute(organizationInfo, 'identifier', 'string'))
         self.name = applySqlSyntax(getSafeAttribute(organizationInfo, 'affiliation_name', 'string'))
         self.type1, self.type2 = Organization.getAffiliationTypes(organizationInfo)
         self.address = applySqlSyntax(getSafeAttribute(organizationInfo, 'address', 'string'))
@@ -274,8 +274,9 @@ commonWords = ['a', 'an', 'the', 'and', 'or', 'but', 'if', 'of', 'at', 'by', 'fo
                'will', 'be', 'not', 'would', 'should', 'before', 'few', 'many', 'much', 'so', 'furthermore']
 
 # search parameters
-yearPublished = '2022'
+yearPublished = '2021'
 keywords = 'artificial intelligence, machine learning, learning algorithm, deep learning, pattern recognition'
+keywords = 'artificial intelligence'
 fields = ['AGRI', 'ARTS', 'BIOC', 'BUSI', 'CENG', 'CHEM', 'COMP',
           'DECI', 'DENT', 'EART', 'ECON', 'ENER', 'ENGI', 'ENVI',
           'HEAL', 'IMMU', 'MATE', 'MATH', 'MEDI', 'NEUR', 'NURS',
@@ -556,7 +557,6 @@ for doi in tqdm(filteredDois):
     except Exception as err:
         print(f"{BLUE}Author Metadatata Retrieving Error Info:{RESET}\n"
             f"DOI: {doi}\n"
-            f"Author Scopus ID: {authorObj.scopusId}\n"
             f"Error: {str(err)}")
 
 
@@ -571,7 +571,7 @@ for doi in tqdm(filteredDois):
             affiliations = getAffiliationsIds(author[4])
 
             if (affiliations != "-"):
-                authorId = AuthorRetrieval(author[0]).identifier
+                authorId = str(AuthorRetrieval(author[0]).identifier)
 
                 if (authorId in filteredAuthorsScopusIds):
                     for affil in affiliations:
@@ -674,7 +674,6 @@ for doi in tqdm(filteredDois):
     except Exception as err:
         print(f"{BLUE}Affiliation Metadatata Retrieving Error Info:{RESET}\n"
             f"DOI: {doi}\n"
-            f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
             f"Error: {str(err)}")
 
 # closing connection to MySQL DB

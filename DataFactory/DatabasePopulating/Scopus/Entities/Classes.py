@@ -1,4 +1,4 @@
-from DataFactory.PreprocessingMethods import applySqlSyntax, getSafeAttribute
+from Preprocessing.Methods import applySqlSyntax, getSafeAttribute
 from pybliometrics.scopus import PlumXMetrics
 import uuid
 
@@ -83,7 +83,7 @@ class Publication:
 class Author:
     def __init__(self,authorInfo):
         self.id = str(uuid.uuid4())
-        self.scopusId = getSafeAttribute(authorInfo, 'identifier', 'string')
+        self.scopusId = str(getSafeAttribute(authorInfo, 'identifier', 'string'))
         self.orcidId = getSafeAttribute(authorInfo, 'orcid', 'string')
         self.firstName = applySqlSyntax(getSafeAttribute(authorInfo, 'given_name', 'string'))
         self.lastName = applySqlSyntax(getSafeAttribute(authorInfo, 'surname', 'string'))
@@ -118,7 +118,7 @@ class Author:
 class Organization:
     def __init__(self, organizationInfo):
         self.id = str(uuid.uuid4())
-        self.scopusId = getSafeAttribute(organizationInfo, 'identifier', 'string')
+        self.scopusId = str(getSafeAttribute(organizationInfo, 'identifier', 'string'))
         self.name = applySqlSyntax(getSafeAttribute(organizationInfo, 'affiliation_name', 'string'))
         self.type1, self.type2 = Organization.getAffiliationTypes(organizationInfo)
         self.address = applySqlSyntax(getSafeAttribute(organizationInfo, 'address', 'string'))
