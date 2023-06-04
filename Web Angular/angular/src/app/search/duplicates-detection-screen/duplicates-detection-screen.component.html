@@ -34,7 +34,8 @@
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
                     <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('publication', true)"></th>
-                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="primaryPublicationsSelected" (change)="updatePublicationsVariantsList(d.id)"></td>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox"  [checked]="publicationsToBeRemoved.indexOf(d.id) >= 0 || primaryPublicationsSelected" 
+                    (change)="updatePublicationsVariantsList(d.id)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="publicationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: publicationsTableColumns"></tr>
@@ -53,7 +54,8 @@
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
                     <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('publication', false)"></th>
-                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="secondaryPublicationsSelected" (change)="updatePublicationsVariantsList(d.id)"></td>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [checked]="publicationsToBeRemoved.indexOf(d.id) >= 0 || secondaryPublicationsSelected" 
+                    (change)="updatePublicationsVariantsList(d.id)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="publicationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: publicationsTableColumns"></tr>
@@ -83,7 +85,7 @@
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
                     <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('author', true)"></th>
-                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="primaryAuthorsSelected" (change)="updateAuthorsVariantsList(d)"></td>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [checked]="authorsToBeReplaced.indexOf(d.id) >= 0 || primaryAuthorsSelected" (change)="updateAuthorsVariantsList(d)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="authorsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: authorsTableColumns"></tr>
@@ -106,7 +108,8 @@
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
                     <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('author', false)"></th>
-                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="secondaryAuthorsSelected" (change)="updateAuthorsVariantsList(d)"></td>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [checked]="authorsToBeReplaced.indexOf(d.id) >= 0 || secondaryAuthorsSelected" 
+                    (change)="updateAuthorsVariantsList(d)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="authorsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: authorsTableColumns"></tr>
@@ -128,7 +131,8 @@
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
                     <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('organization', true)"></th>
-                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="primaryOrganizationsSelected" (change)="updateOrganizationsVariantsList(d)"></td>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [checked]="organizationsToBeReplaced.indexOf(d.id) >= 0 || primaryOrganizationsSelected" 
+                    (change)="updateOrganizationsVariantsList(d)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="organizationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: organizationsTableColumns"></tr>
@@ -143,7 +147,8 @@
                 </ng-container>
                 <ng-container matColumnDef="checkbox">
                     <th mat-header-cell *matHeaderCellDef><input type="checkbox" class="header-checkbox" (change)="selectColumn('organization', false)"></th>
-                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [(ngModel)]="secondaryOrganizationsSelected" (change)="updateOrganizationsVariantsList(d)"></td>
+                    <td mat-cell *matCellDef="let d"><input type="checkbox" class="cell-checkbox" [checked]="organizationsToBeReplaced.indexOf(d.id) >= 0 || secondaryOrganizationsSelected" 
+                    (change)="updateOrganizationsVariantsList(d)"></td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="organizationsTableColumns"></tr>
                 <tr mat-row *matRowDef="let myRowData; columns: organizationsTableColumns"></tr>

@@ -96,9 +96,9 @@
                 <button class="btn btn-light btn-rounded action-button" type="button" (click)="exportToCsv()">
                 <i class="fas fa-file-csv" style="font-size: 1em;"></i> Export To CSV</button>
                 <button class="btn btn-light btn-rounded action-button" type="button" (click)="openDialog()" *ngIf="!hasDuplicates" [disabled]="true">
-                <i class="fas fa-search" style="font-size: 1em;"></i> Manage Duplicates</button>
+                <i class="fas fa-search" style="font-size: 1em;"></i> See Possible Duplicates </button>
                 <button class="btn btn-light btn-rounded action-button alert-icon" type="button" (click)="openDialog()" *ngIf="hasDuplicates">
-                <i class="fas fa-search" style="font-size: 1em;"></i> Manage Duplicates</button>
+                <i class="fas fa-search" style="font-size: 1em;"></i> See Possible Duplicates </button>
             </div>
         </mat-drawer>
         <div class="expand-button-container">

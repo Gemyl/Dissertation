@@ -5,6 +5,7 @@ import { MatTableDataSource } from "@angular/material/table";
 import { MatPaginator } from "@angular/material/paginator";
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CheckBoxModule } from '@progress/kendo-angular-treeview/checkbox/checkbox.module';
+import { MatCell } from '@angular/material/table';
 
 @Component({
   selector: 'app-duplicates-detection-screen',
@@ -262,13 +263,23 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
     else {
       index = this.primaryOrganizations.data.indexOf(organization);
       if (index >= 0) {
-        this.organizationsToReplace.push(this.secondaryAuthors.data[index].id);
+        this.organizationsToReplace.push(this.secondaryOrganizations.data[index].id);
       }
       else {
         index = this.secondaryOrganizations.data.indexOf(organization);
         this.organizationsToReplace.push(this.primaryOrganizations.data[index].id);
       }
       this.organizationsToBeReplaced.push(organization.id);
+    }
+  }
+
+  checkIfOrganizationIsSelected(organization:any) {
+    let index = this.organizationsToBeReplaced.indexOf(organization.id);
+    if (index >= 0) {
+      return true;
+    }
+    else {
+      return false;
     }
   }
 
