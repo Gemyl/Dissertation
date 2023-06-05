@@ -1,5 +1,6 @@
 import { Component, ViewChildren, QueryList, ViewChild, AfterViewInit } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import { NgForm } from "@angular/forms";
 
 @Component({
@@ -15,39 +16,41 @@ export class SearchComponent {
   public variants = <any>[];
   public dataLoaded = false;
   public duplicatesFlag: boolean;
-  year1: string;
-  year2: string;
-  keywords = <any>[];
-  booleans = <any>[];
-  fields = <any>[];
-  options = [
-    { name: "Agricultural and Biological Sciences", selected: false },
-    { name: "Arts and Humanities", selected: false },
-    { name: "Biochemistry Genetics and Molecular Biology", selected: false },
-    { name: "Business, Management, and Accounting", selected: false },
-    { name: "Chemical Engineering", selected: false },
-    { name: "Chemistry", selected: false },
-    { name: "Computer Science", selected: false },
-    { name: "Decision Sciences", selected: false },
-    { name: "Dentistry", selected: false },
-    { name: "Earth and Planetary Sciences", selected: false },
-    { name: "Economics, Econometrics and Finance", selected: false },
-    { name: "Energy", selected: false },
-    { name: "Engineering", selected: false },
-    { name: "Environmental Science", selected: false },
-    { name: "Health Professions", selected: false },
-    { name: "Immunology and Microbiology", selected: false },
-    { name: "Materials Science", selected: false },
-    { name: "Mathematics", selected: false },
-    { name: "Medicine", selected: false },
-    { name: "Multidisciplinary", selected: false },
-    { name: "Neuroscience", selected: false },
-    { name: "Nursing", selected: false },
-    { name: "Pharmacology, Toxicology, and Pharmaceutics", selected: false },
-    { name: "Physics and Astronomy", selected: false },
-    { name: "Psychology", selected: false },
-    { name: "Social Sciences", selected: false },
-    { name: "Veterinary", selected: false }
+  public enableScopusSearch: boolean = true;
+  public year1: string;
+  public year2: string;
+  public scopusApiKey:string;
+  public keywords = <any>[];
+  public booleans = <any>[];
+  public fields = <any>[];
+  public options = [
+    { id: "0", name: "Agricultural and Biological Sciences", selected: false },
+    { id: "1", name: "Arts and Humanities", selected: false },
+    { id: "2", name: "Biochemistry Genetics and Molecular Biology", selected: false },
+    { id: "3", name: "Business, Management, and Accounting", selected: false },
+    { id: "4", name: "Chemical Engineering", selected: false },
+    { id: "5", name: "Chemistry", selected: false },
+    { id: "6", name: "Computer Science", selected: false },
+    { id: "7", name: "Decision Sciences", selected: false },
+    { id: "8", name: "Dentistry", selected: false },
+    { id: "9", name: "Earth and Planetary Sciences", selected: false },
+    { id: "10", name: "Economics, Econometrics and Finance", selected: false },
+    { id: "11", name: "Energy", selected: false },
+    { id: "12", name: "Engineering", selected: false },
+    { id: "13", name: "Environmental Science", selected: false },
+    { id: "14", name: "Health Professions", selected: false },
+    { id: "15", name: "Immunology and Microbiology", selected: false },
+    { id: "16", name: "Materials Science", selected: false },
+    { id: "17", name: "Mathematics", selected: false },
+    { id: "18", name: "Medicine", selected: false },
+    { id: "19", name: "Multidisciplinary", selected: false },
+    { id: "20", name: "Neuroscience", selected: false },
+    { id: "21", name: "Nursing", selected: false },
+    { id: "22", name: "Pharmacology, Toxicology, and Pharmaceutics", selected: false },
+    { id: "23", name: "Physics and Astronomy", selected: false },
+    { id: "24", name: "Psychology", selected: false },
+    { id: "25", name: "Social Sciences", selected: false },
+    { id: "26", name: "Veterinary", selected: false }
   ]
 
   constructor(
@@ -65,6 +68,10 @@ export class SearchComponent {
     this.keywordSets.push(keyword);
   }
 
+  setScopusSearch() {
+    this.enableScopusSearch = !this.enableScopusSearch;
+  }
+
   onSubmit(form: NgForm) {
     let formData = form.value;
     Object.keys(formData).forEach(key => {
@@ -80,8 +87,11 @@ export class SearchComponent {
       else if (key.includes('year2')) {
         this.year2 = formData[key];
       }
+      else if (key.includes('scopus')) {
+        this.scopusApiKey = formData[key];
+      }
       else if (formData[key] == true) {
-        this.fields.push(key)
+        this.fields.push(this.options.find(field => field.name === key)?.id)
       }
     });
     
@@ -92,6 +102,7 @@ export class SearchComponent {
     .set('year1', this.year1)
     .set('year2', this.year2)
     .set('fields', this.fields)
+    .set('scopusApiKey', this.scopusApiKey)
 
     this.http
       .get("http://127.0.0.1:5000/search", { params: parameters })
@@ -109,12 +120,12 @@ export class SearchComponent {
         }
       });
 
-    this.dataLoaded = true;
     form.resetForm();
     this.keywords = [];
     this.booleans = [];
     this.fields = [];
     this.dynamicInputs.forEach(input => this.removeSet(input));
+    this.dataLoaded = true;
   }
 
   onReset(reset: boolean) {

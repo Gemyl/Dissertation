@@ -1,5 +1,9 @@
-<div class="container">  
-    <div class="table-container">
+<div class="container">
+    <div class="loader-container" *ngIf="renderSpinner">
+        <mat-spinner color="warn" diameter="75" strokeWidth="4"></mat-spinner>
+        <span style="font-size: 2em; font-weight: lighter; color: black; margin-top: 20px;"> Loading results </span>
+    </div>  
+    <div class="table-container" *ngIf="renderTable">
         <table mat-table matSort [dataSource]="dataSource" style="overflow-x: auto;">
         <ng-container matColumnDef="publicationDoi">
             <th mat-header-cell *matHeaderCellDef>DOI</th>
@@ -77,7 +81,7 @@
             </mat-paginator>
         </div>
     </div>
-    <mat-drawer-container class="sidenav-container" autosize>
+    <mat-drawer-container class="sidenav-container" *ngIf="renderTable" autosize>
         <mat-drawer #drawer class="toolbar-container" mode="side">
             <p style="font-weight: lighter; font-size:x-large;">Toolbar</p>
             <div class="filter-container">
@@ -96,9 +100,9 @@
                 <button class="btn btn-light btn-rounded action-button" type="button" (click)="exportToCsv()">
                 <i class="fas fa-file-csv" style="font-size: 1em;"></i> Export To CSV</button>
                 <button class="btn btn-light btn-rounded action-button" type="button" (click)="openDialog()" *ngIf="!hasDuplicates" [disabled]="true">
-                <i class="fas fa-search" style="font-size: 1em;"></i> Manage Duplicates</button>
+                <i class="fas fa-search" style="font-size: 1em;"></i> See Possible Duplicates </button>
                 <button class="btn btn-light btn-rounded action-button alert-icon" type="button" (click)="openDialog()" *ngIf="hasDuplicates">
-                <i class="fas fa-search" style="font-size: 1em;"></i> Manage Duplicates</button>
+                <i class="fas fa-search" style="font-size: 1em;"></i> See Possible Duplicates </button>
             </div>
         </mat-drawer>
         <div class="expand-button-container">

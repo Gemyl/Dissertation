@@ -11,14 +11,13 @@ body {
 
 .form-container {
     @extend .component-container;
-    height: 600px;
     width: 900px;
     background-color: #fff;
     box-shadow: 0px 0px 10px 2px #6b6b6b;;
     border-radius: 3%;
 }
 
-.row {
+.column-containers {
     display: flex;
     justify-content: space-between;
     gap: 60px;
@@ -27,23 +26,17 @@ body {
 .column {
     margin-top: 15px;
     margin-bottom: 15px;
+    height: 600px;
+}
+
+.cell {
+    margin-bottom: 20px;
 }
 
 .button-container {
     display: flex;
     justify-content: end;
     margin: 0;
-}
-
-button[type=submit] {
-    color: #fff;
-    background-color: #000;
-    border-radius: 15%;
-    width: 75px;
-}
-
-button[type=submit]:hover {
-    background-color: #4d4d4d;
 }
 
 input, select {
@@ -68,24 +61,43 @@ p {
     margin-bottom: 10px;
 }
 
-.fa {
-    color: #fff;
-    background-color: #000;
+.fa-trash {
+    margin-left: 5px;
+    border-width: 2px;
+}
+
+.action-button {
+    color: #000000;
+    background-color: #ffffff;
     border-radius: 10%;
     margin-top: 5px;
     width: 35px;
     height: 35px;
 }
 
+.submit-button {
+    color: white;
+    background-color: black;
+    border-radius: 10%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.submit-button:hover {
+    background-color: #b6b6b6;
+}
+
 #keywords-section {
-    height: 450px;
+    height: 400px;
     width: 350px;
     overflow: auto;
 }
 
 #fields-section {
     margin-top: 10px;
-    height: 360px;
+    height: 400px;
     overflow: auto;
 }
 

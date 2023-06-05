@@ -7,6 +7,7 @@ import { MatFormField } from '@angular/material/form-field';
 import { MatLabel } from '@angular/material/form-field';
 import { MatDrawer } from '@angular/material/sidenav';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DuplicatesDetectionScreenComponent } from '../duplicates-detection-screen/duplicates-detection-screen.component';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -24,13 +25,21 @@ export class MetadataTableComponent {
   @Input() variants: any;
   @Input() hasDuplicates: boolean;
   @Input() set tableData(data: any) {
-    this.length = data.length;
+    if (this.renderSpinner) {
+      this.renderTable = true;
+      this.renderSpinner = false;
+      setTimeout(() => {
+        this.dataSource.paginator = this.paginator;
+      });
+    }
     this.dataSource = new MatTableDataSource(data);
     this.dataSource.data = data;
-    this.dataSource.paginator = this.paginator;
+    this.length = this.dataSource.data.length;
     this.dataSource.sort = this.sorting;
-  };
+  }
   public dataSource: any;
+  public renderSpinner: boolean;
+  public renderTable: boolean;
   displayedColumns: string[] = [
     'publicationDoi', 'publicationTitle', 'publicationYear', 'publicationCitationsCount', 'publicationKeywords', 'publicationFields',
     'authorFirstName', 'authorLastName', 'authorFieldsOfStudy', 'authorCitationsCount', 'authorhIndex',
@@ -77,9 +86,11 @@ export class MetadataTableComponent {
     this._searchService.getTableData().subscribe(data => {
       if (data.length != 0) {
         this.dataSource.data = data;
+        this.length = data.length;
       }
     });
-   }
+    this.renderSpinner = true;
+  }
 
   changeFiller() {
     if (this.showFiller) {

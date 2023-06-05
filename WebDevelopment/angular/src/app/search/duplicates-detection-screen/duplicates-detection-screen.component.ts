@@ -262,7 +262,7 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
     else {
       index = this.primaryOrganizations.data.indexOf(organization);
       if (index >= 0) {
-        this.organizationsToReplace.push(this.secondaryAuthors.data[index].id);
+        this.organizationsToReplace.push(this.secondaryOrganizations.data[index].id);
       }
       else {
         index = this.secondaryOrganizations.data.indexOf(organization);

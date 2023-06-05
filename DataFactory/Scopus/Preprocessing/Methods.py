@@ -22,14 +22,14 @@ def getSafeAttribute(obj, attribute, attributeType):
     return value
 
         
-def buildKeywordsQuery(keywords):
-    keywords = keywords.split(', ')
+def buildKeywordsQuery(keywords, booleans):
+    # keywords = keywords.split(', ')
     keywordsList = '('
     for i in range(len(keywords)):
         if i == len(keywords)-1:
             keywordsList = keywordsList + '{' + keywords[i] + '}'
         else:
-            keywordsList = keywordsList + '{' + keywords[i] + '} ' + 'OR '
+            keywordsList = keywordsList + '{' + keywords[i] + '} ' + booleans[i]
 
     keywordsList = keywordsList + ')'
     keywords = keywordsList

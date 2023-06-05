@@ -3,7 +3,7 @@ from requests import get
 from tqdm import tqdm
 import json
 
-def getMetadata(keywords, yearPublished, fields):
+def getMetadata(keywords, yearPublished, fields, booleans, apiKey):
 
     # DOIs list
     dois = []
@@ -11,13 +11,14 @@ def getMetadata(keywords, yearPublished, fields):
     # query parameters
     count = '&count=25'
     term1 = '( {python} )'
-    term2 = buildKeywordsQuery(keywords)
+    term2 = buildKeywordsQuery(keywords, booleans)
     terms = f'( {term1} AND {term2} )'
     scope = 'TITLE-ABS-KEY'
     view = '&view=standard'
     sort = '&sort=citedby_count'
     date = '&date=' + str(yearPublished)
-    scopusAPIKey = '&apiKey=5bc8ae0729290b95cd0bd58b92e9af41'
+    scopusAPIKey = apiKey
+    #'&apiKey=5bc8ae0729290b95cd0bd58b92e9af41'
     scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
 
     # retrieving publications DOIs

@@ -56,6 +56,13 @@
     gap: 20px;
 }
 
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .action-button {
     background-color: white;
     color: black;
