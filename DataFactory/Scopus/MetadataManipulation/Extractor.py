@@ -10,7 +10,7 @@ from WebScrapper.Methods import getMetadata
 from tqdm import tqdm
 import json
 
-def startExtraction(keywords, yearPublished, fields, booleans, apiKey, connection, cursor):
+def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connection, cursor):
     # terminal colors
     RED = "\033[1;31m"
     GREEN = "\033[1;32m"

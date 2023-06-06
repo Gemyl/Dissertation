@@ -1,7 +1,7 @@
 from ConnectToMySQL.Connector import connect
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from MetadataManipulation.Extractor import startExtraction
+from MetadataManipulation.Extractor import extractMetadata
 from InputData.Items import getFullNameFields
 
 app = Flask(__name__)
@@ -24,8 +24,8 @@ def search():
     year2 = request.args.get("year2")
     scopusApiKey = request.args.get("scopusApiKey")
 
-    # for year in range(int(year1), int(year2)+1):
-    #     startExtraction(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
+    for year in range(int(year1), int(year2)+1):
+        extractMetadata(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
 
     fullNameFields = getFullNameFields(fields)
 
@@ -42,7 +42,9 @@ def search():
     conditionQuery = 'WHERE\n (\n'
     for i in range(len(keywords)):
         if (i == 0):
-            tempQuery = f'`Keywords` LIKE \'%{keywords[i].lower()}%\'\n'
+            tempQuery = f'`Keywords` LIKE \'%{keywords[i].lower()}%\'\n \
+                        OR Title LIKE \'%{keywords[i].lower()}%\'\n \
+                        OR Abstract LIKE \'%{keywords[i].lower()}%\'\n'
             conditionQuery = conditionQuery + tempQuery
         else:
             tempQuery = f'{booleans[i-1]} `Keywords` LIKE \'%{keywords[i].lower()}%\'\n'
