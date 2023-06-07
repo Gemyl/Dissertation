@@ -58,20 +58,36 @@ def detectOrganizationsDuplicates(connection, cursor):
             if (((fuzz.ratio(names[i], names[j]) > 85) | (names[i] in names[j]) | (names[j] in names[i])) &
                 (cities[i] == cities[j])):
                 first_date = AffiliationRetrieval(int(scopusIds[i])).date_created
-                seconnectiond_date = AffiliationRetrieval(int(scopusIds[j])).date_created
+                second_date = AffiliationRetrieval(int(scopusIds[j])).date_created
 
                 # Keep the organization with the most recent profile
-                if ((getMostRecentProfile(first_date, seconnectiond_date) == first_date) & (ids[i] not in variants2Ids)):
-                    variants1Ids.append(ids[i])
-                    variants2Ids.append(ids[j])
-                    removedNames.append(names[j])
-                    remainingNames.append(names[i])
-                    
-                elif (ids[j] not in variants2Ids):
-                    variants1Ids.append(ids[j])
-                    variants2Ids.append(ids[i])
-                    removedNames.append(names[i])
-                    remainingNames.append(names[j])
+                if (getMostRecentProfile(first_date, second_date) == first_date):
+                    if (ids[i] not in variants2Ids):
+                        variants1Ids.append(ids[i])
+                        variants2Ids.append(ids[j])
+                        removedNames.append(names[j])
+                        remainingNames.append(names[i])
+                    else:
+                        index = variants2Ids.index(ids[i])
+                        majorVariantIndex = ids.index(variants1Ids[index])
+                        variants1Ids.append(variants1Ids[index])
+                        variants2Ids.append(ids[j])
+                        removedNames.append(names[j])
+                        remainingNames.append(names[majorVariantIndex])
+                
+                else:
+                    if (ids[j] not in variants2Ids):
+                        variants1Ids.append(ids[j])
+                        variants2Ids.append(ids[i])
+                        removedNames.append(names[i])
+                        remainingNames.append(names[j])
+                    else:
+                        index = variants2Ids.index(ids[j])
+                        majorVariantIndex = ids.index(variants1Ids[index])
+                        variants1Ids.append(variants1Ids[index])
+                        variants2Ids.append(ids[i])
+                        removedNames.append(names[i])
+                        remainingNames.append(names[majorVariantIndex])
             else:
                 break
 

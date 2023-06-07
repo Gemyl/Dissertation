@@ -109,7 +109,7 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
         else {
           this.primaryPublicationsSelected = true;
           for (let i = 0; i < this.primaryPublications.data.length; i++) {
-            this.updatePublicationsVariantsList(this.primaryPublications.data[i].id);
+            this.updatePublicationsVariantsList(this.primaryPublications.data[i].id, true);
           }
         }
       }
@@ -121,7 +121,7 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
         else {
           this.secondaryPublicationsSelected = true;
           for (let i = 0; i < this.secondaryPublications.data.length; i++) {
-            this.updatePublicationsVariantsList(this.secondaryPublications.data[i].id);
+            this.updatePublicationsVariantsList(this.secondaryPublications.data[i].id, true);
           }
         }
       }
@@ -136,7 +136,7 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
         else {
           this.primaryAuthorsSelected = true;
           for (let i = 0; i < this.primaryAuthors.data.length; i++) {
-            this.updateAuthorsVariantsList(this.primaryAuthors.data[i]);
+            this.updateAuthorsVariantsList(this.primaryAuthors.data[i], true);
           }
         }
       }
@@ -148,7 +148,7 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
         else {
           this.secondaryAuthorsSelected = true;
           for (let i = 0; i < this.secondaryAuthors.data.length; i++) {
-            this.updateAuthorsVariantsList(this.secondaryAuthors.data[i]);
+            this.updateAuthorsVariantsList(this.secondaryAuthors.data[i], true);
           }
         }
       }
@@ -163,7 +163,7 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
         else {
           this.primaryOrganizationsSelected = true;
           for (let i = 0; i < this.primaryOrganizations.data.length; i++) {
-            this.updateOrganizationsVariantsList(this.primaryOrganizations.data[i]);
+            this.updateOrganizationsVariantsList(this.primaryOrganizations.data[i], true);
           }
         }
       }
@@ -175,16 +175,16 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
         else {
           this.secondaryOrganizationsSelected = true;
           for (let i = 0; i < this.secondaryOrganizations.data.length; i++) {
-            this.updateOrganizationsVariantsList(this.secondaryOrganizations.data[i]);
+            this.updateOrganizationsVariantsList(this.secondaryOrganizations.data[i], true);
           }
         }
       }
     }
   }
 
-  updatePublicationsVariantsList(publicationId:string) {
+  updatePublicationsVariantsList(publicationId:string, allowDuplicates:boolean = false) {
     let index = this.publicationsToBeRemoved.indexOf(publicationId);
-    if (index >= 0) {
+    if (index >= 0 && !allowDuplicates) {
       this.publicationsToBeRemoved.splice(index,1);
     }
     else {
@@ -197,20 +197,27 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
     let filteredData = this.data[0];
 
     for(let i = 0; i < this.publicationsToBeRemoved.length; i++) {
-      let removedItem = this.data[1].publicationsVariants.duplicates.find((x:any) => x.id != this.publicationsToBeRemoved[i]);
-      let index = this.data[1].publicationsVariants.duplicates.indexOf(removedItem);
-      this.data[1].publicationsVariants.originals.splice(index,1);
-      this.data[1].publicationsVariants.duplicates.splice(index,1);
-      filteredData = filteredData.filter((x:any) => x.publicationId != this.publicationsToBeRemoved[i]); 
+      filteredData = filteredData.filter((x:any) => x.publicationId !== this.publicationsToBeRemoved[i]); 
     }
+
+    for (let i = 0; i < this.publicationsToBeRemoved.length; i++) {
+      let index = this.primaryPublications.data.indexOf(this.primaryPublications.data.find((x:any) => x.id === this.publicationsToBeRemoved[i])) > -1
+        ? this.primaryPublications.data.indexOf(this.primaryPublications.data.find((x:any) => x.id === this.publicationsToBeRemoved[i]))
+        : this.secondaryPublications.data.indexOf(this.secondaryPublications.data.find((x:any) => x.id === this.publicationsToBeRemoved[i]));
+
+      this.primaryPublications.data.splice(index,1);
+      this.secondaryPublications.data.splice(index,1);
+    }
+
     this._searchService.setTableData(filteredData);
     this.publicationsVariantsNumber = this.data[1].publicationsVariants.duplicates.length;
+    this.publicationsToBeRemoved = [];
     this.selectMode('reset');
   }
 
-  updateAuthorsVariantsList(author:any) {
+  updateAuthorsVariantsList(author:any, allowDuplicates:boolean = false) {
     let index = this.authorsToBeReplaced.indexOf(author.id);
-    if (index >= 0) {
+    if (index >= 0 && !allowDuplicates) {
       this.authorsToBeReplaced.splice(index,1);
       this.authorsToReplace.splice(index,1);
     }
@@ -245,17 +252,23 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
 
     this._searchService.setTableData(filteredData);
     for (let i = 0; i < this.authorsToBeReplaced.length; i++) {
-      this.data[1].authorsVariants.originals.splice(i,1);
-      this.data[1].authorsVariants.duplicates.splice(i,1);
+      let index = this.primaryAuthors.data.indexOf(this.primaryAuthors.data.find((x:any) => x.id === this.authorsToBeReplaced)) > -1
+        ? this.primaryAuthors.data.indexOf(this.primaryAuthors.data.find((x:any) => x.id === this.authorsToBeReplaced))
+        : this.secondaryAuthors.data.indexOf(this.secondaryAuthors.data.find((x:any) => x.id === this.authorsToBeReplaced))
+      
+      this.primaryAuthors.data.splice(index,1);
+      this.secondaryAuthors.data.splice(index,1);
     }
 
     this.authorsVariantsNumber = this.data[1].authorsVariants.duplicates.length;
+    this.authorsToBeReplaced = []
+    this.authorsToReplace = []
     this.selectMode('reset');
   }
 
-  updateOrganizationsVariantsList(organization:any) {
+  updateOrganizationsVariantsList(organization:any, allowDuplicates:boolean = false) {
     let index = this.organizationsToBeReplaced.indexOf(organization.id);
-    if (index >= 0) {
+    if (index >= 0 && !allowDuplicates) {
       this.organizationsToBeReplaced.splice(index,1);
       this.organizationsToReplace.splice(index,1);
     }
@@ -290,11 +303,17 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
 
     this._searchService.setTableData(filteredData);
     for (let i = 0; i < this.organizationsToBeReplaced.length; i++) {
-      this.data[1].organizationsVariants.originals = this.data[1].organizationsVariants.originals.filter((x:any) => x.id != this.organizationsToReplace[i]);
-      this.data[1].organizationsVariants.duplicates = this.data[1].organizationsVariants.duplicates.filter((x:any) => x.id != this.organizationsToBeReplaced[i]);
+      let index = this.primaryOrganizations.data.indexOf(this.primaryOrganizations.data.find((x:any) => x.id === this.organizationsToBeReplaced[i])) > -1
+      ? this.primaryOrganizations.data.indexOf(this.primaryOrganizations.data.find((x:any) => x.id === this.organizationsToBeReplaced[i]))
+      : this.secondaryOrganizations.data.indexOf(this.secondaryOrganizations.data.find((x:any) => x.id === this.organizationsToBeReplaced[i]));
+
+      this.primaryOrganizations.data.splice(index,1);
+      this.secondaryOrganizations.data.splice(index,1);
     }
 
     this.organizationsVariantsNumber = this.data[1].organizationsVariants.duplicates.length;
+    this.organizationsToBeReplaced = [];
+    this.organizationsToReplace = [];
     this.selectMode('reset');
   }
 

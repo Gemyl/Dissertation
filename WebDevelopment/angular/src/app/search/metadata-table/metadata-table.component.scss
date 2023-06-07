@@ -6,7 +6,7 @@
     margin-top: 100px;
     padding-bottom: 50px;
     gap: 10px;
-    width: 1500px;
+    width: 1600px;
 }
 
 .table-container {
@@ -16,7 +16,7 @@
     overflow: auto;
     background-color: #fff;
     box-shadow: 0px 0px 10px 2px #6b6b6b;
-    width: 1300px;
+    max-width: 1200px;
 }
 
 .sidenav-container {
@@ -125,4 +125,24 @@ th {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
     background: #4d4d4d;
+}
+
+.mat-column-publicationTitle {
+    min-width: 300px !important;
+}
+
+.mat-column-publicationKeywords {
+    min-width: 300px !important;
+}
+
+.mat-column-publicationFields {
+    min-width: 300px !important;
+}
+
+.mat-column-authorFieldsOfStudy {
+    min-width: 300px !important;
+}
+
+.mat-column-organizationName {
+    min-width: 300px !important;
 }

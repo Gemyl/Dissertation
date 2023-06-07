@@ -17,7 +17,7 @@ def getMetadata(keywords, yearPublished, fields, booleans, apiKey):
     view = '&view=standard'
     sort = '&sort=citedby_count'
     date = '&date=' + str(yearPublished)
-    scopusAPIKey = apiKey
+    scopusAPIKey = f'&apiKey={apiKey}'
     #'&apiKey=5bc8ae0729290b95cd0bd58b92e9af41'
     scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
 

@@ -11,7 +11,7 @@
         </ng-container>
         <ng-container matColumnDef="publicationTitle">
             <th mat-header-cell *matHeaderCellDef>Title</th>
-            <td mat-cell *matCellDef="let d" matTooltip="{{d.publicationTitle}}">{{d.publicationTitle | slice:0:15}}</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.publicationTitle}}">{{d.publicationTitle | slice:0:50}}</td>
         </ng-container>
         <ng-container matColumnDef="publicationYear">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Year</th>
@@ -23,11 +23,11 @@
         </ng-container>
         <ng-container matColumnDef="publicationKeywords">
             <th mat-header-cell *matHeaderCellDef>Keywords</th>
-            <td mat-cell *matCellDef="let d" matTooltip="{{d.publicationKeywords}}">{{d.publicationKeywords | slice:0:15}}</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.publicationKeywords}}">{{d.publicationKeywords | slice:0:50}}</td>
         </ng-container>
         <ng-container matColumnDef="publicationFields">
             <th mat-header-cell *matHeaderCellDef>Fields</th>
-            <td mat-cell *matCellDef="let d" matTooltip="{{d.publicationFields}}">{{d.publicationFields | slice:0:15}}</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.publicationFields}}">{{d.publicationFields | slice:0:50}}</td>
         </ng-container>
         <ng-container matColumnDef="authorFirstName">
             <th mat-header-cell *matHeaderCellDef>Name</th>
@@ -39,7 +39,7 @@
         </ng-container>
         <ng-container matColumnDef="authorFieldsOfStudy">
             <th mat-header-cell *matHeaderCellDef>Subjects</th>
-            <td mat-cell *matCellDef="let d" matTooltip="{{d.authorFieldsOfStudy}}">{{d.authorFieldsOfStudy | slice:0:15}}</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.authorFieldsOfStudy}}">{{d.authorFieldsOfStudy | slice:0:50}}</td>
         </ng-container>
         <ng-container matColumnDef="authorCitationsCount">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>References</th>
@@ -51,7 +51,7 @@
         </ng-container>
         <ng-container matColumnDef="organizationName">
             <th mat-header-cell *matHeaderCellDef>Organization</th>
-            <td mat-cell *matCellDef="let d" matTooltip="{{d.organizationName}}">{{d.organizationName | slice:0:15}}...</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.organizationName}}">{{d.organizationName | slice:0:50}}</td>
         </ng-container>
         <ng-container matColumnDef="organizationType1">
             <th mat-header-cell *matHeaderCellDef>Type 1</th>

@@ -1,0 +1,9 @@
+from ConnectToMySQL.Connector import connect
+from DuplicatesDetection.AuthorsDuplicates import detectAuthorsDuplicates
+from DuplicatesDetection.PublicationsDuplicates import detectPublicationsDuplicates
+from DuplicatesDetection.OrganizationsDuplicates import detectOrganizationsDuplicates
+
+connection, cursor = connect()
+detectPublicationsDuplicates(connection,cursor)
+detectAuthorsDuplicates(connection, cursor)
+detectOrganizationsDuplicates(connection, cursor)
