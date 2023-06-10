@@ -1,0 +1,74 @@
+CREATE TABLE publications (
+	ID VARCHAR(40),
+	DOI VARCHAR(50),
+	`Year` VARCHAR(4),
+	Title VARCHAR (100),
+    	Abstract VARCHAR (100),
+	Keywords VARCHAR (100),
+	Fields VARCHAR (100),
+	Citations_Count INTEGER,
+	Authors_Number INTEGER,
+	Organizations_Number INTEGER,
+PRIMARY KEY(ID),
+UNIQUE(DOI)
+);
+
+CREATE TABLE authors ( 
+	ID VARCHAR(40),
+Database_ID VARCHAR(15),
+ORCID_ID VARCHAR(20),
+First_Name VARCHAR(50),
+Last_Name VARCHAR(50),
+            Fields_Of_Study VARCHAR(100),
+            Affiliations VARCHAR(100),
+            hIndex INTEGER,
+            Citations_Count INTEGER,
+            PRIMARY KEY (ID),
+            UNIQUE(Scopus_ID)
+);
+
+CREATE TABLE organizations ( 
+            ID VARCHAR(40),
+            Database_ID VARCHAR(15),
+            Name VARCHAR(100),
+            Type_1 VARCHAR(15),
+            Type_2 VARCHAR(25),
+            Address VARCHAR(100),
+           City VARCHAR(50),
+           Country VARCHAR(50),
+           PRIMARY KEY (ID),
+           UNIQUE(Scopus_ID)
+);
+
+CREATE TABLE publications_authors (
+	Publication_ID VARCHAR(40),
+	Author_ID VARCHAR(40),
+	FOREIGN KEY (Publication_ID) REFERENCES publications (ID),
+	FOREIGN KEY (Author_ID) REFERENCES authors (ID)
+);
+
+CREATE TABLE scopus_publications_organizations ( 
+	Publication_ID VARCHAR(40),
+	Organization_ID VARCHAR(40),
+	FOREIGN KEY (Publication_ID) REFERENCES publications (ID),
+	FOREIGN KEY (Organization_ID) REFERENCES organizations (ID)
+);
+
+CREATE TABLE authors_organizations (
+	Author_ID VARCHAR(40),
+    	Organization_ID VARCHAR(40),
+	FOREIGN KEY (Author_ID) REFERENCES authors (ID),
+	FOREIGN KEY (Organization_ID) REFERENCES organizations (ID)
+);
+
+ALTER TABLE publications_organizations ADD FOREIGN KEY (FK1_ID) REFERENCES publications (ID) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE publications_organizations ADD FOREIGN KEY (FK2_ID) REFERENCES organizations (ID) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE authors_organizations ADD FOREIGN KEY (FK1_ID) REFERENCES authors (ID) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE authors_organizations ADD FOREIGN KEY (FK2_ID) REFERENCES organizations (ID) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE publications_authors ADD FOREIGN KEY (FK1_ID) REFERENCES publications (ID) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE publications_authors ADD FOREIGN KEY (FK2_ID) REFERENCES authors (ID) ON DELETE CASCADE ON UPDATE CASCADE;
