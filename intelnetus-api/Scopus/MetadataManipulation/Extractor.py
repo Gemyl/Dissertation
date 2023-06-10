@@ -6,7 +6,7 @@ from DuplicatesDetection.PublicationsDuplicates import detectPublicationsDuplica
 from DuplicatesDetection.AuthorsDuplicates import detectAuthorsDuplicates
 from DuplicatesDetection.OrganizationsDuplicates import detectOrganizationsDuplicates
 from ConnectToMySQL.Connector import connect
-from WebScrapper.Methods import getMetadata
+from WebScrapper.Methods import getDois
 from tqdm import tqdm
 import json
 
@@ -56,7 +56,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
     commonWords = getCommonWords()
 
     # retrieving DOIs
-    dois = getMetadata(keywords, yearPublished, scopusFields, booleans, apiKey)
+    dois = getDois(keywords, yearPublished, scopusFields, booleans, apiKey)
 
     # getting publication metadata
     print("Getting publications metadata ...")

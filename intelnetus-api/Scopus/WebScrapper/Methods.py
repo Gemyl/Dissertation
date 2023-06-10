@@ -3,7 +3,7 @@ from requests import get
 from tqdm import tqdm
 import json
 
-def getMetadata(keywords, yearPublished, fields, booleans, apiKey):
+def getDois(keywords, yearPublished, fields, booleans, apiKey):
 
     # DOIs list
     dois = []
