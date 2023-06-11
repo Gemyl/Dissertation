@@ -104,7 +104,7 @@ def detectPublicationsDuplicates(connection, cursor):
 
     # Printing results
     if len(removedTitles) == 0:
-        print(f"{BLUE}No duplicates detected.")
+        print(f"{BLUE}No duplicates detected.{RESET}")
     else:
         for i in range(len(removedTitles)):
             print(f'------------------\n'

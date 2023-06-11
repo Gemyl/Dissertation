@@ -93,7 +93,7 @@ def detectOrganizationsDuplicates(connection, cursor):
 
     # Print out the rejected and remaining organization variants
     if(len(removedNames) == 0):
-        print(f"{BLUE}No duplicates detected.")
+        print(f"{BLUE}No duplicates detected.{RESET}")
     else:
         for i in range(len(removedNames)):
             print(f'----------------\n'
