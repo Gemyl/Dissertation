@@ -3,6 +3,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from MetadataManipulation.Extractor import extractMetadata
 from InputData.Items import getFullNameFields
+from DuplicatesDetection.PublicationsDuplicates import detectPublicationsDuplicates
+from DuplicatesDetection.AuthorsDuplicates import detectAuthorsDuplicates
+from DuplicatesDetection.OrganizationsDuplicates import detectOrganizationsDuplicates
 
 app = Flask(__name__)
 CORS(app)
@@ -22,6 +25,11 @@ def search():
 
         for year in range(int(year1), int(year2)+1):
             extractMetadata(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
+        
+        #detecting and storing duplicates
+        detectPublicationsDuplicates(connection, cursor)
+        detectAuthorsDuplicates(connection, cursor)
+        detectOrganizationsDuplicates(connection, cursor)
 
         fullNameFields = getFullNameFields(fields)
 

@@ -1,11 +1,7 @@
 from Preprocessing.Methods import getColumnLength, removeCommonWords, getAffiliationsIds
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
 from Entities.Classes import Publication, Author, Organization
-from InputData.Items import getKeywords, getYear, getScopusFields, getCommonWords
-from DuplicatesDetection.PublicationsDuplicates import detectPublicationsDuplicates
-from DuplicatesDetection.AuthorsDuplicates import detectAuthorsDuplicates
-from DuplicatesDetection.OrganizationsDuplicates import detectOrganizationsDuplicates
-from ConnectToMySQL.Connector import connect
+from InputData.Items import getScopusFields, getCommonWords
 from WebScrapper.Methods import getDois
 from tqdm import tqdm
 import json
@@ -341,9 +337,3 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
             print(f"{BLUE}Publication Metadatata Retrieving Error Info:{RESET}\n"
                 f"DOI: {doi}\n"
                 f"Error: {str(err)}")
-
-            
-    #detecting and storing duplicates
-    detectPublicationsDuplicates(connection, cursor)
-    detectAuthorsDuplicates(connection, cursor)
-    detectOrganizationsDuplicates(connection, cursor)
