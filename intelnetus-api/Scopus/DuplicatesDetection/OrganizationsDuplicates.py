@@ -21,7 +21,7 @@ def detectOrganizationsDuplicates(connection, cursor):
     ids = []
     names = []
     scopusIds = []
-    cities = []
+    addresses = []
 
     # Initialize lists to store rejected organization data
     variants1Ids = []
@@ -45,18 +45,18 @@ def detectOrganizationsDuplicates(connection, cursor):
     for row in cursor:
         scopusIds.append(row[0])
 
-    query = 'SELECT City FROM scopus_organizations ORDER BY Name;'
+    query = 'SELECT Address FROM scopus_organizations ORDER BY Name;'
     cursor.execute(query)
     for row in cursor:
-        cities.append(row[0])
+        addresses.append(row[0])
 
     # Compare each pair of organization names and determine which variant to keep
     for i in range(len(names)-1):
         for j in range(i+1, len(names)):
 
-            # Check if names are similar and cities are the same
+            # Check if names are similar and addresses are the same
             if (((fuzz.ratio(names[i], names[j]) > 85) | (names[i] in names[j]) | (names[j] in names[i])) &
-                (cities[i] == cities[j])):
+                (addresses[i] == addresses[j])):
                 first_date = AffiliationRetrieval(int(scopusIds[i])).date_created
                 second_date = AffiliationRetrieval(int(scopusIds[j])).date_created
 

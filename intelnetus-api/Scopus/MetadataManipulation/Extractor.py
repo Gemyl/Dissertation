@@ -8,21 +8,14 @@ import json
 
 def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connection, cursor):
     # terminal colors
-    RED = "\033[1;31m"
-    GREEN = "\033[1;32m"
     BLUE = "\033[1;34m"
     RESET = "\033[0m"
 
     # upper limit for columns size
     MAX_COLUMN_SIZE = 5000
 
-    # declaration of lists
+    # declaration of DOIs list
     dois = []
-    filteredDois = []
-    filteredAuthorsScopusIds = []
-    citationsCount = []
-    authorsNumber = []
-    affiliationsNumber = []
 
     # matching Scopus IDs with UUIDs
     with open("IdentifiersMapping\PublicationsIds.json", "r") as f:
@@ -61,12 +54,13 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
         try:
             publicationInfo = AbstractRetrieval(doi, view="FULL")
             publicationObj = Publication(publicationInfo, yearPublished, doi)
-            publicationObj.abstract = removeCommonWords(publicationObj.abstract, commonWords)
 
             while True:
                 try:
-                    query = f"INSERT INTO scopus_publications VALUES('{publicationObj.id}','{publicationObj.doi}','{publicationObj.year}','{publicationObj.title}',\
-                        '{publicationObj.journal}','{publicationObj.abstract}','{publicationObj.keywords}','{publicationObj.fields}',{publicationObj.citationsCount},\
+                    query = f"INSERT INTO scopus_publications VALUES('{publicationObj.id}', \
+                        '{publicationObj.doi}','{publicationObj.year}','{publicationObj.title}',\
+                        '{publicationObj.journal}','{publicationObj.abstract}','{publicationObj.keywords}',\
+                        '{publicationObj.fields}',{publicationObj.citationsCount},\
                         {publicationObj.authorsNumber},{publicationObj.affiliationsNumber});"
                     cursor.execute(query)
                     connection.commit()
@@ -79,8 +73,12 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
 
                         if "Data too long" in str(err):
                             if "DOI" in str(err):
-                                print(doi)
-                                break
+                                try:
+                                    query = f"ALTER TABLE scopus_publications MODIFY COLUMN DOI VARCHAR({doiLength});"
+                                    cursor.execute(query)
+                                    cursor.commit()
+                                except:
+                                    pass
 
                             elif "Title" in str(err):
                                 titleLength += 10
@@ -144,7 +142,6 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                         break
 
             if (errorCodePub == 0):
-                filteredDois.append(publicationObj.doi)
                 publicationsScopusIds[publicationObj.doi] = publicationObj.id
                 with open("IdentifiersMapping\PublicationsIds.json", "w") as f:
                     json.dump(publicationsScopusIds, f, indent=4)
@@ -158,12 +155,13 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
 
                         while True:
                             try:
-                                query = f"INSERT INTO scopus_authors VALUES('{authorObj.id}','{authorObj.scopusId}','{authorObj.orcidId}','{authorObj.firstName}',\
-                                    '{authorObj.lastName}','{authorObj.fieldsOfStudy}','{authorObj.affiliations}',{authorObj.hIndex},{authorObj.citationsCount});"
+                                query = f"INSERT INTO scopus_authors VALUES('{authorObj.id}',\
+                                    '{authorObj.scopusId}','{authorObj.orcidId}','{authorObj.firstName}',\
+                                    '{authorObj.lastName}','{authorObj.fieldsOfStudy}','{authorObj.affiliations}',\
+                                     {authorObj.hIndex},{authorObj.citationsCount});"
                                 cursor.execute(query)
                                 connection.commit()
 
-                                filteredAuthorsScopusIds.append(authorObj.scopusId)
                                 scopusAuthorsIds[authorObj.scopusId] = authorObj.id
                                 with open("IdentifiersMapping\AuthorsIds.json", "w") as f:
                                     json.dump(scopusAuthorsIds, f, indent=4)
@@ -211,34 +209,33 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                     break
 
                         if (errorCodeAut in [0, 1]):
-                            query = f"INSERT INTO scopus_publications_authors VALUES('{publicationsScopusIds[doi]}','{scopusAuthorsIds[authorObj.scopusId]}');"
+                            query = f"INSERT INTO scopus_publications_authors VALUES('{publicationsScopusIds[doi]}',\
+                                     '{scopusAuthorsIds[authorObj.scopusId]}');"
                             cursor.execute(query)
                             connection.commit()
 
-                            try:
-                                authors = AbstractRetrieval(doi).authors
+                            if (errorCodeAut == 0):
+                                try:
+                                    authors = AbstractRetrieval(doi).authors
 
-                                for author in authors:
-                                    affiliations = getAffiliationsIds(author[4])
+                                    for author in authors:
+                                        affiliations = getAffiliationsIds(author[4])
 
-                                    if (affiliations != "-"):
-                                        authorId = str(AuthorRetrieval(author[0]).identifier)
+                                        if (affiliations != "-"):
+                                            authorId = str(AuthorRetrieval(author[0]).identifier)
 
-                                        if (authorId in filteredAuthorsScopusIds):
                                             for affil in affiliations:
                                                 affiliationInfo = AffiliationRetrieval(int(affil), view="STANDARD")
                                                 organizationObj = Organization(affiliationInfo)
                                                 
                                                 while True:
                                                     try:
-                                                        query = f"INSERT INTO scopus_organizations VALUES('{organizationObj.id}','{organizationObj.scopusId}','{organizationObj.name}',\
-                                                            '{organizationObj.type1}','{organizationObj.type2}','{organizationObj.address}','{organizationObj.city}','{organizationObj.country}');"
+                                                        query = f"INSERT INTO scopus_organizations VALUES('{organizationObj.id}',\
+                                                                '{organizationObj.scopusId}','{organizationObj.name}','{organizationObj.type1}',\
+                                                                '{organizationObj.type2}','{organizationObj.address}','{organizationObj.city}',\
+                                                                '{organizationObj.country}');"
                                                         cursor.execute(query)
                                                         connection.commit()
-
-                                                        scopusAffiliationsIds[organizationObj.scopusId] = organizationObj.id
-                                                        with open("IdentifiersMapping\AffiliationsIds.json", "w") as f:
-                                                            json.dump(scopusAffiliationsIds, f, indent=4)
 
                                                         errorCodeOrg = 0
                                                         break
@@ -322,11 +319,11 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                                 f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
                                                                 f"Error: {str(err)}")
 
-                            except Exception as err:
-                                print(f"{BLUE}Affiliation Metadatata Retrieving Error Info:{RESET}\n"
-                                    f"DOI: {doi}\n"
-                                    f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                    f"Error: {str(err)}")
+                                except Exception as err:
+                                    print(f"{BLUE}Affiliation Metadatata Retrieving Error Info:{RESET}\n"
+                                        f"DOI: {doi}\n"
+                                        f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+                                        f"Error: {str(err)}")
 
                 except Exception as err:
                     print(f"{BLUE}Author Metadatata Retrieving Error Info:{RESET}\n"

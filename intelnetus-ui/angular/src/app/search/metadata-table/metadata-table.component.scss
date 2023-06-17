@@ -5,8 +5,8 @@
     vertical-align: baseline;
     margin-top: 100px;
     padding-bottom: 50px;
+    width: 1475px;
     gap: 10px;
-    width: 1600px;
 }
 
 .table-container {
@@ -16,7 +16,7 @@
     overflow: auto;
     background-color: #fff;
     box-shadow: 0px 0px 10px 2px #6b6b6b;
-    max-width: 1200px;
+    max-width: 1100px;
 }
 
 .sidenav-container {
@@ -145,4 +145,20 @@ th {
 
 .mat-column-organizationName {
     min-width: 300px !important;
+}
+
+.mat-column-organizationType1 {
+    min-width: 200px !important;
+}
+
+.mat-column-organizationType2 {
+    min-width: 200px;
+}
+
+.mat-column-organizationCity {
+    min-width: 200px;
+}
+
+.mat-column-organizationCountry {
+    min-width: 200px;
 }

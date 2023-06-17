@@ -55,19 +55,19 @@
         </ng-container>
         <ng-container matColumnDef="organizationType1">
             <th mat-header-cell *matHeaderCellDef>Type 1</th>
-            <td mat-cell *matCellDef="let d">{{d.organizationType1}}</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.organizationType1}}">{{d.organizationType1 | slice:0:50}}</td>
         </ng-container>
         <ng-container matColumnDef="organizationType2">
             <th mat-header-cell *matHeaderCellDef>Type 2</th>
-            <td mat-cell *matCellDef="let d">{{d.organizationType2}}</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.organizationType2}}">{{d.organizationType2 | slice:0:50}}</td>
         </ng-container>
         <ng-container matColumnDef="organizationCity">
             <th mat-header-cell *matHeaderCellDef>City</th>
-            <td mat-cell *matCellDef="let d">{{d.organizationCity}}</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.organizationCity}}">{{d.organizationCity | slice:0:50}}</td>
         </ng-container>
         <ng-container matColumnDef="organizationCountry">
             <th mat-header-cell *matHeaderCellDef>Country</th>
-            <td mat-cell *matCellDef="let d">{{d.organizationCountry}}</td>
+            <td mat-cell *matCellDef="let d" matTooltip="{{d.organizationCountry}}"> {{d.organizationCountry | slice:0:50}}</td>
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let myRowData; columns: displayedColumns"></tr>

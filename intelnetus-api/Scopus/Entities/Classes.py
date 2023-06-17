@@ -1,4 +1,4 @@
-from Preprocessing.Methods import applySqlSyntax, getSafeAttribute
+from Preprocessing.Methods import applySqlSyntax, removeCommonWords, getSafeAttribute
 from pybliometrics.scopus import PlumXMetrics
 import uuid
 
@@ -19,12 +19,12 @@ class Publication:
         self.year = year
         self.title = applySqlSyntax(getSafeAttribute(publicationInfo, 'title', 'string'))
         self.journal = applySqlSyntax(getSafeAttribute(publicationInfo, 'publicationName', 'string'))
-        self.abstract = applySqlSyntax(
+        self.abstract = applySqlSyntax(removeCommonWords(
             Publication.getAbstract(
                 getSafeAttribute(publicationInfo, 'abstract', 'string'),
                 getSafeAttribute(publicationInfo, 'description', 'string')
             )
-        )
+        ))
         self.keywords = applySqlSyntax(Publication.getKeywords(getSafeAttribute(publicationInfo, 'authkeywords', 'string')))
         self.fields = applySqlSyntax(Publication.getFields(getSafeAttribute(publicationInfo, 'subject_areas', 'string')))
         self.citationsCount = Publication.getMaximumCitationsCount(

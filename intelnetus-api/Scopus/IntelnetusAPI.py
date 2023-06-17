@@ -10,8 +10,6 @@ from DuplicatesDetection.OrganizationsDuplicates import detectOrganizationsDupli
 app = Flask(__name__)
 CORS(app)
 
-connection, cursor = connect()
-
 @app.route('/search', methods=['GET'])
 def search():
 
@@ -23,8 +21,10 @@ def search():
         year2 = request.args.get("year2")
         scopusApiKey = request.args.get("scopusApiKey")
 
-        for year in range(int(year1), int(year2)+1):
-            extractMetadata(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
+        connection, cursor = connect()
+
+        # for year in range(int(year1), int(year2)+1):
+        #     extractMetadata(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
         
         #detecting and storing duplicates
         detectPublicationsDuplicates(connection, cursor)
@@ -59,6 +59,7 @@ def search():
 
         conditionQuery = conditionQuery + f'scopus_publications.Year >= {year1}\n'
         conditionQuery = conditionQuery + f'AND scopus_publications.Year <= {year2}\n AND \n (\n'
+        
         for i in range(len(fullNameFields)):
             if (i == 0):
                 tempQuery = f'scopus_publications.Fields LIKE \'%{fullNameFields[i]}%\'\n'
