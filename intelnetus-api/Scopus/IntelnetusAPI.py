@@ -33,17 +33,19 @@ def search():
 
         fullNameFields = getFullNameFields(fields)
 
-        basicQuery = f'SELECT scopus_publications.ID, scopus_publications.DOI, scopus_publications.Title, scopus_publications.Year, scopus_publications.Citations_Count, \n' + \
-            'scopus_publications.Keywords, scopus_publications.Fields, scopus_authors.ID, scopus_authors.First_Name, scopus_authors.Last_Name, \n' + \
-            'scopus_authors.Fields_Of_Study, scopus_authors.Citations_Count, scopus_authors.hIndex, scopus_organizations.ID, scopus_organizations.Name, \n' + \
-            'scopus_organizations.Type_1, scopus_organizations.Type_2, scopus_organizations.City, scopus_organizations.Country \n' + \
-            'FROM ((((scopus_publications_authors \n' + \
-            'INNER JOIN scopus_publications ON scopus_publications_authors.Publication_ID = scopus_publications.ID) \n' + \
-            'INNER JOIN scopus_authors ON scopus_publications_authors.Author_ID = scopus_authors.ID) \n' + \
-            'INNER JOIN scopus_authors_organizations ON scopus_authors.ID = scopus_authors_organizations.Author_ID) \n' + \
-            'INNER JOIN scopus_organizations ON scopus_authors_organizations.Organization_ID = scopus_organizations.ID)\n'
+        basicQuery = f'SELECT scopus_publications.ID, scopus_publications.DOI, scopus_publications.Title, scopus_publications.Year,\n \
+                       scopus_publications.Citations_Count, scopus_publications.Keywords, scopus_publications.Fields, scopus_authors.ID, \n \
+                       scopus_authors.First_Name, scopus_authors.Last_Name, scopus_authors.Fields_Of_Study, scopus_authors.Citations_Count, \n \
+                       scopus_authors.hIndex, scopus_organizations.ID, scopus_organizations.Name, scopus_organizations.Type_1, \n \
+                       scopus_organizations.Type_2, scopus_organizations.City, scopus_organizations.Country \n \
+                       FROM ((((scopus_publications_authors \n \
+                       INNER JOIN scopus_publications ON scopus_publications_authors.Publication_ID = scopus_publications.ID) \n \
+                       INNER JOIN scopus_authors ON scopus_publications_authors.Author_ID = scopus_authors.ID) \n \
+                       INNER JOIN scopus_authors_organizations ON scopus_authors.ID = scopus_authors_organizations.Author_ID) \n \
+                       INNER JOIN scopus_organizations ON scopus_authors_organizations.Organization_ID = scopus_organizations.ID)\n'
 
         conditionQuery = 'WHERE\n (\n'
+        # keywords
         for i in range(len(keywords)):
             if (i == 0):
                 tempQuery = f'scopus_publications.Keywords LIKE \'%{keywords[i].lower()}%\'\n \
@@ -55,11 +57,13 @@ def search():
                             OR scopus_publications.Title LIKE \'%{keywords[i].lower()}%\'\n \
                             OR scopus_publications.Abstract LIKE \'%{keywords[i].lower()}%\'\n'
                 conditionQuery = conditionQuery + tempQuery
-        conditionQuery = conditionQuery + ') \n AND \n'
 
+        # years range
+        conditionQuery = conditionQuery + ') \n AND \n'
         conditionQuery = conditionQuery + f'scopus_publications.Year >= {year1}\n'
         conditionQuery = conditionQuery + f'AND scopus_publications.Year <= {year2}\n AND \n (\n'
         
+        # fields
         for i in range(len(fullNameFields)):
             if (i == 0):
                 tempQuery = f'scopus_publications.Fields LIKE \'%{fullNameFields[i]}%\'\n'
@@ -77,6 +81,7 @@ def search():
         organizationsIds = []
         cursor.execute(query)
         metadata = cursor.fetchall()
+
         for row in metadata:
             publicationsIds.append(row[0])
             authorsIds.append(row[7])
@@ -116,8 +121,9 @@ def search():
             duplicateId = pubVar[1]
 
             if ((originalId in publicationsIds) & (duplicateId in publicationsIds)):
-                subQuery = f"SELECT scopus_publications.Id, scopus_publications.Title, scopus_publications.Citations_Count FROM scopus_publications \
-                WHERE ID = '{originalId}';"
+                subQuery = f"SELECT scopus_publications.Id, scopus_publications.Title, \
+                            scopus_publications.Citations_Count FROM scopus_publications \
+                            WHERE ID = '{originalId}';"
                 cursor.execute(subQuery)
                 variantData = cursor.fetchall()[0]
                 publicationsVariants["originals"].append({
@@ -126,8 +132,9 @@ def search():
                     "citationsCount":variantData[2]
                 })
 
-                subQuery = f"SELECT scopus_publications.Id, scopus_publications.Title, scopus_publications.Citations_Count FROM scopus_publications \
-                WHERE ID = '{duplicateId}';"
+                subQuery = f"SELECT scopus_publications.Id, scopus_publications.Title, \
+                            scopus_publications.Citations_Count FROM scopus_publications \
+                            WHERE ID = '{duplicateId}';"
                 cursor.execute(subQuery)
                 variantData = cursor.fetchall()[0]
                 publicationsVariants["duplicates"].append({
@@ -217,6 +224,7 @@ def search():
                 "data":data,
                 "variants":variants
             }
+
         else:
             result = {
                 "successful":"true",
