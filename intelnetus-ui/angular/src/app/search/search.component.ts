@@ -11,6 +11,7 @@ import { NgForm } from "@angular/forms";
 
 export class SearchComponent {
   @ViewChildren('dynamicInputs') dynamicInputs!: QueryList<any>;
+  private apiUrl = "http://127.0.0.1:5000/search";
   public keywordSets: any[] = [];
   public data = <any>[];
   public variants = <any>[];
@@ -105,18 +106,20 @@ export class SearchComponent {
     .set('scopusApiKey', this.scopusApiKey)
 
     this.http
-      .get("http://127.0.0.1:5000/search", { params: parameters })
+      .get(this.apiUrl, { params: parameters })
       .subscribe((response: any) => {
-        this.data = response['data'];
-        this.variants = response['variants'];
+        if (response.successful === "true" && response.hasResult === "true") {
+          this.data = response['data'];
+          this.variants = response['variants'];
 
-        if (this.variants.publicationsVariants.duplicates.length > 0 || 
-          this.variants.authorsVariants.duplicates.length > 0 || 
-          this.variants.organizationsVariants.duplicates.length > 0) {
-          this.duplicatesFlag = true;
-        }
-        else {
-          this.duplicatesFlag = false;
+          if (this.variants.publicationsVariants.duplicates.length > 0 || 
+            this.variants.authorsVariants.duplicates.length > 0 || 
+            this.variants.organizationsVariants.duplicates.length > 0) {
+            this.duplicatesFlag = true;
+          }
+          else {
+            this.duplicatesFlag = false;
+          }
         }
       });
 
