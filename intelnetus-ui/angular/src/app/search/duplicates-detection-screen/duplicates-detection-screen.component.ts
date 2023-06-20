@@ -190,7 +190,6 @@ export class DuplicatesDetectionScreenComponent implements OnInit {
     else {
       this.publicationsToBeRemoved.push(publicationId);
     }
-    console.log(this.publicationsToBeRemoved);
   }
 
   clearPublicationsDuplicates() {

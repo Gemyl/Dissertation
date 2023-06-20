@@ -39,21 +39,21 @@ def getDois(keywords, yearPublished, fields, booleans, apiKey):
                 content = json.loads(req.content)['search-results']
                 totalResults = int(content['opensearch:totalResults'])
                 startIndex = int(content['opensearch:startIndex'])
-                metadata = content['entry']
+                entries = content['entry']
             # else print the error cause
             else:
                 Error = json.loads(req.content)['service-error']['status']
                 print(req.status_code, Error['statusText'])
                 errorCounter += 1
 
-            for md in metadata:
+            for entry in entries:
                 try:
-                    TempDOI = md['prism:doi']
+                    TempDOI = entry['prism:doi']
                     dois.append(str(TempDOI))
                 except:
                     pass
 
-            remainingData = totalResults - startIndex - len(metadata)
+            remainingData = totalResults - startIndex - len(entries)
 
             # if there are any records remained, update startIndex and start the next loop
             if ((remainingData > 0) & (errorCounter < 10)):

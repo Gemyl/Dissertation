@@ -23,8 +23,8 @@ def search():
 
         connection, cursor = connect()
 
-        # for year in range(int(year1), int(year2)+1):
-        #     extractMetadata(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
+        for year in range(int(year1), int(year2)+1):
+             extractMetadata(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
         
         #detecting and storing duplicates
         detectPublicationsDuplicates(connection, cursor)
