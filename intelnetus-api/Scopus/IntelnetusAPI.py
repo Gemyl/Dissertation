@@ -2,7 +2,7 @@ from ConnectToMySQL.Connector import connect
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from MetadataManipulation.Extractor import extractMetadata
-from InputData.Items import getFullNameFields
+from InputData.Items import getScopusFields
 from DuplicatesDetection.PublicationsDuplicates import detectPublicationsDuplicates
 from DuplicatesDetection.AuthorsDuplicates import detectAuthorsDuplicates
 from DuplicatesDetection.OrganizationsDuplicates import detectOrganizationsDuplicates
@@ -31,7 +31,7 @@ def search():
         detectAuthorsDuplicates(connection, cursor)
         detectOrganizationsDuplicates(connection, cursor)
 
-        fullNameFields = getFullNameFields(fields)
+        fieldsAbbreviations = getScopusFields(fields)
 
         basicQuery = f'SELECT scopus_publications.ID, scopus_publications.DOI, scopus_publications.Title, scopus_publications.Year,\n \
                        scopus_publications.Citations_Count, scopus_publications.Keywords, scopus_publications.Fields, scopus_authors.ID, \n \
@@ -64,12 +64,12 @@ def search():
         conditionQuery = conditionQuery + f'AND scopus_publications.Year <= {year2}\n AND \n (\n'
         
         # fields
-        for i in range(len(fullNameFields)):
+        for i in range(len(fieldsAbbreviations)):
             if (i == 0):
-                tempQuery = f'scopus_publications.Fields LIKE \'%{fullNameFields[i]}%\'\n'
+                tempQuery = f'scopus_publications.Fields_Abbreviations LIKE \'%{fieldsAbbreviations[i]}%\'\n'
                 conditionQuery = conditionQuery + tempQuery
             else: 
-                tempQuery = f'OR scopus_publications.Fields LIKE \'%{fullNameFields[i]}%\'\n'
+                tempQuery = f'OR scopus_publications.Fields_Abbreviations LIKE \'%{fieldsAbbreviations[i]}%\'\n'
                 conditionQuery = conditionQuery + tempQuery
         
         conditionQuery = conditionQuery + ');'
@@ -156,7 +156,9 @@ def search():
             duplicateId = authVar[1]
 
             if ((originalId in authorsIds) & (duplicateId in authorsIds)):
-                subQuery = f"SELECT scopus_authors.Id, scopus_authors.First_Name, scopus_authors.Last_Name, scopus_authors.hIndex, scopus_authors.Citations_Count FROM scopus_authors \
+                subQuery = f"SELECT scopus_authors.Id, scopus_authors.First_Name, \
+                            scopus_authors.Last_Name, scopus_authors.hIndex, \
+                            scopus_authors.Citations_Count FROM scopus_authors \
                 WHERE ID = '{originalId}';"
                 cursor.execute(subQuery)
                 variantData = cursor.fetchall()[0]
@@ -168,7 +170,9 @@ def search():
                     "citationsCount":variantData[4]
                 })
 
-                subQuery = f"SELECT scopus_authors.Id, scopus_authors.First_Name, scopus_authors.Last_Name, scopus_authors.hIndex, scopus_authors.Citations_Count FROM scopus_authors \
+                subQuery = f"SELECT scopus_authors.Id, scopus_authors.First_Name, \
+                            scopus_authors.Last_Name, scopus_authors.hIndex, \
+                            scopus_authors.Citations_Count FROM scopus_authors \
                 WHERE ID = '{duplicateId}';"
                 cursor.execute(subQuery)
                 variantData = cursor.fetchall()[0]

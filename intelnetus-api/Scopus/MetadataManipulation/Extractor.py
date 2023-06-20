@@ -34,6 +34,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
     abstractLength = getColumnLength('Abstract', 'scopus_publications', cursor)
     keywordsLength = getColumnLength('Keywords', 'scopus_publications', cursor)
     fieldsLength = getColumnLength('Fields', 'scopus_publications', cursor)
+    fieldsAbbreviationsLength = getColumnLength('Fields_Abbreviations', 'scopus_publications', cursor)
     fieldsOfStudyLength = getColumnLength('Fields_Of_Study', 'scopus_authors', cursor)
     affiliationsLength = getColumnLength('Affiliations', 'scopus_authors', cursor)
     affilNameLength = getColumnLength('Name', 'scopus_organizations', cursor)
@@ -59,7 +60,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                     query = f"INSERT INTO scopus_publications VALUES('{publicationObj.id}', \
                         '{publicationObj.doi}','{publicationObj.year}','{publicationObj.title}',\
                         '{publicationObj.journal}','{publicationObj.abstract}','{publicationObj.keywords}',\
-                        '{publicationObj.fields}',{publicationObj.citationsCount},\
+                        '{publicationObj.fields}','{publicationObj.fieldsAbbreviations}',{publicationObj.citationsCount},\
                         {publicationObj.authorsNumber},{publicationObj.affiliationsNumber});"
                     cursor.execute(query)
                     connection.commit()
@@ -125,6 +126,18 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                     fieldsLength = MAX_COLUMN_SIZE
                                 try:
                                     query = f"ALTER TABLE scopus_publications MODIFY COLUMN Fields VARCHAR({fieldsLength});"
+                                    cursor.execute(query)
+                                    connection.commit()
+                                except:
+                                    pass
+
+                            elif "Fields_Abbreviations" in str(err):
+                                fieldsAbbreviationsLength += 10
+                                if fieldsAbbreviationsLength >= MAX_COLUMN_SIZE:
+                                    publicationObj.fieldsAbbreviations = publicationObj.fieldsAbbreviations[:MAX_COLUMN_SIZE]
+                                    fieldsAbbreviationsLength = MAX_COLUMN_SIZE
+                                try:
+                                    query = f"ALTER TABLE scopus_publications MODIFY COLUMN Fields_Abbreviations VARCHAR({fieldsAbbreviationsLength});"
                                     cursor.execute(query)
                                     connection.commit()
                                 except:

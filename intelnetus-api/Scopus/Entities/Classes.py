@@ -29,6 +29,7 @@ class Publication:
         ))
         self.keywords = applySqlSyntax(Publication.getKeywords(getSafeAttribute(publicationInfo, 'authkeywords', 'string')))
         self.fields = applySqlSyntax(Publication.getFields(getSafeAttribute(publicationInfo, 'subject_areas', 'string')))
+        self.fieldsAbbreviations = applySqlSyntax(Publication.getFieldsAbbreviations(getSafeAttribute(publicationInfo, 'subject_areas', 'string')))
         self.citationsCount = Publication.getMaximumCitationsCount(
             getSafeAttribute(publicationInfo, 'citedby_count', 'number'),
             doi
