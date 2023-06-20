@@ -12,6 +12,8 @@ import { NgForm } from "@angular/forms";
 export class SearchComponent {
   @ViewChildren('dynamicInputs') dynamicInputs!: QueryList<any>;
   private apiUrl = "http://127.0.0.1:5000/search";
+  public successful: any = null;
+  public hasResults: any = null;
   public keywordSets: any[] = [];
   public data = <any>[];
   public variants = <any>[];
@@ -108,6 +110,17 @@ export class SearchComponent {
     this.http
       .get(this.apiUrl, { params: parameters })
       .subscribe((response: any) => {
+        if (response.successful === "false") {
+          this.successful = false;
+          this.hasResults = false;
+        }
+        else if (response.successful === "true" && response.hasResult === "false") {
+          this.successful = true;
+          this.hasResults = false;
+        }
+        else {
+          this.successful = true;
+          this.hasResults = true;
           this.data = response['data'];
           this.variants = response['variants'];
 
@@ -119,6 +132,7 @@ export class SearchComponent {
           else {
             this.duplicatesFlag = false;
           }
+        }
       });
 
     form.resetForm();
@@ -131,6 +145,8 @@ export class SearchComponent {
 
   onReset(reset: boolean) {
     this.dataLoaded = !reset;
+    this.successful = null;
+    this.hasResults = null;
   }
 
 }

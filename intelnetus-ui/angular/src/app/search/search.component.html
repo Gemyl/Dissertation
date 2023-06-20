@@ -51,6 +51,6 @@
                 </div>            
             </form>
         </div>
-        <app-metadata-table [tableData]="data" [variants]="variants" [hasDuplicates]="duplicatesFlag" (reset)="onReset($event)" *ngIf="dataLoaded"></app-metadata-table>
+        <app-metadata-table [tableData]="data" [variants]="variants" [hasDuplicates]="duplicatesFlag" [successful]="successful" [hasResults]="hasResults" (reset)="onReset($event)" *ngIf="dataLoaded"></app-metadata-table>
     </body>
 </html>

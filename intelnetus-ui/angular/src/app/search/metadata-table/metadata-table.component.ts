@@ -24,18 +24,20 @@ export class MetadataTableComponent {
   @Output() reset: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Input() variants: any;
   @Input() hasDuplicates: boolean;
+  @Input() successful: boolean;
+  @Input() hasResults: boolean;
   @Input() set tableData(data: any) {
     if (this.renderSpinner) {
       this.renderTable = true;
       this.renderSpinner = false;
       setTimeout(() => {
         this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sorting;
       });
+      this.dataSource = new MatTableDataSource(data);
+      this.dataSource.data = data;
+      this.length = this.dataSource.data.length;
     }
-    this.dataSource = new MatTableDataSource(data);
-    this.dataSource.data = data;
-    this.length = this.dataSource.data.length;
-    this.dataSource.sort = this.sorting;
   }
   public dataSource: any;
   public renderSpinner: boolean;
@@ -84,7 +86,7 @@ export class MetadataTableComponent {
   
   ngOnInit() {
     this._searchService.getTableData().subscribe(data => {
-      if (data.length != 0) {
+      if (this.dataSource && data.length > 0) {
         this.dataSource.data = data;
         this.length = data.length;
       }

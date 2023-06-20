@@ -1,9 +1,21 @@
 <div class="container">
-    <div class="loader-container" *ngIf="renderSpinner">
+    <div class="icon-container" *ngIf="renderSpinner && successful === null">
         <mat-spinner color="warn" diameter="75" strokeWidth="4"></mat-spinner>
         <span style="font-size: 2em; font-weight: lighter; color: black; margin-top: 20px;"> Loading results </span>
+    </div>
+    <div class="icon-container" *ngIf="successful !== null && successful === false">
+        <i class="fa fa-exclamation-triangle fa-10x" style=" color: rgba(223, 36, 36, 0.623);"></i>
+        <span style="font-size: 2em; font-weight: lighter; color: rgba(223, 36, 36, 0.623); margin-top: 20px;"> Search process failed. </span>
+        <button class="btn btn-light btn-rounded action-button" type="button" (click)="newSearch()">
+        <i class="fas fa-sync" style="font-size: 1em;"></i> New Search</button>
+    </div>   
+    <div class="icon-container" *ngIf="successful && hasResults !== null && hasResults === false">
+        <i class="fas fa-search-minus fa-10x" style="color: rgba(223, 158, 36, 0.623);"></i>
+        <span style="font-size: 2em; font-weight: lighter; color: rgba(223, 158, 36, 0.623); margin-top: 20px;"> No records that match your criteria found. </span>
+        <button class="btn btn-light btn-rounded action-button" type="button" (click)="newSearch()">
+        <i class="fas fa-sync" style="font-size: 1em;"></i> New Search</button>
     </div>  
-    <div class="table-container" *ngIf="renderTable">
+    <div class="table-container" *ngIf="renderTable && successful && hasResults">
         <table mat-table matSort [dataSource]="dataSource" style="overflow-x: auto;">
         <ng-container matColumnDef="publicationDoi">
             <th mat-header-cell *matHeaderCellDef>DOI</th>
