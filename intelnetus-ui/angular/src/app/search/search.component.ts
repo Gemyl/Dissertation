@@ -108,7 +108,6 @@ export class SearchComponent {
     this.http
       .get(this.apiUrl, { params: parameters })
       .subscribe((response: any) => {
-        if (response.successful === "true" && response.hasResult === "true") {
           this.data = response['data'];
           this.variants = response['variants'];
 
@@ -120,7 +119,6 @@ export class SearchComponent {
           else {
             this.duplicatesFlag = false;
           }
-        }
       });
 
     form.resetForm();

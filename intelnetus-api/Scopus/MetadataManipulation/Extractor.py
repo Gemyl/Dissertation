@@ -1,7 +1,7 @@
 from Preprocessing.Methods import getColumnLength, removeCommonWords, getAffiliationsIds
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
 from Entities.Classes import Publication, Author, Organization
-from InputData.Items import getScopusFields, getCommonWords
+from InputData.Items import getScopusFields
 from WebScrapper.Methods import getDois
 from tqdm import tqdm
 import json
@@ -42,7 +42,6 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
     affilCountryLength = getColumnLength('Country', 'scopus_organizations', cursor)
 
     scopusFields = getScopusFields(fields)
-    commonWords = getCommonWords()
 
     # retrieving DOIs
     dois = getDois(keywords, yearPublished, scopusFields, booleans, apiKey)
@@ -199,7 +198,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                 pass
 
                                     else:
-                                        print(f"{BLUE}Author Metadatata Inserting Error Info:{RESET}\n"
+                                        print(f"{BLUE}Author Inserting Error Info:{RESET}\n"
                                             f"DOI: {doi}\n"
                                             f"Error: {str(err)}")
                                         break
@@ -219,11 +218,10 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                     authors = AbstractRetrieval(doi).authors
 
                                     for author in authors:
+                                        authorId = str(AuthorRetrieval(author[0]).identifier)
                                         affiliations = getAffiliationsIds(author[4])
 
-                                        if (affiliations != "-"):
-                                            authorId = str(AuthorRetrieval(author[0]).identifier)
-
+                                        if ((affiliations != "-") & (authorId == authorObj.scopusId)):
                                             for affil in affiliations:
                                                 affiliationInfo = AffiliationRetrieval(int(affil), view="STANDARD")
                                                 organizationObj = Organization(affiliationInfo)
@@ -236,6 +234,10 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                                 '{organizationObj.country}');"
                                                         cursor.execute(query)
                                                         connection.commit()
+
+                                                        scopusAffiliationsIds[organizationObj.scopusId] = organizationObj.id
+                                                        with open("IdentifiersMapping\AffiliationsIds.json", "w") as f:
+                                                            json.dump(scopusAffiliationsIds, f, indent=4)
 
                                                         errorCodeOrg = 0
                                                         break
@@ -282,7 +284,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                                         pass
 
                                                             else:
-                                                                print(f"{BLUE}Affiliation Metadatata Inserting Error Info:{RESET}\n"
+                                                                print(f"{BLUE}Organization Inserting Error Info:{RESET}\n"
                                                                     f"DOI: {doi}\n"
                                                                     f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
                                                                     f"Error: {str(err)}")
@@ -301,7 +303,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
 
                                                     except Exception as err:
                                                         if "Duplicate entry" not in str(err):
-                                                            print(f"{BLUE}Affiliation Metadatata Inserting Error Info:{RESET}\n"
+                                                            print(f"{BLUE}Publications - Organizations Inserting Error Info:{RESET}\n"
                                                                 f"DOI: {doi}\n"
                                                                 f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
                                                                 f"Error: {str(err)}")
@@ -314,23 +316,23 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
 
                                                     except Exception as err:
                                                         if "Duplicate entry" not in str(err):
-                                                            print(f"{BLUE}Affiliation Metadatata Inserting Error Info:{RESET}\n"
+                                                            print(f"{BLUE}Authors - Organizations Inserting Error Info:{RESET}\n"
                                                                 f"DOI: {doi}\n"
                                                                 f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
                                                                 f"Error: {str(err)}")
 
                                 except Exception as err:
-                                    print(f"{BLUE}Affiliation Metadatata Retrieving Error Info:{RESET}\n"
+                                    print(f"{BLUE}Organization Retrieving Error Info:{RESET}\n"
                                         f"DOI: {doi}\n"
                                         f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
                                         f"Error: {str(err)}")
 
                 except Exception as err:
-                    print(f"{BLUE}Author Metadatata Retrieving Error Info:{RESET}\n"
+                    print(f"{BLUE}Author Retrieving Error Info:{RESET}\n"
                         f"DOI: {doi}\n"
                         f"Error: {str(err)}")
 
         except Exception as err:
-            print(f"{BLUE}Publication Metadatata Retrieving Error Info:{RESET}\n"
+            print(f"{BLUE}Publication Retrieving Error Info:{RESET}\n"
                 f"DOI: {doi}\n"
                 f"Error: {str(err)}")

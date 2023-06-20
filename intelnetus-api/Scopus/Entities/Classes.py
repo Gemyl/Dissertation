@@ -1,4 +1,5 @@
 from Preprocessing.Methods import applySqlSyntax, removeCommonWords, getSafeAttribute
+from InputData.Items import getCommonWords
 from pybliometrics.scopus import PlumXMetrics
 import uuid
 
@@ -23,7 +24,8 @@ class Publication:
             Publication.getAbstract(
                 getSafeAttribute(publicationInfo, 'abstract', 'string'),
                 getSafeAttribute(publicationInfo, 'description', 'string')
-            )
+            ),
+            getCommonWords()
         ))
         self.keywords = applySqlSyntax(Publication.getKeywords(getSafeAttribute(publicationInfo, 'authkeywords', 'string')))
         self.fields = applySqlSyntax(Publication.getFields(getSafeAttribute(publicationInfo, 'subject_areas', 'string')))
@@ -51,6 +53,12 @@ class Publication:
     def getFields(fields):
         if fields != None:
             return applySqlSyntax(", ".join([field[0].lower() for field in fields]))
+        else:
+            return "-"
+        
+    def getFieldsAbbreviations(fields):
+        if fields != None:
+            return applySqlSyntax(", ".join([field[1].lower() for field in fields]))
         else:
             return "-"
     
