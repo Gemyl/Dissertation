@@ -19,7 +19,7 @@ def getDois(keywords, yearPublished, fields, booleans, apiKey):
     scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
 
     # retrieving publications DOIs
-    print("Retrieving DOIs ...")
+    print(f"Retrieving DOIs for year {yearPublished}")
     for field in tqdm(fields):
         
         errorCounter = 0
@@ -54,6 +54,7 @@ def getDois(keywords, yearPublished, fields, booleans, apiKey):
                     pass
 
             remainingData = totalResults - startIndex - len(entries)
+            print(f"Field: {field}, Total Results: {totalResults}, Fetched Results: {startIndex}, Remaining Results: {remainingData}")
 
             # if there are any records remained, update startIndex and start the next loop
             if ((remainingData > 0) & (errorCounter < 10)):

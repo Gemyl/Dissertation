@@ -68,8 +68,8 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                     break
 
                 except Exception as err:
+                    errorCodePub = 1
                     if "Duplicate entry" not in str(err):
-                        errorCodePub = 2
 
                         if "Data too long" in str(err):
                             if "DOI" in str(err):
@@ -144,13 +144,13 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                     pass
 
                         else:
+                            errorCodePub = 2
                             print(f"{BLUE}Publication Metadatata Inserting Error Info:{RESET}\n"
                                 f"DOI: {doi}\n"
                                 f"Error: {str(err)}")
                             break
 
                     else:
-                        errorCodePub = 1
                         break
 
             if (errorCodePub == 0):
@@ -182,8 +182,8 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                 break
 
                             except Exception as err:
+                                errorCodeAut = 1
                                 if "Duplicate entry" not in str(err):
-                                    errorCodeAut = 2
 
                                     if "Data too long" in str(err):
                                         if "Fields_Of_Study" in str(err):
@@ -211,13 +211,13 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                 pass
 
                                     else:
+                                        errorCodeAut = 2
                                         print(f"{BLUE}Author Inserting Error Info:{RESET}\n"
                                             f"DOI: {doi}\n"
                                             f"Error: {str(err)}")
                                         break
 
                                 else:
-                                    errorCodeAut = 1
                                     break
 
                         if (errorCodeAut in [0, 1]):
@@ -226,126 +226,129 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                             cursor.execute(query)
                             connection.commit()
 
-                            if (errorCodeAut == 0):
-                                try:
-                                    authors = AbstractRetrieval(doi).authors
+                            try:
+                                authors = AbstractRetrieval(doi).authors
 
-                                    for author in authors:
-                                        authorId = str(AuthorRetrieval(author[0]).identifier)
-                                        affiliations = getAffiliationsIds(author[4])
+                                for author in authors:
+                                    authorId = str(AuthorRetrieval(author[0]).identifier)
+                                    affiliations = getAffiliationsIds(author[4])
 
-                                        if ((affiliations != "-") & (authorId == authorObj.scopusId)):
-                                            for affil in affiliations:
-                                                affiliationInfo = AffiliationRetrieval(int(affil), view="STANDARD")
-                                                organizationObj = Organization(affiliationInfo)
-                                                
-                                                while True:
-                                                    try:
-                                                        query = f"INSERT INTO scopus_organizations VALUES('{organizationObj.id}',\
-                                                                '{organizationObj.scopusId}','{organizationObj.name}','{organizationObj.type1}',\
-                                                                '{organizationObj.type2}','{organizationObj.address}','{organizationObj.city}',\
-                                                                '{organizationObj.country}');"
-                                                        cursor.execute(query)
-                                                        connection.commit()
+                                    if ((affiliations != "-") & (authorId == authorObj.scopusId)):
+                                        for affil in affiliations:
+                                            affiliationInfo = AffiliationRetrieval(int(affil), view="STANDARD")
+                                            organizationObj = Organization(affiliationInfo)
+                                            
+                                            while True:
+                                                try:
+                                                    query = f"INSERT INTO scopus_organizations VALUES('{organizationObj.id}',\
+                                                            '{organizationObj.scopusId}','{organizationObj.name}','{organizationObj.type1}',\
+                                                            '{organizationObj.type2}','{organizationObj.address}','{organizationObj.city}',\
+                                                            '{organizationObj.country}');"
+                                                    cursor.execute(query)
+                                                    connection.commit()
 
-                                                        scopusAffiliationsIds[organizationObj.scopusId] = organizationObj.id
-                                                        with open("IdentifiersMapping\AffiliationsIds.json", "w") as f:
-                                                            json.dump(scopusAffiliationsIds, f, indent=4)
+                                                    scopusAffiliationsIds[organizationObj.scopusId] = organizationObj.id
+                                                    with open("IdentifiersMapping\AffiliationsIds.json", "w") as f:
+                                                        json.dump(scopusAffiliationsIds, f, indent=4)
 
-                                                        errorCodeOrg = 0
-                                                        break
+                                                    errorCodeOrg = 0
+                                                    break
 
-                                                    except Exception as err:
-                                                        if "Duplicate entry" not in str(err):
-                                                            errorCodeOrg = 2
+                                                except Exception as err:
+                                                    errorCodeOrg = 1
+                                                    if "Duplicate entry" not in str(err):
 
-                                                            if "Data too long" in str(err):
-                                                                if "Name" in str(err):
-                                                                    affilNameLength += 10
-                                                                    try:
-                                                                        query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Name VARCHAR({affilNameLength});"
-                                                                        cursor.execute(query)
-                                                                        connection.commit()
-                                                                    except:
-                                                                        pass
+                                                        if "Data too long" in str(err):
+                                                            print(str(err))
+                                                            if "Name" in str(err):
+                                                                affilNameLength += 10
+                                                                try:
+                                                                    query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Name VARCHAR({affilNameLength});"
+                                                                    cursor.execute(query)
+                                                                    connection.commit()
+                                                                except:
+                                                                    pass
 
-                                                                elif "Address" in str(err):
-                                                                    affilAddressLength += 10
-                                                                    try:
-                                                                        query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Address VARCHAR({affilAddressLength});"
-                                                                        cursor.execute(query)
-                                                                        connection.commit()
-                                                                    except:
-                                                                        pass
+                                                            elif "Address" in str(err):
+                                                                affilAddressLength += 10
+                                                                try:
+                                                                    query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Address VARCHAR({affilAddressLength});"
+                                                                    cursor.execute(query)
+                                                                    connection.commit()
+                                                                except:
+                                                                    pass
 
-                                                                elif "City" in str(err):
-                                                                    affilCityLength += 10
-                                                                    try:
-                                                                        query = f"ALTER TABLE scopus_organizations MODIFY COLUMN City VARCHAR({affilCityLength});"
-                                                                        cursor.execute(query)
-                                                                        connection.commit()
-                                                                    except:
-                                                                        pass
+                                                            elif "City" in str(err):
+                                                                affilCityLength += 10
+                                                                try:
+                                                                    query = f"ALTER TABLE scopus_organizations MODIFY COLUMN City VARCHAR({affilCityLength});"
+                                                                    cursor.execute(query)
+                                                                    connection.commit()
+                                                                except:
+                                                                    pass
 
-                                                                elif "Country" in str(err):
-                                                                    affilCountryLength += 10
-                                                                    try:
-                                                                        query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Country VARCHAR({affilCountryLength});"
-                                                                        cursor.execute(query)
-                                                                        connection.commit()
-                                                                    except:
-                                                                        pass
-
-                                                            else:
-                                                                print(f"{BLUE}Organization Inserting Error Info:{RESET}\n"
-                                                                    f"DOI: {doi}\n"
-                                                                    f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                                                    f"Error: {str(err)}")
-                                                                break
+                                                            elif "Country" in str(err):
+                                                                affilCountryLength += 10
+                                                                try:
+                                                                    query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Country VARCHAR({affilCountryLength});"
+                                                                    cursor.execute(query)
+                                                                    connection.commit()
+                                                                except:
+                                                                    pass
 
                                                         else:
-                                                            errorCodeOrg = 1
+                                                            errorCodeOrg = 2
+                                                            print(f"{BLUE}Organization Inserting Error Info:{RESET}\n"
+                                                                f"DOI: {doi}\n"
+                                                                f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+                                                                f"Error: {str(err)}")
                                                             break
 
-                                                if (errorCodeOrg in [0, 1]):
-                                                    try:
-                                                        query = f"INSERT INTO scopus_publications_organizations VALUES('{publicationsScopusIds[doi]}', \
-                                                            '{scopusAffiliationsIds[organizationObj.scopusId]}');"
-                                                        cursor.execute(query)
-                                                        connection.commit()
+                                                    else:
+                                                        break
 
-                                                    except Exception as err:
-                                                        if "Duplicate entry" not in str(err):
-                                                            print(f"{BLUE}Publications - Organizations Inserting Error Info:{RESET}\n"
-                                                                f"DOI: {doi}\n"
-                                                                f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                                                f"Error: {str(err)}")
+                                            if (errorCodeOrg in [0, 1]):
+                                                try:
+                                                    query = f"INSERT INTO scopus_publications_organizations VALUES('{publicationsScopusIds[doi]}', \
+                                                        '{scopusAffiliationsIds[organizationObj.scopusId]}');"
+                                                    cursor.execute(query)
+                                                    connection.commit()
 
-                                                    try:
-                                                        query = f"INSERT INTO scopus_authors_organizations VALUES('{scopusAuthorsIds[authorId]}', \
-                                                            '{scopusAffiliationsIds[organizationObj.scopusId]}',{yearPublished});"
-                                                        cursor.execute(query)
-                                                        connection.commit()
+                                                except Exception as err:
+                                                    if "Duplicate entry" not in str(err):
+                                                        print(f"{BLUE}Publications - Organizations Inserting Error Info:{RESET}\n"
+                                                            f"DOI: {doi}\n"
+                                                            f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+                                                            f"Error: {str(err)}")
 
-                                                    except Exception as err:
-                                                        if "Duplicate entry" not in str(err):
-                                                            print(f"{BLUE}Authors - Organizations Inserting Error Info:{RESET}\n"
-                                                                f"DOI: {doi}\n"
-                                                                f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                                                f"Error: {str(err)}")
+                                                try:
+                                                    query = f"INSERT INTO scopus_authors_organizations VALUES('{scopusAuthorsIds[authorId]}', \
+                                                        '{scopusAffiliationsIds[organizationObj.scopusId]}',{yearPublished});"
+                                                    cursor.execute(query)
+                                                    connection.commit()
 
-                                except Exception as err:
-                                    print(f"{BLUE}Organization Retrieving Error Info:{RESET}\n"
-                                        f"DOI: {doi}\n"
-                                        f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                        f"Error: {str(err)}")
+                                                except Exception as err:
+                                                    if "Duplicate entry" not in str(err):
+                                                        print(f"{BLUE}Authors - Organizations Inserting Error Info:{RESET}\n"
+                                                            f"DOI: {doi}\n"
+                                                            f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+                                                            f"Error: {str(err)}")
+
+                            except Exception as err:
+                                print(f"{BLUE}Organization Retrieving Error Info:{RESET}\n"
+                                    f"DOI: {doi}\n"
+                                    f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
+                                    f"Error: {str(err)}")
+                                pass
 
                 except Exception as err:
                     print(f"{BLUE}Author Retrieving Error Info:{RESET}\n"
                         f"DOI: {doi}\n"
                         f"Error: {str(err)}")
+                    pass
 
         except Exception as err:
             print(f"{BLUE}Publication Retrieving Error Info:{RESET}\n"
                 f"DOI: {doi}\n"
                 f"Error: {str(err)}")
+            pass
