@@ -9,9 +9,9 @@ def getYear():
 
 def getScopusFields(fieldsIds):
     scopusFields = ['AGRI', 'ARTS', 'BIOC', 'BUSI', 'CENG', 'CHEM', 'COMP',
-          'DECI', 'DENT', 'EART', 'ECON', 'ENER', 'ENGI', 'ENVI',
-          'HEAL', 'IMMU', 'MATE', 'MATH', 'MEDI', 'NEUR', 'NURS',
-          'PHAR', 'PHYS', 'PSYC', 'SOCI', 'VETE', 'MULT']
+                    'DECI', 'DENT', 'EART', 'ECON', 'ENER', 'ENGI', 'ENVI',
+                    'HEAL', 'IMMU', 'MATE', 'MATH', 'MEDI', 'MULT', 'NEUR', 
+                    'NURS', 'PHAR', 'PHYS', 'PSYC', 'SOCI', 'VETE']
     
     returnedFields = []
     for id in fieldsIds:

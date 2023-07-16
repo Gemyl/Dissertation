@@ -101,7 +101,7 @@ def detectAuthorsDuplicates(connection, cursor):
                 break
 
     if (len(removedNames) == 0):
-        print(f"{BLUE}No duplicates detected. {RESET}")
+        print(f"{BLUE}No duplicates detected for fetched authors. {RESET}")
     else:
         for i in range(len(removedNames)):
             print(f'------------------\n'

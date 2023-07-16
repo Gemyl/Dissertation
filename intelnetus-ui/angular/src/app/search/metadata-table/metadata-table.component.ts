@@ -117,7 +117,7 @@ export class MetadataTableComponent {
   }
 
   exportToCsv() {
-    let fileContent = this.sortExportFileData(this.dataSource.filterData);
+    let fileContent = this.sortExportFileData(this.dataSource.filteredData);
     const csvData = this.convertToCsv(fileContent, ',');
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, 'IntelnetusMetadata.csv');
