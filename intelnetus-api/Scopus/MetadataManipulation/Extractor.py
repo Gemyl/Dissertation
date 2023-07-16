@@ -1,4 +1,4 @@
-from Preprocessing.Methods import getColumnLength, removeCommonWords, getAffiliationsIds
+from Preprocessing.Methods import getColumnLength, getAffiliationsIds
 from pybliometrics.scopus import AbstractRetrieval, AuthorRetrieval, AffiliationRetrieval
 from Entities.Classes import Publication, Author, Organization
 from InputData.Items import getScopusFields
