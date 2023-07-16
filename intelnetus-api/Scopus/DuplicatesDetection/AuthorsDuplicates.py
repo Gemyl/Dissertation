@@ -67,8 +67,8 @@ def detectAuthorsDuplicates(connection, cursor):
     for i in range(len(ids) - 1):
         for j in range(i + 1, len(ids)):
             if (((fuzz.ratio(lastNames[i], lastNames[j]) > 90) & (fuzz.ratio(firstNames[i], firstNames[j]) > 90)) & 
-                ((orcidIds[i] is not None) & (orcidIds[j] is not None) & (orcidIds[i] == orcidIds[j])) |
-                (fuzz.ratio(subjectedAreas[i], subjectedAreas[j]) > 90) & (fuzz.ratio(affiliationHistory[i], affiliationHistory[j]) > 90)):
+                (((orcidIds[i] is not None) & (orcidIds[j] is not None) & (orcidIds[i] == orcidIds[j])) |
+                (fuzz.ratio(subjectedAreas[i], subjectedAreas[j]) > 90) & (fuzz.ratio(affiliationHistory[i], affiliationHistory[j]) > 90))):
 
                 if (citationsCount[i] > citationsCount[j]):
                     if (ids[i] not in variants2Ids):
