@@ -2,6 +2,7 @@ import { Component, ViewChildren, QueryList, ViewChild, AfterViewInit } from "@a
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { NgForm } from "@angular/forms";
+import { SearchService } from "./search-service/search.service";
 
 @Component({
   selector: 'app-search',
@@ -57,7 +58,8 @@ export class SearchComponent {
   ]
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private _searchSrvc: SearchService
   ) { }
 
   ngOnInit() { }
@@ -97,18 +99,8 @@ export class SearchComponent {
         this.fields.push(this.options.find(field => field.name === key)?.id)
       }
     });
-    
-    let parameters = new HttpParams();
-    parameters = parameters
-    .set('keywords',this.keywords)
-    .set('booleans', this.booleans)
-    .set('year1', this.year1)
-    .set('year2', this.year2)
-    .set('fields', this.fields)
-    .set('scopusApiKey', this.scopusApiKey)
 
-    this.http
-      .get(this.apiUrl, { params: parameters })
+    this._searchSrvc.getMetadata(this.keywords, this.booleans, this.year1, this.year2, this.fields, this.scopusApiKey)
       .subscribe((response: any) => {
         if (response.successful === "false") {
           this.successful = false;
@@ -121,8 +113,8 @@ export class SearchComponent {
         else {
           this.successful = true;
           this.hasResults = true;
-          this.data = response['data'];
-          this.variants = response['variants'];
+          this.data = response.data;
+          this.variants = response.variants;
 
           if (this.variants.publicationsVariants.duplicates.length > 0 || 
             this.variants.authorsVariants.duplicates.length > 0 || 
