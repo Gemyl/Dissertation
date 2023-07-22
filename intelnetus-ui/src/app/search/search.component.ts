@@ -12,7 +12,6 @@ import { SearchService } from "./search-service/search.service";
 
 export class SearchComponent {
   @ViewChildren('dynamicInputs') dynamicInputs!: QueryList<any>;
-  private apiUrl = "http://127.0.0.1:5000/search";
   public successful: any = null;
   public hasResults: any = null;
   public keywordSets: any[] = [];
