@@ -67,38 +67,21 @@ def detectPublicationsDuplicates(connection, cursor):
     for i in range(len(ids)-1):
         for j in range(i+1, len(ids)):
 
-            if((fuzz.ratio(titles[i], titles[j]) > 85) & (fuzz.ratio(abstracts[i], abstracts[j]) > 85) & 
+            if((ids[i] not in variants2Ids) & (fuzz.ratio(titles[i], titles[j]) > 85) & (fuzz.ratio(abstracts[i], abstracts[j]) > 85) & 
             (fuzz.ratio(keywords[i], keywords[j]) > 85) & (fuzz.ratio(fields[i], fields[j]) > 85)):
-                firstPublicationCitations = citationsCount[i]
-                secondPublicationCitations = citationsCount[j]
 
-                if (firstPublicationCitations > secondPublicationCitations):
-                    if (ids[i] not in variants2Ids):
-                        variants1Ids.append(ids[i])
-                        variants2Ids.append(ids[j])
-                        removedTitles.append(titles[j])
-                        remainingTitles.append(titles[i])
-                    else:
-                        index = variants2Ids.index(ids[i])
-                        majorVariantIndex = ids.index(variants1Ids[index])
-                        variants1Ids.append(variants1Ids[index])
-                        variants2Ids.append(ids[j])
-                        removedTitles.append(titles[j])
-                        remainingTitles.append(titles[majorVariantIndex])
+                if (citationsCount[i] > citationsCount[j]):
+                    variants1Ids.append(ids[i])
+                    variants2Ids.append(ids[j])
+                    removedTitles.append(titles[j])
+                    remainingTitles.append(titles[i])
 
                 else:
-                    if (ids[j] not in variants2Ids):
-                        variants1Ids.append(ids[j])
-                        variants2Ids.append(ids[i])
-                        removedTitles.append(titles[i])
-                        remainingTitles.append(titles[j])
-                    else:
-                        index = variants2Ids.index(ids[j])
-                        majorVariantIndex = ids.index(variants1Ids[index])
-                        variants1Ids.append(variants1Ids[index])
-                        variants2Ids.append(ids[i])
-                        removedTitles.append(titles[i])
-                        remainingTitles.append(titles[majorVariantIndex])                        
+                    variants1Ids.append(ids[j])
+                    variants2Ids.append(ids[i])
+                    removedTitles.append(titles[i])
+                    remainingTitles.append(titles[j])
+                      
             else:
                 break
 

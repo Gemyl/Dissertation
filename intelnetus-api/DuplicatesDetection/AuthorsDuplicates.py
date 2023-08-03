@@ -66,37 +66,22 @@ def detectAuthorsDuplicates(connection, cursor):
     # Duplicates detection algorithm
     for i in range(len(ids) - 1):
         for j in range(i + 1, len(ids)):
-            if (((fuzz.ratio(lastNames[i], lastNames[j]) > 90) & (fuzz.ratio(firstNames[i], firstNames[j]) > 90)) & 
+            if ((ids[i] not in variants2Ids) & ((fuzz.ratio(lastNames[i], lastNames[j]) > 90) & (fuzz.ratio(firstNames[i], firstNames[j]) > 90)) & 
                 (((orcidIds[i] is not None) & (orcidIds[j] is not None) & (orcidIds[i] == orcidIds[j])) |
                 (fuzz.ratio(subjectedAreas[i], subjectedAreas[j]) > 90) & (fuzz.ratio(affiliationHistory[i], affiliationHistory[j]) > 90))):
 
                 if (citationsCount[i] > citationsCount[j]):
-                    if (ids[i] not in variants2Ids):
-                        variants1Ids.append(ids[i])
-                        variants2Ids.append(ids[j])
-                        removedNames.append(f"{firstNames[j]} {lastNames[j]}")
-                        remainingNames.append(f"{firstNames[i]} {lastNames[i]}")
-                    else:
-                        index = variants2Ids.index(ids[i])
-                        majorVariantIndex = ids.index(variants1Ids[index])
-                        variants1Ids.append(variants1Ids[index])
-                        variants2Ids.append(ids[j])
-                        removedNames.append(f"{firstNames[j]} {lastNames[j]}")
-                        remainingNames.append(f"{firstNames[majorVariantIndex]} {lastNames[majorVariantIndex]}")
+                    variants1Ids.append(ids[i])
+                    variants2Ids.append(ids[j])
+                    removedNames.append(f"{firstNames[j]} {lastNames[j]}")
+                    remainingNames.append(f"{firstNames[i]} {lastNames[i]}")
 
                 else:
-                    if (ids[j] not in variants2Ids):
-                        variants1Ids.append(ids[j])
-                        variants2Ids.append(ids[i])
-                        removedNames.append(f"{firstNames[i]} {lastNames[i]}")
-                        remainingNames.append(f"{firstNames[j]} {lastNames[j]}")
-                    else:
-                        index = variants2Ids.index(ids[j])
-                        majorVariantIndex = ids.index(variants1Ids[index])
-                        variants1Ids.append(variants1Ids[index])
-                        variants2Ids.append(ids[i])
-                        removedNames.append(f"{firstNames[i]} {lastNames[i]}")
-                        remainingNames.append(f"{firstNames[majorVariantIndex]} {lastNames[majorVariantIndex]}")                       
+                    variants1Ids.append(ids[j])
+                    variants2Ids.append(ids[i])
+                    removedNames.append(f"{firstNames[i]} {lastNames[i]}")
+                    remainingNames.append(f"{firstNames[j]} {lastNames[j]}")
+                      
             else:
                 break
 

@@ -55,39 +55,24 @@ def detectOrganizationsDuplicates(connection, cursor):
         for j in range(i+1, len(names)):
 
             # Check if names are similar and addresses are the same
-            if (((fuzz.ratio(names[i], names[j]) > 85) | (names[i] in names[j]) | (names[j] in names[i])) &
+            if ((ids[i] not in variants2Ids) & ((fuzz.ratio(names[i], names[j]) > 85) | (names[i] in names[j]) | (names[j] in names[i])) &
                 (addresses[i] == addresses[j])):
                 first_date = AffiliationRetrieval(int(scopusIds[i])).date_created
                 second_date = AffiliationRetrieval(int(scopusIds[j])).date_created
 
                 # Keep the organization with the most recent profile
                 if (getMostRecentProfile(first_date, second_date) == first_date):
-                    if (ids[i] not in variants2Ids):
-                        variants1Ids.append(ids[i])
-                        variants2Ids.append(ids[j])
-                        removedNames.append(names[j])
-                        remainingNames.append(names[i])
-                    else:
-                        index = variants2Ids.index(ids[i])
-                        majorVariantIndex = ids.index(variants1Ids[index])
-                        variants1Ids.append(variants1Ids[index])
-                        variants2Ids.append(ids[j])
-                        removedNames.append(names[j])
-                        remainingNames.append(names[majorVariantIndex])
+                    variants1Ids.append(ids[i])
+                    variants2Ids.append(ids[j])
+                    removedNames.append(names[j])
+                    remainingNames.append(names[i])
                 
                 else:
-                    if (ids[j] not in variants2Ids):
-                        variants1Ids.append(ids[j])
-                        variants2Ids.append(ids[i])
-                        removedNames.append(names[i])
-                        remainingNames.append(names[j])
-                    else:
-                        index = variants2Ids.index(ids[j])
-                        majorVariantIndex = ids.index(variants1Ids[index])
-                        variants1Ids.append(variants1Ids[index])
-                        variants2Ids.append(ids[i])
-                        removedNames.append(names[i])
-                        remainingNames.append(names[majorVariantIndex])
+                    variants1Ids.append(ids[j])
+                    variants2Ids.append(ids[i])
+                    removedNames.append(names[i])
+                    remainingNames.append(names[j])
+                    
             else:
                 break
 
