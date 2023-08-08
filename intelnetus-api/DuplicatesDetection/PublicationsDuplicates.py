@@ -1,15 +1,4 @@
-from pybliometrics.scopus import AbstractRetrieval
 from fuzzywuzzy import fuzz
-from getpass import getpass
-import mysql.connector as connector
-
-# Colors
-RED = "\033[1;31m"
-GREEN = "\033[1;32m"
-BLUE = "\033[1;34m"
-
-# Reset color to default
-RESET = "\033[0m"
 
 def detectPublicationsDuplicates(connection, cursor):
     # lists for storing data fetched from database
@@ -24,8 +13,6 @@ def detectPublicationsDuplicates(connection, cursor):
     # lists concetrating remained and removed variants
     variants1Ids = []
     variants2Ids = []
-    removedTitles = []
-    remainingTitles =[]
 
     # Retrieving data from database
     query = "SELECT ID FROM scopus_publications ORDER BY Title;"
@@ -73,31 +60,19 @@ def detectPublicationsDuplicates(connection, cursor):
                 if (citationsCount[i] > citationsCount[j]):
                     variants1Ids.append(ids[i])
                     variants2Ids.append(ids[j])
-                    removedTitles.append(titles[j])
-                    remainingTitles.append(titles[i])
 
                 else:
                     variants1Ids.append(ids[j])
                     variants2Ids.append(ids[i])
-                    removedTitles.append(titles[i])
-                    remainingTitles.append(titles[j])
                       
             else:
                 break
 
     # Printing results
-    if len(removedTitles) == 0:
-        print(f"{BLUE}No duplicates detected for fetched publications records.{RESET}")
-    else:
-        for i in range(len(removedTitles)):
-            print(f'------------------\n'
-                f'{GREEN}Remained variant: {remainingTitles[i]}{RESET}.\n'
-                f'{RED}Rejected variant: {removedTitles[i]}{RESET}.\n'
-                f'------------------')
-            
-            try:
-                query = f"INSERT INTO scopus_publications_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
-                cursor.execute(query)
-                connection.commit()
-            except:
-                pass
+    for i in range(len(variants1Ids)):
+        try:
+            query = f"INSERT INTO scopus_publications_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
+            cursor.execute(query)
+            connection.commit()
+        except:
+            pass

@@ -1,15 +1,5 @@
 from pybliometrics.scopus import AffiliationRetrieval
-import mysql.connector as connector
 from fuzzywuzzy import fuzz
-from getpass import getpass
-
-# Colors
-RED = "\033[1;31m"
-GREEN = "\033[1;32m"
-BLUE = "\033[1;34m"
-
-# Reset color to default
-RESET = "\033[0m"
 
 def getMostRecentProfile(first_date, seconnectiond_date):
     """Return the most recent date between two dates."""
@@ -26,10 +16,8 @@ def detectOrganizationsDuplicates(connection, cursor):
     # Initialize lists to store rejected organization data
     variants1Ids = []
     variants2Ids = []
-    removedNames = []
-    remainingNames = []
-    # Retrieve organization data from database
 
+    # Retrieve organization data from database
     query = 'SELECT Name FROM scopus_organizations ORDER BY Name;'
     cursor.execute(query)
     for row in cursor:
@@ -64,31 +52,19 @@ def detectOrganizationsDuplicates(connection, cursor):
                 if (getMostRecentProfile(first_date, second_date) == first_date):
                     variants1Ids.append(ids[i])
                     variants2Ids.append(ids[j])
-                    removedNames.append(names[j])
-                    remainingNames.append(names[i])
                 
                 else:
                     variants1Ids.append(ids[j])
                     variants2Ids.append(ids[i])
-                    removedNames.append(names[i])
-                    remainingNames.append(names[j])
                     
             else:
                 break
 
-    # Print out the rejected and remaining organization variants
-    if(len(removedNames) == 0):
-        print(f"{BLUE}No duplicates detected for fetched organizations records.{RESET}")
-    else:
-        for i in range(len(removedNames)):
-            print(f'----------------\n'
-                f'{GREEN}Remained variant: {remainingNames[i]}{RESET}\n'
-                f'{RED}Rejected variant: {removedNames[i]}{RESET}\n'
-                f'----------------')
-            
-            try:
-                query = f"INSERT INTO scopus_organizations_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
-                cursor.execute(query)
-                connection.commit()
-            except:
-                pass
+    # Inserting duplicates in database
+    for i in range(len(variants1Ids)):
+        try:
+            query = f"INSERT INTO scopus_organizations_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
+            cursor.execute(query)
+            connection.commit()
+        except:
+            pass
