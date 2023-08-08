@@ -17,7 +17,6 @@ def detectOrganizationsDuplicates(connection, cursor):
     variants1Ids = []
     variants2Ids = []
 
-
     # Retrieve organization data from database
     query = 'SELECT Name FROM scopus_organizations ORDER BY Name;'
     cursor.execute(query)
