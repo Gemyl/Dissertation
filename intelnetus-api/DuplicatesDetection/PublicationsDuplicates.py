@@ -68,7 +68,7 @@ def detectPublicationsDuplicates(connection, cursor):
             else:
                 break
 
-    # Printing results
+    # Inserting duplicates in the SQL database
     for i in range(len(variants1Ids)):
         try:
             query = f"INSERT INTO scopus_publications_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"

@@ -68,7 +68,7 @@ def detectAuthorsDuplicates(connection, cursor):
             else:
                 break
 
-    # Inserting duplicates in SQL database
+    # Inserting duplicates in the SQL database
     for i in range(len(variants1Ids)):
         try:
             query = f"INSERT INTO scopus_authors_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"

@@ -60,7 +60,7 @@ def detectOrganizationsDuplicates(connection, cursor):
             else:
                 break
 
-    # Inserting duplicates in database
+    # Inserting duplicates in the SQL database
     for i in range(len(variants1Ids)):
         try:
             query = f"INSERT INTO scopus_organizations_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
