@@ -43,8 +43,9 @@ def detectOrganizationsDuplicates(connection, cursor):
         for j in range(i+1, len(names)):
 
             # Check if names are similar and addresses are the same
-            if ((ids[i] not in variants2Ids) & ((fuzz.ratio(names[i], names[j]) > 85) | (names[i] in names[j]) | (names[j] in names[i])) &
-                (addresses[i] == addresses[j])):
+            if ((ids[i] not in variants1Ids) & (ids[i] not in variants2Ids) & ((fuzz.ratio(names[i], names[j]) > 85) 
+                | (names[i] in names[j]) | (names[j] in names[i])) & (addresses[i] == addresses[j])):
+                
                 first_date = AffiliationRetrieval(int(scopusIds[i])).date_created
                 second_date = AffiliationRetrieval(int(scopusIds[j])).date_created
 
