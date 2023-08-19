@@ -67,12 +67,12 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                     errorCodePub = 0
                     break
 
-                except Exception as err:
+                except Exception as pubInErr:
                     errorCodePub = 1
-                    if "Duplicate entry" not in str(err):
+                    if "Duplicate entry" not in str(pubInErr):
 
-                        if "Data too long" in str(err):
-                            if "DOI" in str(err):
+                        if "Data too long" in str(pubInErr):
+                            if "DOI" in str(pubInErr):
                                 try:
                                     query = f"ALTER TABLE scopus_publications MODIFY COLUMN DOI VARCHAR({doiLength});"
                                     cursor.execute(query)
@@ -80,7 +80,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                 except:
                                     pass
 
-                            elif "Title" in str(err):
+                            elif "Title" in str(pubInErr):
                                 titleLength += 10
                                 try:
                                     query = f"ALTER TABLE scopus_publications MODIFY COLUMN Title VARCHAR({titleLength});"
@@ -89,7 +89,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                 except:
                                     pass
 
-                            elif "Journal" in str(err):
+                            elif "Journal" in str(pubInErr):
                                 journalLength += 10
                                 try:
                                     query = f"ALTER TABLE scopus_publications MODIFY COLUMN Journal VARCHAR({journalLength});"
@@ -98,7 +98,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                 except:
                                     pass
 
-                            elif "Abstract" in str(err):
+                            elif "Abstract" in str(pubInErr):
                                 abstractLength += 10
                                 if abstractLength >= MAX_COLUMN_SIZE:
                                     publicationObj.abstract = publicationObj.abstract[:MAX_COLUMN_SIZE]
@@ -110,7 +110,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                 except:
                                     pass
 
-                            elif "Keywords" in str(err):
+                            elif "Keywords" in str(pubInErr):
                                 keywordsLength += 10
                                 try:
                                     query = f"ALTER TABLE scopus_publications MODIFY COLUMN Keywords VARCHAR({keywordsLength});"
@@ -119,7 +119,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                 except:
                                     pass
 
-                            elif "Fields" in str(err):
+                            elif "Fields" in str(pubInErr):
                                 fieldsLength += 10
                                 if fieldsLength >= MAX_COLUMN_SIZE:
                                     publicationObj.fields = publicationObj.fields[:MAX_COLUMN_SIZE]
@@ -131,7 +131,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                 except:
                                     pass
 
-                            elif "Fields_Abbreviations" in str(err):
+                            elif "Fields_Abbreviations" in str(pubInErr):
                                 fieldsAbbreviationsLength += 10
                                 if fieldsAbbreviationsLength >= MAX_COLUMN_SIZE:
                                     publicationObj.fieldsAbbreviations = publicationObj.fieldsAbbreviations[:MAX_COLUMN_SIZE]
@@ -147,7 +147,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                             errorCodePub = 2
                             print(f"{BLUE}Publication Metadatata Inserting Error Info:{RESET}\n"
                                 f"DOI: {doi}\n"
-                                f"Error: {str(err)}")
+                                f"Error: {str(pubInErr)}")
                             break
 
                     else:
@@ -181,12 +181,12 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                 errorCodeAut = 0
                                 break
 
-                            except Exception as err:
+                            except Exception as authInErr:
                                 errorCodeAut = 1
-                                if "Duplicate entry" not in str(err):
+                                if "Duplicate entry" not in str(authInErr):
 
-                                    if "Data too long" in str(err):
-                                        if "Fields_Of_Study" in str(err):
+                                    if "Data too long" in str(authInErr):
+                                        if "Fields_Of_Study" in str(authInErr):
                                             fieldsOfStudyLength += 10
                                             if fieldsOfStudyLength >= MAX_COLUMN_SIZE:
                                                 authorObj.fieldsOfStudy = authorObj.fieldsOfStudy[:MAX_COLUMN_SIZE]
@@ -198,7 +198,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                             except:
                                                 pass
 
-                                        if "Affiliations" in str(err):
+                                        if "Affiliations" in str(authInErr):
                                             affiliationsLength += 100
                                             if affiliationsLength >= MAX_COLUMN_SIZE:
                                                 authorObj.affiliations = authorObj.affiliations[:MAX_COLUMN_SIZE]
@@ -214,7 +214,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                         errorCodeAut = 2
                                         print(f"{BLUE}Author Inserting Error Info:{RESET}\n"
                                             f"DOI: {doi}\n"
-                                            f"Error: {str(err)}")
+                                            f"Error: {str(authInErr)}")
                                         break
 
                                 else:
@@ -254,13 +254,12 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                     errorCodeOrg = 0
                                                     break
 
-                                                except Exception as err:
+                                                except Exception as orgInErr:
                                                     errorCodeOrg = 1
-                                                    if "Duplicate entry" not in str(err):
+                                                    if "Duplicate entry" not in str(orgInErr):
 
-                                                        if "Data too long" in str(err):
-                                                            print(str(err))
-                                                            if "Name" in str(err):
+                                                        if "Data too long" in str(orgInErr):
+                                                            if "Name" in str(orgInErr):
                                                                 affilNameLength += 10
                                                                 try:
                                                                     query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Name VARCHAR({affilNameLength});"
@@ -269,7 +268,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                                 except:
                                                                     pass
 
-                                                            elif "Address" in str(err):
+                                                            elif "Address" in str(orgInErr):
                                                                 affilAddressLength += 10
                                                                 try:
                                                                     query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Address VARCHAR({affilAddressLength});"
@@ -278,7 +277,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                                 except:
                                                                     pass
 
-                                                            elif "City" in str(err):
+                                                            elif "City" in str(orgInErr):
                                                                 affilCityLength += 10
                                                                 try:
                                                                     query = f"ALTER TABLE scopus_organizations MODIFY COLUMN City VARCHAR({affilCityLength});"
@@ -287,7 +286,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                                 except:
                                                                     pass
 
-                                                            elif "Country" in str(err):
+                                                            elif "Country" in str(orgInErr):
                                                                 affilCountryLength += 10
                                                                 try:
                                                                     query = f"ALTER TABLE scopus_organizations MODIFY COLUMN Country VARCHAR({affilCountryLength});"
@@ -301,7 +300,7 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                             print(f"{BLUE}Organization Inserting Error Info:{RESET}\n"
                                                                 f"DOI: {doi}\n"
                                                                 f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                                                f"Error: {str(err)}")
+                                                                f"Error: {str(orgInErr)}")
                                                             break
 
                                                     else:
@@ -314,12 +313,12 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                     cursor.execute(query)
                                                     connection.commit()
 
-                                                except Exception as err:
-                                                    if "Duplicate entry" not in str(err):
+                                                except Exception as pubOrgInErr:
+                                                    if "Duplicate entry" not in str(pubOrgInErr):
                                                         print(f"{BLUE}Publications - Organizations Inserting Error Info:{RESET}\n"
                                                             f"DOI: {doi}\n"
                                                             f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                                            f"Error: {str(err)}")
+                                                            f"Error: {str(pubOrgInErr)}")
 
                                                 try:
                                                     query = f"INSERT INTO scopus_authors_organizations VALUES('{scopusAuthorsIds[authorId]}', \
@@ -327,28 +326,28 @@ def extractMetadata(keywords, yearPublished, fields, booleans, apiKey, connectio
                                                     cursor.execute(query)
                                                     connection.commit()
 
-                                                except Exception as err:
-                                                    if "Duplicate entry" not in str(err):
+                                                except Exception as authOrgInErr:
+                                                    if "Duplicate entry" not in str(authOrgInErr):
                                                         print(f"{BLUE}Authors - Organizations Inserting Error Info:{RESET}\n"
                                                             f"DOI: {doi}\n"
                                                             f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                                            f"Error: {str(err)}")
+                                                            f"Error: {str(authOrgInErr)}")
 
-                            except Exception as err:
+                            except Exception as orgRetErr:
                                 print(f"{BLUE}Organization Retrieving Error Info:{RESET}\n"
                                     f"DOI: {doi}\n"
                                     f"Affiliation Scopus ID: {organizationObj.scopusId}\n"
-                                    f"Error: {str(err)}")
+                                    f"Error: {str(orgRetErr)}")
                                 pass
 
-                except Exception as err:
+                except Exception as authRetErr:
                     print(f"{BLUE}Author Retrieving Error Info:{RESET}\n"
                         f"DOI: {doi}\n"
-                        f"Error: {str(err)}")
+                        f"Error: {str(authRetErr)}")
                     pass
 
-        except Exception as err:
+        except Exception as pubRetErr:
             print(f"{BLUE}Publication Retrieving Error Info:{RESET}\n"
                 f"DOI: {doi}\n"
-                f"Error: {str(err)}")
+                f"Error: {str(pubRetErr)}")
             pass
