@@ -32,6 +32,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SearchService } from './search/search-service/search.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ComboBoxModule } from '@progress/kendo-angular-dropdowns';
 
 @NgModule({
   declarations: [
@@ -69,7 +70,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatSortModule,
     MatDialogModule,
     MatCheckboxModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ComboBoxModule
   ],
   exports: [
     MatFormFieldModule,
