@@ -5,7 +5,10 @@
     "target": "es5",
     "module": "commonjs",
     "outDir": "out",
-    "sourceMap": true
+    "sourceMap": true,
+    "types": [
+      "@angular/localize"
+    ]
   },
   "include": [
     "src/**/*.spec.ts",
