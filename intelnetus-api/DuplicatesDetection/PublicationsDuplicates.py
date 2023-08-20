@@ -54,7 +54,7 @@ def detectPublicationsDuplicates(connection, cursor):
     for i in range(len(ids)-1):
         for j in range(i+1, len(ids)):
 
-            if((ids[i] not in variants1Ids) & (ids[i] not in variants2Ids) & (fuzz.ratio(titles[i], titles[j]) > 85) 
+            if((ids[i] not in variants2Ids) & (fuzz.ratio(titles[i], titles[j]) > 85) 
                & (fuzz.ratio(abstracts[i], abstracts[j]) > 85) & (fuzz.ratio(keywords[i], keywords[j]) > 85) 
                & (fuzz.ratio(fields[i], fields[j]) > 85)):
 
@@ -65,6 +65,7 @@ def detectPublicationsDuplicates(connection, cursor):
                 else:
                     variants1Ids.append(ids[j])
                     variants2Ids.append(ids[i])
+                    break
                       
             else:
                 break
