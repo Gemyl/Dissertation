@@ -5,6 +5,27 @@ body {
     align-items: center;
 }
 
+input, select {
+    padding: 7px;
+    border: 1px solid #000;
+}
+
+input[type=checkbox]{
+    accent-color: black;
+}
+
+label {
+    font-size: large;
+    font-weight: lighter;
+}
+
+kendo-combobox {
+    width: 65%;
+    margin-top: 10px;
+    border-width: 2px;
+    padding: 3px;
+}
+
 .component-container {
     @extend body;
 }
@@ -19,17 +40,21 @@ body {
 
 .column-containers {
     display: flex;
-    justify-content: space-between;
-    gap: 60px;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
 }
 
 .column {
     margin-top: 15px;
     margin-bottom: 15px;
+    width: 45%;
     height: 600px;
 }
 
 .cell {
+    display: flex;
+    flex-direction: column;
     margin-bottom: 20px;
 }
 
@@ -37,24 +62,6 @@ body {
     display: flex;
     justify-content: end;
     margin: 0;
-}
-
-input, select {
-    padding: 7px;
-    border: 1px solid #000;
-}
-
-input[type=checkbox]{
-    accent-color: black;
-}
-
-label {
-    font-weight: lighter;
-}
-
-p {
-    font-size: large;
-    font-weight: lighter;
 }
 
 .keyword {
@@ -99,6 +106,7 @@ p {
     margin-top: 10px;
     height: 400px;
     overflow: auto;
+    width: 100%;
 }
 
 /* width */

@@ -1,56 +1,55 @@
-<html>
-    <head>
-    </head>
-    <body>
-        <div class="form-container" *ngIf="!dataLoaded">
-            <form #searchForm="ngForm" (ngSubmit)="onSubmit(searchForm)">
-                <div class="column-containers">
-                    <div class="column">
-                        <div class="cell">
-                            <p>Scopus API Key</p>
-                            <input name="scopusApiKey" type="text" size="25" placeholder="Enter API Key" *ngIf="enableScopusSearch" ngModel>
-                        </div>
-                        <div class="cell">
-                            <p>Keywords</p>
-                            <section id="keywords-section"> 
-                                <input type="text" name="keyword" placeholder="Enter Keyword" size="25" ngModel><br>                       
-                                <div #dynamicInputs *ngFor="let set of keywordSets; let i = index">
-                                    <select name="boolean{{i}}" style="margin-top: 5px" ngModel="AND">
-                                        <option>AND</option>
-                                        <option>OR</option>
-                                        <option>AND NOT</option>
-                                    </select><br>
-                                    <input type="text" name="keyword{{i}}" placeholder="Enter Keyword" size="25" ngModel>
-                                    <button class="fa fa-trash action-button" (click)="removeSet(i)"></button><br>
-                                </div>
-                                <button class="fa fa-plus action-button" type="button" (click)="addSet()"></button>
-                            </section>
-                        </div>
+<body>
+    <div class="form-container" *ngIf="!dataLoaded">
+        <form #searchForm="ngForm" (ngSubmit)="onSubmit(searchForm)" style="width:100%">
+            <div class="column-containers">
+                <div class="column">
+                    <div class="cell">
+                        <label>Scopus API Key</label>
+                        <input name="scopusApiKey" type="text" style="width:56%" placeholder="Enter API Key" *ngIf="enableScopusSearch" ngModel>
                     </div>
-                    <div class="column">
-                        <div class="cell">
-                            <p>Years Range</p>
+                    <div class="cell">
+                        <label>Keywords</label>
+                        <section id="keywords-section"> 
+                            <input type="text" name="keyword" style="width: 65%;" placeholder="Enter Keyword" ngModel><br>                       
+                            <div #dynamicInputs *ngFor="let set of keywordSets; let i = index">
+                                <kendo-combobox [data]="booleanOptions" name="boolean{{i}}" style="margin-top: 5px" ngModel="AND"></kendo-combobox>
+                                <!-- <select name="boolean{{i}}" style="margin-top: 5px" ngModel="AND">
+                                    <option>AND</option>
+                                    <option>OR</option>
+                                    <option>AND NOT</option>
+                                </select><br> -->
+                                <input type="text" name="keyword{{i}}" style="width: 65%; margin-top: 10px;" placeholder="Enter Keyword" ngModel>
+                                <button class="fa fa-trash action-button" (click)="removeSet(i)"></button><br>
+                            </div>
+                            <button class="fa fa-plus action-button" type="button" (click)="addSet()"></button>
+                        </section>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="cell">
+                        <label>Years Range</label>
+                        <div style="display: flex; flex-direction: row;">
                             <input type = "text" name = "year1" placeholder = "Enter First Year" size = "20"
-                            style="margin-right: 10px;" ngModel>
+                            style="margin-right: 10px; width: 50%" ngModel>
                             <input type = "text" name = "year2" placeholder = "Enter Last Year" size = "20"
-                            ngModel>
-                        </div>
-                        <div class="cell">
-                            <p>Scientific Fields</p>
-                            <section id="fields-section">
-                                <div *ngFor="let option of options">
-                                    <input type="checkbox" [name]="option.name" [value]="option.id" [(ngModel)]="option.selected">
-                                    <label>{{option.name}}</label>
-                                </div>
-                            </section>
-                        </div>
-                        <div class="button-container">
-                            <button class="submit-button" type="submit">Submit</button>
+                            style="width: 50%;" ngModel>
                         </div>
                     </div>
-                </div>            
-            </form>
-        </div>
-        <app-metadata-table [tableData]="data" [variants]="variants" [hasDuplicates]="duplicatesFlag" [successful]="successful" [hasResults]="hasResults" (reset)="onReset($event)" *ngIf="dataLoaded"></app-metadata-table>
-    </body>
-</html>
+                    <div class="cell">
+                        <label>Scientific Fields</label>
+                        <section id="fields-section">
+                            <div *ngFor="let option of options">
+                                <input type="checkbox" [name]="option.name" [value]="option.id" [(ngModel)]="option.selected">
+                                <label style="font-weight: lighter; font-size: medium; margin-left: 5px;">{{option.name}}</label>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="button-container">
+                        <button class="submit-button" type="submit">Submit</button>
+                    </div>
+                </div>
+            </div>            
+        </form>
+    </div>
+    <app-metadata-table [tableData]="data" [variants]="variants" [hasDuplicates]="duplicatesFlag" [successful]="successful" [hasResults]="hasResults" (reset)="onReset($event)" *ngIf="dataLoaded"></app-metadata-table>
+</body>

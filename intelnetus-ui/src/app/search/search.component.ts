@@ -26,6 +26,7 @@ export class SearchComponent {
   public keywords = <any>[];
   public booleans = <any>[];
   public fields = <any>[];
+  public booleanOptions = ['AND','OR','AND NOT'];
   public options = [
     { id: "0", name: "Agricultural and Biological Sciences", selected: false },
     { id: "1", name: "Arts and Humanities", selected: false },
