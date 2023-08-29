@@ -1,7 +1,7 @@
 from fuzzywuzzy import fuzz
 
 def detectPublicationsDuplicates(connection, cursor):
-    # lists for storing data fetched from database
+
     ids = []
     dois = []
     titles = []
@@ -10,9 +10,8 @@ def detectPublicationsDuplicates(connection, cursor):
     fields = []
     citationsCount = []
 
-    # lists concetrating remained and removed variants
-    variants1Ids = []
-    variants2Ids = []
+    primaryVariants = []
+    secondaryVariants = []
 
     # Retrieving data from database
     query = "SELECT ID FROM scopus_publications ORDER BY Title;"
@@ -50,30 +49,38 @@ def detectPublicationsDuplicates(connection, cursor):
     for row in cursor:
         citationsCount.append(row[0])
 
-    # Duplicates detection algorithm
     for i in range(len(ids)-1):
         for j in range(i+1, len(ids)):
 
-            if((ids[i] not in variants2Ids) & (fuzz.ratio(titles[i], titles[j]) > 85) 
-               & (fuzz.ratio(abstracts[i], abstracts[j]) > 85) & (fuzz.ratio(keywords[i], keywords[j]) > 85) 
-               & (fuzz.ratio(fields[i], fields[j]) > 85)):
+            if((fuzz.ratio(titles[i], titles[j]) > 85) & (fuzz.ratio(abstracts[i], abstracts[j]) > 85) 
+            & (fuzz.ratio(keywords[i], keywords[j]) > 85) & (fuzz.ratio(fields[i], fields[j]) > 85)):
 
                 if (citationsCount[i] > citationsCount[j]):
-                    variants1Ids.append(ids[i])
-                    variants2Ids.append(ids[j])
+                    if((ids[i] in secondaryVariants) & (ids[j] not in secondaryVariants)):
+                        index = secondaryVariants.index(ids[i])
+                        primaryVariants.append(primaryVariants[index])
+                        secondaryVariants.append(ids[j])
+
+                    elif(ids[j] not in secondaryVariants):
+                        primaryVariants.append(ids[i])
+                        secondaryVariants.append(ids[j])
 
                 else:
-                    variants1Ids.append(ids[j])
-                    variants2Ids.append(ids[i])
-                    break
-                      
+                    if((ids[j] in secondaryVariants) & (ids[i] not in secondaryVariants)):
+                        index = secondaryVariants.index(ids[j])
+                        primaryVariants.append(primaryVariants[index])
+                        secondaryVariants.append(ids[i])
+                    
+                    elif(ids[i] not in secondaryVariants):
+                        primaryVariants.append(ids[j])
+                        secondaryVariants.append(ids[i])
+
             else:
                 break
 
-    # Inserting duplicates in the SQL database
-    for i in range(len(variants1Ids)):
+    for i in range(len(primaryVariants)):
         try:
-            query = f"INSERT INTO scopus_publications_variants VALUES ('{variants1Ids[i]}', '{variants2Ids[i]}');"
+            query = f"INSERT INTO scopus_publications_variants VALUES ('{primaryVariants[i]}', '{secondaryVariants[i]}');"
             cursor.execute(query)
             connection.commit()
         except:
