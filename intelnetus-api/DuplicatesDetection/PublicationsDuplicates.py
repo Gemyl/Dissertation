@@ -13,7 +13,6 @@ def detectPublicationsDuplicates(connection, cursor):
     primaryVariants = []
     secondaryVariants = []
 
-    # Retrieving data from database
     query = "SELECT ID FROM scopus_publications ORDER BY Title;"
     cursor.execute(query)
     for row in cursor:
