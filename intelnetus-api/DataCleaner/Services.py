@@ -1,4 +1,4 @@
-def getSafeAttribute(obj, attribute, attributeType):
+def get_safe_attribute(obj, attribute, attributeType):
     try:
         if isinstance(obj, dict):
             value = obj.get(attribute)
@@ -22,8 +22,7 @@ def getSafeAttribute(obj, attribute, attributeType):
     return value
 
         
-def buildKeywordsQuery(keywords, booleans):
-    # keywords = keywords.split(', ')
+def build_keywords_query(keywords, booleans):
     keywordsList = '('
     for i in range(len(keywords)):
         if i == len(keywords)-1:
@@ -36,7 +35,7 @@ def buildKeywordsQuery(keywords, booleans):
     return keywords
 
 
-def getStringFromList(list):
+def get_string_from_list(list):
     if list != None:
         string = ', '.join([str(i).lower() for i in list])
     else:
@@ -44,37 +43,21 @@ def getStringFromList(list):
     return string
 
 
-def getColumnLength(column, table, cursor):
-
-    try:
-        query = f"SELECT MAX(LENGTH({column})) FROM {table};"
-        cursor.execute(query)
-        resultSet = cursor.fetchall()
-
-        if resultSet[0][0] != None:
-            return resultSet[0][0]
-        else:
-            return 100
-        
-    except:
-        return 100
-
-
-def applySqlSyntax(string):
+def get_sql_syntax(string):
     if string != None:
         return string.replace("\'", " ")
     else:
         return "-"
 
 
-def removeCommonWords(abstract, commonWords):
+def remove_common_words(abstract, commonWords):
     abstractList = abstract.split(" ")
     abstractString = " ".join(
         [word for word in abstractList if word.lower() not in commonWords])
     return abstractString
 
 
-def getAffiliationsIds(affiliations):
+def get_affiliations_ids(affiliations):
     if affiliations != None:
         return [affil for affil in affiliations.split(";")]
     else:

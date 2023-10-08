@@ -6,7 +6,7 @@ def getMostRecentProfile(first_date, seconnectiond_date):
     return max(first_date, seconnectiond_date, key=lambda x: x[::-1])
 
 
-def detectOrganizationsDuplicates(connection, cursor):
+def get_organizations_duplicates(connection, cursor):
 
     ids = []
     names = []

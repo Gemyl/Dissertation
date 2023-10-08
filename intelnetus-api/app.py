@@ -1,14 +1,24 @@
-from ConnectToMySQL.Connector import connect
+from DbContext.Services import get_db_connection_and_cursor
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from MetadataManipulation.Extractor import extractMetadata
-from InputData.Items import getScopusFields
-from DuplicatesDetection.PublicationsDuplicates import detectPublicationsDuplicates
-from DuplicatesDetection.AuthorsDuplicates import detectAuthorsDuplicates
-from DuplicatesDetection.OrganizationsDuplicates import detectOrganizationsDuplicates
+from MetadataHandler.Services import extract_metadata
+from DataStore.Collection import get_scopus_fields
+from DuplicatesDetection.Publications import get_publications_duplicates
+from DuplicatesDetection.Authors import get_authors_duplicates
+from DuplicatesDetection.Organizations import get_organizations_duplicates
 
 app = Flask(__name__)
 CORS(app)
+
+def process_metadata(keywords, year1, year2, fields, booleans, scopusApiKey, connection, cursor):
+
+    for year in range(int(year1), int(year2)+1):
+        extract_metadata(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
+
+    get_publications_duplicates(connection, cursor)
+    get_authors_duplicates(connection, cursor)
+    get_organizations_duplicates(connection, cursor)
+
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -20,18 +30,10 @@ def search():
         year1 = request.args.get("year1")
         year2 = request.args.get("year2")
         scopusApiKey = request.args.get("scopusApiKey")
+        fieldsAbbreviations = get_scopus_fields(fields)
 
-        connection, cursor = connect()
-
-        for year in range(int(year1), int(year2)+1):
-             extractMetadata(keywords, year, fields, booleans, scopusApiKey, connection, cursor)
-        
-        #detecting and storing duplicates
-        detectPublicationsDuplicates(connection, cursor)
-        detectAuthorsDuplicates(connection, cursor)
-        detectOrganizationsDuplicates(connection, cursor)
-
-        fieldsAbbreviations = getScopusFields(fields)
+        connection, cursor = get_db_connection_and_cursor()
+        process_metadata(keywords, year1, year2, fields, booleans, scopusApiKey, connection, cursor)
 
         basicQuery = f'SELECT scopus_publications.ID, scopus_publications.DOI, scopus_publications.Title, scopus_publications.Year,\n \
                        scopus_publications.Citations_Count, scopus_publications.Keywords, scopus_publications.Fields, scopus_authors.ID, \n \
@@ -45,7 +47,6 @@ def search():
                        INNER JOIN scopus_organizations ON scopus_authors_organizations.Organization_ID = scopus_organizations.ID)\n'
 
         conditionQuery = 'WHERE\n (\n'
-        # keywords
         for i in range(len(keywords)):
             if (i == 0):
                 tempQuery = f'scopus_publications.Keywords LIKE \'%{keywords[i].lower()}%\'\n \
@@ -58,12 +59,10 @@ def search():
                             OR scopus_publications.Abstract LIKE \'%{keywords[i].lower()}%\'\n'
                 conditionQuery = conditionQuery + tempQuery
 
-        # years range
         conditionQuery = conditionQuery + ') \n AND \n'
         conditionQuery = conditionQuery + f'scopus_publications.Year >= {year1}\n'
         conditionQuery = conditionQuery + f'AND scopus_publications.Year <= {year2}\n AND \n (\n'
-        
-        # fields
+
         for i in range(len(fieldsAbbreviations)):
             if (i == 0):
                 tempQuery = f'scopus_publications.Fields_Abbreviations LIKE \'%{fieldsAbbreviations[i]}%\'\n'
@@ -108,14 +107,15 @@ def search():
                 "organizationCountry":row[18]
             })
 
-        # checking got publications duplicates
         publicationsVariants = {
             "originals":[],
             "duplicates":[]
         }
+
         query = "SELECT * FROM scopus_publications_variants;"
         cursor.execute(query)
         fetchedData = cursor.fetchall()
+
         for pubVar in fetchedData:
             originalId = pubVar[0]
             duplicateId = pubVar[1]
@@ -143,14 +143,15 @@ def search():
                     "citationsCount":variantData[2]
                 })
 
-        # checking for authors duplicates
         authorsVariants = {
             "originals":[],
             "duplicates":[]
         }
+
         query = "SELECT * FROM scopus_authors_variants;"
         cursor.execute(query)
         fetchedData = cursor.fetchall()
+
         for authVar in fetchedData:
             originalId = authVar[0]
             duplicateId = authVar[1]
@@ -184,14 +185,15 @@ def search():
                     "citationsCount":variantData[4]
                 })
 
-        # checking for organizations duplicates
         organizationsVariants = {
             "originals":[],
             "duplicates":[]
         }
+
         query = "SELECT * FROM scopus_organizations_variants;"
         cursor.execute(query)
         fetchedData = cursor.fetchall()
+
         for orgVar in fetchedData:
             originalId = orgVar[0]
             duplicateId = orgVar[1]
@@ -223,24 +225,25 @@ def search():
 
         if (len(data) > 0):
             result = {
-                "successful":"true",
-                "hasResult":"true",
-                "data":data,
-                "variants":variants
+                "successful": "true",
+                "hasResult": "true",
+                "data": data,
+                "variants": variants
             }
 
         else:
             result = {
-                "successful":"true",
-                "hasResult":"false",
-                "data":data,
-                "variants":variants
+                "successful": "true",
+                "hasResult": "false",
+                "data": data,
+                "variants": variants
             }
     
-    except:
+    except Exception as err:
         result = {
             "successful":"false",
             "hasResult":"false",
+            "errorMessage": str(err),
             "data":[],
             "variants":[]
         }

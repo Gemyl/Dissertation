@@ -1,5 +1,4 @@
 import mysql.connector as connector
-from getpass import getpass
 
 def connect():
     connection = connector.connect(host='localhost',

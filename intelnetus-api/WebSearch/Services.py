@@ -1,16 +1,16 @@
-from Preprocessing.Methods import buildKeywordsQuery
+from DataCleaner.Services import build_keywords_query
 from requests import get
 from tqdm import tqdm
 import json
 
-def getDois(keywords, yearPublished, fields, booleans, apiKey):
+def get_dois(keywords, yearPublished, fields, booleans, apiKey):
 
     # DOIs list
     dois = []
 
     # query parameters
     count = '&count=25'
-    terms = f'( {buildKeywordsQuery(keywords, booleans)} )'
+    terms = f'( {build_keywords_query(keywords, booleans)} )'
     scope = 'TITLE-ABS-KEY'
     view = '&view=standard'
     sort = '&sort=citedby_count'
@@ -19,7 +19,7 @@ def getDois(keywords, yearPublished, fields, booleans, apiKey):
     scopusBaseUrl = 'http://api.elsevier.com/content/search/scopus?'
 
     # retrieving publications DOIs
-    print(f"Retrieving DOIs for year {yearPublished}")
+    print(f"Retrieving DOIs for year {yearPublished}.")
     for field in tqdm(fields):
         
         errorCounter = 0

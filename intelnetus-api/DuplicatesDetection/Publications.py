@@ -1,61 +1,60 @@
 from fuzzywuzzy import fuzz
 
-def detectAuthorsDuplicates(connection, cursor):
+def get_publications_duplicates(connection, cursor):
 
     ids = []
-    orcidIds = []
-    lastNames = []
-    firstNames = []
-    subjectedAreas = []
-    affiliationHistory = []
+    dois = []
+    titles = []
+    abstracts = []
+    keywords = []
+    fields = []
     citationsCount = []
 
     primaryVariants = []
     secondaryVariants = []
 
-    query = 'SELECT ID FROM scopus_authors ORDER BY Last_Name;'
+    query = "SELECT ID FROM scopus_publications ORDER BY Title;"
     cursor.execute(query)
     for row in cursor:
         ids.append(row[0])
 
-    query = 'SELECT ORCID_ID FROM scopus_authors ORDER BY Last_Name;'
+    query = "SELECT DOI FROM scopus_publications ORDER BY Title;"
     cursor.execute(query)
     for row in cursor:
-        orcidIds.append(row[0])
+        dois.append(row[0])
 
-    query = 'SELECT First_Name FROM scopus_authors ORDER BY Last_Name;'
+    query = "SELECT Title FROM scopus_publications ORDER BY Title;"
     cursor.execute(query)
     for row in cursor:
-        firstNames.append(row[0])
+        titles.append(row[0])
 
-    query = 'SELECT Last_Name FROM scopus_authors ORDER BY Last_Name;'
+    query = "SELECT Abstract FROM scopus_publications ORDER BY Title;"
     cursor.execute(query)
     for row in cursor:
-        lastNames.append(row[0])
+        abstracts.append(row[0])
 
-    query = 'SELECT Fields_Of_Study FROM scopus_authors ORDER BY Last_Name;'
+    query = "SELECT Keywords FROM scopus_publications ORDER BY Title;"
     cursor.execute(query)
     for row in cursor:
-        subjectedAreas.append(row[0])
+        keywords.append(row[0])
 
-    query = 'SELECT Affiliations FROM scopus_authors ORDER BY Last_Name;'
+    query = "SELECT Fields FROM scopus_publications ORDER BY Title;"
     cursor.execute(query)
     for row in cursor:
-        affiliationHistory.append(row[0])
+        fields.append(row[0])
 
-    query = 'SELECT Citations_Count FROM scopus_authors ORDER BY Last_Name;'
+    query = "SELECT Citations_Count FROM scopus_publications ORDER BY Title;"
     cursor.execute(query)
     for row in cursor:
         citationsCount.append(row[0])
 
-    for i in range(len(ids) - 1):
-        for j in range(i + 1, len(ids)):
+    for i in range(len(ids)-1):
+        for j in range(i+1, len(ids)):
 
-            if (((fuzz.ratio(lastNames[i], lastNames[j]) > 90) & (fuzz.ratio(firstNames[i], firstNames[j]) > 90)) 
-                & (((orcidIds[i] is not None) & (orcidIds[j] is not None) & (orcidIds[i] == orcidIds[j])) 
-                | (fuzz.ratio(subjectedAreas[i], subjectedAreas[j]) > 90) & (fuzz.ratio(affiliationHistory[i], affiliationHistory[j]) > 90))):
+            if((fuzz.ratio(titles[i], titles[j]) > 85) & (fuzz.ratio(abstracts[i], abstracts[j]) > 85) 
+            & (fuzz.ratio(keywords[i], keywords[j]) > 85) & (fuzz.ratio(fields[i], fields[j]) > 85)):
 
-                if ((citationsCount[i] > citationsCount[j]) ):
+                if (citationsCount[i] > citationsCount[j]):
                     if((ids[i] in secondaryVariants) & (ids[j] not in secondaryVariants)):
                         index = secondaryVariants.index(ids[i])
                         primaryVariants.append(primaryVariants[index])
@@ -70,17 +69,17 @@ def detectAuthorsDuplicates(connection, cursor):
                         index = secondaryVariants.index(ids[j])
                         primaryVariants.append(primaryVariants[index])
                         secondaryVariants.append(ids[i])
-
+                    
                     elif(ids[i] not in secondaryVariants):
                         primaryVariants.append(ids[j])
                         secondaryVariants.append(ids[i])
-                      
+
             else:
                 break
 
     for i in range(len(primaryVariants)):
         try:
-            query = f"INSERT INTO scopus_authors_variants VALUES ('{primaryVariants[i]}', '{secondaryVariants[i]}');"
+            query = f"INSERT INTO scopus_publications_variants VALUES ('{primaryVariants[i]}', '{secondaryVariants[i]}');"
             cursor.execute(query)
             connection.commit()
         except:
